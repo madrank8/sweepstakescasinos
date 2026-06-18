@@ -1,6 +1,6 @@
 {
   "external_left_remote": [],
-  "failure_count": 7,
+  "failure_count": 8,
   "failures": {
     "https://sweepstakescasinoslist.com/sweepsreviews/": "HTTP 403",
     "https://sweepstakescasinoslist.com/sweepsreviews/how-we-rate.html": "HTTP 404",
@@ -8,7 +8,8 @@
     "https://sweepstakescasinoslist.com/sweepsreviews/jackpota-casino-review.html": "HTTP 404",
     "https://sweepstakescasinoslist.com/sweepsreviews/our-mission.html": "HTTP 404",
     "https://sweepstakescasinoslist.com/sweepsreviews/responsible-gaming.html": "HTTP 404",
-    "https://sweepstakescasinoslist.com/sweepsreviews/sweepico-review.html": "HTTP 404"
+    "https://sweepstakescasinoslist.com/sweepsreviews/sweepico-review.html": "HTTP 404",
+    "https://sweepstakescasinoslist.com/sweepstakes/jackpota-promo-code.html": "HTTP 404"
   },
   "fetched": {
     "https://fonts.googleapis.com/css2?family=Abril+Fatface&family=Nunito+Sans:wght@400;500;600;700;800;900&display=swap": {
@@ -1157,10 +1158,34 @@
       "local_path": "sweepstakescasinoslist-local/sweepsreviews/wow-vegas-review.html",
       "status": "200"
     },
+    "https://sweepstakescasinoslist.com/sweepstakes-casino/acebet-review.html": {
+      "content_type": "text/html",
+      "kind": "page",
+      "local_path": "sweepstakescasinoslist-local/sweepstakes-casino/acebet-review.html",
+      "status": "200"
+    },
+    "https://sweepstakescasinoslist.com/sweepstakes-casino/big-pirate-review.html": {
+      "content_type": "text/html",
+      "kind": "page",
+      "local_path": "sweepstakescasinoslist-local/sweepstakes-casino/big-pirate-review.html",
+      "status": "200"
+    },
+    "https://sweepstakescasinoslist.com/sweepstakes-casino/casino-click-review.html": {
+      "content_type": "text/html",
+      "kind": "page",
+      "local_path": "sweepstakescasinoslist-local/sweepstakes-casino/casino-click-review.html",
+      "status": "200"
+    },
     "https://sweepstakescasinoslist.com/sweepstakes-casino/contact.html": {
       "content_type": "text/html",
       "kind": "page",
       "local_path": "sweepstakescasinoslist-local/sweepstakes-casino/contact.html",
+      "status": "200"
+    },
+    "https://sweepstakescasinoslist.com/sweepstakes-casino/crown-coins-review.html": {
+      "content_type": "text/html",
+      "kind": "page",
+      "local_path": "sweepstakescasinoslist-local/sweepstakes-casino/crown-coins-review.html",
       "status": "200"
     },
     "https://sweepstakescasinoslist.com/sweepstakes-casino/dexyplay-review.html": {
@@ -1175,16 +1200,52 @@
       "local_path": "sweepstakescasinoslist-local/sweepstakes-casino/freespin-review.html",
       "status": "200"
     },
+    "https://sweepstakescasinoslist.com/sweepstakes-casino/hello-millions-review.html": {
+      "content_type": "text/html",
+      "kind": "page",
+      "local_path": "sweepstakescasinoslist-local/sweepstakes-casino/hello-millions-review.html",
+      "status": "200"
+    },
+    "https://sweepstakescasinoslist.com/sweepstakes-casino/high5-casino-review.html": {
+      "content_type": "text/html",
+      "kind": "page",
+      "local_path": "sweepstakescasinoslist-local/sweepstakes-casino/high5-casino-review.html",
+      "status": "200"
+    },
     "https://sweepstakescasinoslist.com/sweepstakes-casino/how-we-rate.html": {
       "content_type": "text/html",
       "kind": "page",
       "local_path": "sweepstakescasinoslist-local/sweepstakes-casino/how-we-rate.html",
       "status": "200"
     },
+    "https://sweepstakescasinoslist.com/sweepstakes-casino/jackpot-go-review.html": {
+      "content_type": "text/html",
+      "kind": "page",
+      "local_path": "sweepstakescasinoslist-local/sweepstakes-casino/jackpot-go-review.html",
+      "status": "200"
+    },
+    "https://sweepstakescasinoslist.com/sweepstakes-casino/jackpota-casino-review.html": {
+      "content_type": "text/html",
+      "kind": "page",
+      "local_path": "sweepstakescasinoslist-local/sweepstakes-casino/jackpota-casino-review.html",
+      "status": "200"
+    },
+    "https://sweepstakescasinoslist.com/sweepstakes-casino/jackpota-review.html": {
+      "content_type": "text/html",
+      "kind": "page",
+      "local_path": "sweepstakescasinoslist-local/sweepstakes-casino/jackpota-review.html",
+      "status": "200"
+    },
     "https://sweepstakescasinoslist.com/sweepstakes-casino/lucky-bunny-review.html": {
       "content_type": "text/html",
       "kind": "page",
       "local_path": "sweepstakescasinoslist-local/sweepstakes-casino/lucky-bunny-review.html",
+      "status": "200"
+    },
+    "https://sweepstakescasinoslist.com/sweepstakes-casino/mega-bonanza-review.html": {
+      "content_type": "text/html",
+      "kind": "page",
+      "local_path": "sweepstakescasinoslist-local/sweepstakes-casino/mega-bonanza-review.html",
       "status": "200"
     },
     "https://sweepstakescasinoslist.com/sweepstakes-casino/our-mission.html": {
@@ -1227,6 +1288,42 @@
       "content_type": "text/html",
       "kind": "page",
       "local_path": "sweepstakescasinoslist-local/sweepstakes-casino/rolla-casino-review.html",
+      "status": "200"
+    },
+    "https://sweepstakescasinoslist.com/sweepstakes-casino/spinblitz-review.html": {
+      "content_type": "text/html",
+      "kind": "page",
+      "local_path": "sweepstakescasinoslist-local/sweepstakes-casino/spinblitz-review.html",
+      "status": "200"
+    },
+    "https://sweepstakescasinoslist.com/sweepstakes-casino/spinfinite-review.html": {
+      "content_type": "text/html",
+      "kind": "page",
+      "local_path": "sweepstakescasinoslist-local/sweepstakes-casino/spinfinite-review.html",
+      "status": "200"
+    },
+    "https://sweepstakescasinoslist.com/sweepstakes-casino/splash-coins-review.html": {
+      "content_type": "text/html",
+      "kind": "page",
+      "local_path": "sweepstakescasinoslist-local/sweepstakes-casino/splash-coins-review.html",
+      "status": "200"
+    },
+    "https://sweepstakescasinoslist.com/sweepstakes-casino/spree-review.html": {
+      "content_type": "text/html",
+      "kind": "page",
+      "local_path": "sweepstakescasinoslist-local/sweepstakes-casino/spree-review.html",
+      "status": "200"
+    },
+    "https://sweepstakescasinoslist.com/sweepstakes-casino/sweepico-review.html": {
+      "content_type": "text/html",
+      "kind": "page",
+      "local_path": "sweepstakescasinoslist-local/sweepstakes-casino/sweepico-review.html",
+      "status": "200"
+    },
+    "https://sweepstakescasinoslist.com/sweepstakes-casino/sweet-sweeps-review.html": {
+      "content_type": "text/html",
+      "kind": "page",
+      "local_path": "sweepstakescasinoslist-local/sweepstakes-casino/sweet-sweeps-review.html",
       "status": "200"
     },
     "https://sweepstakescasinoslist.com/sweepstakes-casino/terms-of-use.html": {
@@ -1392,8 +1489,8 @@
       "status": "200"
     }
   },
-  "fetched_count": 230,
-  "generated_at": "2026-06-18T07:52:58Z",
+  "fetched_count": 246,
+  "generated_at": "2026-06-18T09:12:18Z",
   "local_aliases": {
     "sweepsreviews/how-we-rate.html": "../sweepstakes-casino/how-we-rate.html",
     "sweepsreviews/index.html": "../index.html#rankings",
