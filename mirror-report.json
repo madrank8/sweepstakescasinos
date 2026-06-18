@@ -1,0 +1,1407 @@
+{
+  "external_left_remote": [],
+  "failure_count": 7,
+  "failures": {
+    "https://sweepstakescasinoslist.com/sweepsreviews/": "HTTP 403",
+    "https://sweepstakescasinoslist.com/sweepsreviews/how-we-rate.html": "HTTP 404",
+    "https://sweepstakescasinoslist.com/sweepsreviews/jackpot-go-review.html": "HTTP 404",
+    "https://sweepstakescasinoslist.com/sweepsreviews/jackpota-casino-review.html": "HTTP 404",
+    "https://sweepstakescasinoslist.com/sweepsreviews/our-mission.html": "HTTP 404",
+    "https://sweepstakescasinoslist.com/sweepsreviews/responsible-gaming.html": "HTTP 404",
+    "https://sweepstakescasinoslist.com/sweepsreviews/sweepico-review.html": "HTTP 404"
+  },
+  "fetched": {
+    "https://fonts.googleapis.com/css2?family=Abril+Fatface&family=Nunito+Sans:wght@400;500;600;700;800;900&display=swap": {
+      "content_type": "text/css; charset=utf-8",
+      "kind": "css",
+      "local_path": "sweepstakescasinoslist-local/_external/fonts.googleapis.com/css2__q54b4f83810",
+      "status": "200"
+    },
+    "https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700;800;900&family=Barlow+Condensed:wght@700;800;900&display=swap": {
+      "content_type": "text/css; charset=utf-8",
+      "kind": "css",
+      "local_path": "sweepstakescasinoslist-local/_external/fonts.googleapis.com/css2__qbcde9b65af",
+      "status": "200"
+    },
+    "https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Bebas+Neue&display=swap": {
+      "content_type": "text/css; charset=utf-8",
+      "kind": "css",
+      "local_path": "sweepstakescasinoslist-local/_external/fonts.googleapis.com/css2__qdd38142166",
+      "status": "200"
+    },
+    "https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Sora:wght@700;800;900&display=swap": {
+      "content_type": "text/css; charset=utf-8",
+      "kind": "css",
+      "local_path": "sweepstakescasinoslist-local/_external/fonts.googleapis.com/css2__q2d05e36a1e",
+      "status": "200"
+    },
+    "https://fonts.googleapis.com/css2?family=Exo+2:wght@400;500;600;700;800;900&display=swap": {
+      "content_type": "text/css; charset=utf-8",
+      "kind": "css",
+      "local_path": "sweepstakescasinoslist-local/_external/fonts.googleapis.com/css2__q661036fa8e",
+      "status": "200"
+    },
+    "https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700;800;900&family=Outfit:wght@700;800;900&display=swap": {
+      "content_type": "text/css; charset=utf-8",
+      "kind": "css",
+      "local_path": "sweepstakescasinoslist-local/_external/fonts.googleapis.com/css2__qbbc810a35f",
+      "status": "200"
+    },
+    "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Lexend+Deca:wght@700;800;900&display=swap": {
+      "content_type": "text/css; charset=utf-8",
+      "kind": "css",
+      "local_path": "sweepstakescasinoslist-local/_external/fonts.googleapis.com/css2__q9873ad042a",
+      "status": "200"
+    },
+    "https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Unbounded:wght@700;800;900&display=swap": {
+      "content_type": "text/css; charset=utf-8",
+      "kind": "css",
+      "local_path": "sweepstakescasinoslist-local/_external/fonts.googleapis.com/css2__q1e9dafd313",
+      "status": "200"
+    },
+    "https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,700;0,800;0,900;1,800&family=Cabin:wght@400;500;600;700&display=swap": {
+      "content_type": "text/css; charset=utf-8",
+      "kind": "css",
+      "local_path": "sweepstakescasinoslist-local/_external/fonts.googleapis.com/css2__q293846ca9c",
+      "status": "200"
+    },
+    "https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Nunito+Sans:wght@400;600;700;800&display=swap": {
+      "content_type": "text/css; charset=utf-8",
+      "kind": "css",
+      "local_path": "sweepstakescasinoslist-local/_external/fonts.googleapis.com/css2__qfdfae1d336",
+      "status": "200"
+    },
+    "https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&display=swap": {
+      "content_type": "text/css; charset=utf-8",
+      "kind": "css",
+      "local_path": "sweepstakescasinoslist-local/_external/fonts.googleapis.com/css2__qc25e4dfcf6",
+      "status": "200"
+    },
+    "https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Fraunces:ital,opsz,wght@0,9..144,700;0,9..144,800;0,9..144,900;1,9..144,700&display=swap": {
+      "content_type": "text/css; charset=utf-8",
+      "kind": "css",
+      "local_path": "sweepstakescasinoslist-local/_external/fonts.googleapis.com/css2__q7c2395e14e",
+      "status": "200"
+    },
+    "https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap": {
+      "content_type": "text/css; charset=utf-8",
+      "kind": "css",
+      "local_path": "sweepstakescasinoslist-local/_external/fonts.googleapis.com/css2__q82302da047",
+      "status": "200"
+    },
+    "https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Cormorant+Garamond:wght@700;800&display=swap": {
+      "content_type": "text/css; charset=utf-8",
+      "kind": "css",
+      "local_path": "sweepstakescasinoslist-local/_external/fonts.googleapis.com/css2__q584145233f",
+      "status": "200"
+    },
+    "https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800;900&display=swap": {
+      "content_type": "text/css; charset=utf-8",
+      "kind": "css",
+      "local_path": "sweepstakescasinoslist-local/_external/fonts.googleapis.com/css2__q52b23be40d",
+      "status": "200"
+    },
+    "https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800;900&family=DM+Sans:wght@400;500;600;700&display=swap": {
+      "content_type": "text/css; charset=utf-8",
+      "kind": "css",
+      "local_path": "sweepstakescasinoslist-local/_external/fonts.googleapis.com/css2__qba979b498c",
+      "status": "200"
+    },
+    "https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800;900&family=DM+Sans:wght@400;500;600;700&display=swap": {
+      "content_type": "text/css; charset=utf-8",
+      "kind": "css",
+      "local_path": "sweepstakescasinoslist-local/_external/fonts.googleapis.com/css2__qea27298324",
+      "status": "200"
+    },
+    "https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Syne:wght@700;800&display=swap": {
+      "content_type": "text/css; charset=utf-8",
+      "kind": "css",
+      "local_path": "sweepstakescasinoslist-local/_external/fonts.googleapis.com/css2__qfa6da1a809",
+      "status": "200"
+    },
+    "https://fonts.gstatic.com/s/abrilfatface/v25/zOL64pLDlL1D99S8g8PtiKchq-dmjcDidBc.woff2": {
+      "content_type": "font/woff2",
+      "kind": "asset",
+      "local_path": "sweepstakescasinoslist-local/_external/fonts.gstatic.com/s/abrilfatface/v25/zOL64pLDlL1D99S8g8PtiKchq-dmjcDidBc.woff2",
+      "status": "200"
+    },
+    "https://fonts.gstatic.com/s/abrilfatface/v25/zOL64pLDlL1D99S8g8PtiKchq-lmjcDidBeT5g.woff2": {
+      "content_type": "font/woff2",
+      "kind": "asset",
+      "local_path": "sweepstakescasinoslist-local/_external/fonts.gstatic.com/s/abrilfatface/v25/zOL64pLDlL1D99S8g8PtiKchq-lmjcDidBeT5g.woff2",
+      "status": "200"
+    },
+    "https://fonts.gstatic.com/s/barlow/v13/7cHpv4kjgoGqM7E_A8s5ynghnQci.woff2": {
+      "content_type": "font/woff2",
+      "kind": "asset",
+      "local_path": "sweepstakescasinoslist-local/_external/fonts.gstatic.com/s/barlow/v13/7cHpv4kjgoGqM7E_A8s5ynghnQci.woff2",
+      "status": "200"
+    },
+    "https://fonts.gstatic.com/s/barlow/v13/7cHpv4kjgoGqM7E_Ass5ynghnQci.woff2": {
+      "content_type": "font/woff2",
+      "kind": "asset",
+      "local_path": "sweepstakescasinoslist-local/_external/fonts.gstatic.com/s/barlow/v13/7cHpv4kjgoGqM7E_Ass5ynghnQci.woff2",
+      "status": "200"
+    },
+    "https://fonts.gstatic.com/s/barlow/v13/7cHpv4kjgoGqM7E_DMs5ynghnQ.woff2": {
+      "content_type": "font/woff2",
+      "kind": "asset",
+      "local_path": "sweepstakescasinoslist-local/_external/fonts.gstatic.com/s/barlow/v13/7cHpv4kjgoGqM7E_DMs5ynghnQ.woff2",
+      "status": "200"
+    },
+    "https://fonts.gstatic.com/s/barlow/v13/7cHqv4kjgoGqM7E30-8s51ostz0rdg.woff2": {
+      "content_type": "font/woff2",
+      "kind": "asset",
+      "local_path": "sweepstakescasinoslist-local/_external/fonts.gstatic.com/s/barlow/v13/7cHqv4kjgoGqM7E30-8s51ostz0rdg.woff2",
+      "status": "200"
+    },
+    "https://fonts.gstatic.com/s/barlow/v13/7cHqv4kjgoGqM7E30-8s6Fostz0rdom9.woff2": {
+      "content_type": "font/woff2",
+      "kind": "asset",
+      "local_path": "sweepstakescasinoslist-local/_external/fonts.gstatic.com/s/barlow/v13/7cHqv4kjgoGqM7E30-8s6Fostz0rdom9.woff2",
+      "status": "200"
+    },
+    "https://fonts.gstatic.com/s/barlow/v13/7cHqv4kjgoGqM7E30-8s6Vostz0rdom9.woff2": {
+      "content_type": "font/woff2",
+      "kind": "asset",
+      "local_path": "sweepstakescasinoslist-local/_external/fonts.gstatic.com/s/barlow/v13/7cHqv4kjgoGqM7E30-8s6Vostz0rdom9.woff2",
+      "status": "200"
+    },
+    "https://fonts.gstatic.com/s/barlow/v13/7cHqv4kjgoGqM7E3_-gs51ostz0rdg.woff2": {
+      "content_type": "font/woff2",
+      "kind": "asset",
+      "local_path": "sweepstakescasinoslist-local/_external/fonts.gstatic.com/s/barlow/v13/7cHqv4kjgoGqM7E3_-gs51ostz0rdg.woff2",
+      "status": "200"
+    },
+    "https://fonts.gstatic.com/s/barlow/v13/7cHqv4kjgoGqM7E3_-gs6Fostz0rdom9.woff2": {
+      "content_type": "font/woff2",
+      "kind": "asset",
+      "local_path": "sweepstakescasinoslist-local/_external/fonts.gstatic.com/s/barlow/v13/7cHqv4kjgoGqM7E3_-gs6Fostz0rdom9.woff2",
+      "status": "200"
+    },
+    "https://fonts.gstatic.com/s/barlow/v13/7cHqv4kjgoGqM7E3_-gs6Vostz0rdom9.woff2": {
+      "content_type": "font/woff2",
+      "kind": "asset",
+      "local_path": "sweepstakescasinoslist-local/_external/fonts.gstatic.com/s/barlow/v13/7cHqv4kjgoGqM7E3_-gs6Vostz0rdom9.woff2",
+      "status": "200"
+    },
+    "https://fonts.gstatic.com/s/barlow/v13/7cHqv4kjgoGqM7E3j-ws51ostz0rdg.woff2": {
+      "content_type": "font/woff2",
+      "kind": "asset",
+      "local_path": "sweepstakescasinoslist-local/_external/fonts.gstatic.com/s/barlow/v13/7cHqv4kjgoGqM7E3j-ws51ostz0rdg.woff2",
+      "status": "200"
+    },
+    "https://fonts.gstatic.com/s/barlow/v13/7cHqv4kjgoGqM7E3j-ws6Fostz0rdom9.woff2": {
+      "content_type": "font/woff2",
+      "kind": "asset",
+      "local_path": "sweepstakescasinoslist-local/_external/fonts.gstatic.com/s/barlow/v13/7cHqv4kjgoGqM7E3j-ws6Fostz0rdom9.woff2",
+      "status": "200"
+    },
+    "https://fonts.gstatic.com/s/barlow/v13/7cHqv4kjgoGqM7E3j-ws6Vostz0rdom9.woff2": {
+      "content_type": "font/woff2",
+      "kind": "asset",
+      "local_path": "sweepstakescasinoslist-local/_external/fonts.gstatic.com/s/barlow/v13/7cHqv4kjgoGqM7E3j-ws6Vostz0rdom9.woff2",
+      "status": "200"
+    },
+    "https://fonts.gstatic.com/s/barlow/v13/7cHqv4kjgoGqM7E3q-0s51ostz0rdg.woff2": {
+      "content_type": "font/woff2",
+      "kind": "asset",
+      "local_path": "sweepstakescasinoslist-local/_external/fonts.gstatic.com/s/barlow/v13/7cHqv4kjgoGqM7E3q-0s51ostz0rdg.woff2",
+      "status": "200"
+    },
+    "https://fonts.gstatic.com/s/barlow/v13/7cHqv4kjgoGqM7E3q-0s6Fostz0rdom9.woff2": {
+      "content_type": "font/woff2",
+      "kind": "asset",
+      "local_path": "sweepstakescasinoslist-local/_external/fonts.gstatic.com/s/barlow/v13/7cHqv4kjgoGqM7E3q-0s6Fostz0rdom9.woff2",
+      "status": "200"
+    },
+    "https://fonts.gstatic.com/s/barlow/v13/7cHqv4kjgoGqM7E3q-0s6Vostz0rdom9.woff2": {
+      "content_type": "font/woff2",
+      "kind": "asset",
+      "local_path": "sweepstakescasinoslist-local/_external/fonts.gstatic.com/s/barlow/v13/7cHqv4kjgoGqM7E3q-0s6Vostz0rdom9.woff2",
+      "status": "200"
+    },
+    "https://fonts.gstatic.com/s/barlow/v13/7cHqv4kjgoGqM7E3t-4s51ostz0rdg.woff2": {
+      "content_type": "font/woff2",
+      "kind": "asset",
+      "local_path": "sweepstakescasinoslist-local/_external/fonts.gstatic.com/s/barlow/v13/7cHqv4kjgoGqM7E3t-4s51ostz0rdg.woff2",
+      "status": "200"
+    },
+    "https://fonts.gstatic.com/s/barlow/v13/7cHqv4kjgoGqM7E3t-4s6Fostz0rdom9.woff2": {
+      "content_type": "font/woff2",
+      "kind": "asset",
+      "local_path": "sweepstakescasinoslist-local/_external/fonts.gstatic.com/s/barlow/v13/7cHqv4kjgoGqM7E3t-4s6Fostz0rdom9.woff2",
+      "status": "200"
+    },
+    "https://fonts.gstatic.com/s/barlow/v13/7cHqv4kjgoGqM7E3t-4s6Vostz0rdom9.woff2": {
+      "content_type": "font/woff2",
+      "kind": "asset",
+      "local_path": "sweepstakescasinoslist-local/_external/fonts.gstatic.com/s/barlow/v13/7cHqv4kjgoGqM7E3t-4s6Vostz0rdom9.woff2",
+      "status": "200"
+    },
+    "https://fonts.gstatic.com/s/barlowcondensed/v13/HTxwL3I-JCGChYJ8VI-L6OO_au7B45L0z3bWuYMBYro.woff2": {
+      "content_type": "font/woff2",
+      "kind": "asset",
+      "local_path": "sweepstakescasinoslist-local/_external/fonts.gstatic.com/s/barlowcondensed/v13/HTxwL3I-JCGChYJ8VI-L6OO_au7B45L0z3bWuYMBYro.woff2",
+      "status": "200"
+    },
+    "https://fonts.gstatic.com/s/barlowcondensed/v13/HTxwL3I-JCGChYJ8VI-L6OO_au7B45L0z3jWuYMBYrp0xg.woff2": {
+      "content_type": "font/woff2",
+      "kind": "asset",
+      "local_path": "sweepstakescasinoslist-local/_external/fonts.gstatic.com/s/barlowcondensed/v13/HTxwL3I-JCGChYJ8VI-L6OO_au7B45L0z3jWuYMBYrp0xg.woff2",
+      "status": "200"
+    },
+    "https://fonts.gstatic.com/s/barlowcondensed/v13/HTxwL3I-JCGChYJ8VI-L6OO_au7B45L0z3nWuYMBYrp0xg.woff2": {
+      "content_type": "font/woff2",
+      "kind": "asset",
+      "local_path": "sweepstakescasinoslist-local/_external/fonts.gstatic.com/s/barlowcondensed/v13/HTxwL3I-JCGChYJ8VI-L6OO_au7B45L0z3nWuYMBYrp0xg.woff2",
+      "status": "200"
+    },
+    "https://fonts.gstatic.com/s/barlowcondensed/v13/HTxwL3I-JCGChYJ8VI-L6OO_au7B46r2z3bWuYMBYro.woff2": {
+      "content_type": "font/woff2",
+      "kind": "asset",
+      "local_path": "sweepstakescasinoslist-local/_external/fonts.gstatic.com/s/barlowcondensed/v13/HTxwL3I-JCGChYJ8VI-L6OO_au7B46r2z3bWuYMBYro.woff2",
+      "status": "200"
+    },
+    "https://fonts.gstatic.com/s/barlowcondensed/v13/HTxwL3I-JCGChYJ8VI-L6OO_au7B46r2z3jWuYMBYrp0xg.woff2": {
+      "content_type": "font/woff2",
+      "kind": "asset",
+      "local_path": "sweepstakescasinoslist-local/_external/fonts.gstatic.com/s/barlowcondensed/v13/HTxwL3I-JCGChYJ8VI-L6OO_au7B46r2z3jWuYMBYrp0xg.woff2",
+      "status": "200"
+    },
+    "https://fonts.gstatic.com/s/barlowcondensed/v13/HTxwL3I-JCGChYJ8VI-L6OO_au7B46r2z3nWuYMBYrp0xg.woff2": {
+      "content_type": "font/woff2",
+      "kind": "asset",
+      "local_path": "sweepstakescasinoslist-local/_external/fonts.gstatic.com/s/barlowcondensed/v13/HTxwL3I-JCGChYJ8VI-L6OO_au7B46r2z3nWuYMBYrp0xg.woff2",
+      "status": "200"
+    },
+    "https://fonts.gstatic.com/s/barlowcondensed/v13/HTxwL3I-JCGChYJ8VI-L6OO_au7B47b1z3bWuYMBYro.woff2": {
+      "content_type": "font/woff2",
+      "kind": "asset",
+      "local_path": "sweepstakescasinoslist-local/_external/fonts.gstatic.com/s/barlowcondensed/v13/HTxwL3I-JCGChYJ8VI-L6OO_au7B47b1z3bWuYMBYro.woff2",
+      "status": "200"
+    },
+    "https://fonts.gstatic.com/s/barlowcondensed/v13/HTxwL3I-JCGChYJ8VI-L6OO_au7B47b1z3jWuYMBYrp0xg.woff2": {
+      "content_type": "font/woff2",
+      "kind": "asset",
+      "local_path": "sweepstakescasinoslist-local/_external/fonts.gstatic.com/s/barlowcondensed/v13/HTxwL3I-JCGChYJ8VI-L6OO_au7B47b1z3jWuYMBYrp0xg.woff2",
+      "status": "200"
+    },
+    "https://fonts.gstatic.com/s/barlowcondensed/v13/HTxwL3I-JCGChYJ8VI-L6OO_au7B47b1z3nWuYMBYrp0xg.woff2": {
+      "content_type": "font/woff2",
+      "kind": "asset",
+      "local_path": "sweepstakescasinoslist-local/_external/fonts.gstatic.com/s/barlowcondensed/v13/HTxwL3I-JCGChYJ8VI-L6OO_au7B47b1z3nWuYMBYrp0xg.woff2",
+      "status": "200"
+    },
+    "https://fonts.gstatic.com/s/bebasneue/v16/JTUSjIg69CK48gW7PXoo9WdhyyTh89ZNpQ.woff2": {
+      "content_type": "font/woff2",
+      "kind": "asset",
+      "local_path": "sweepstakescasinoslist-local/_external/fonts.gstatic.com/s/bebasneue/v16/JTUSjIg69CK48gW7PXoo9WdhyyTh89ZNpQ.woff2",
+      "status": "200"
+    },
+    "https://fonts.gstatic.com/s/bebasneue/v16/JTUSjIg69CK48gW7PXoo9WlhyyTh89Y.woff2": {
+      "content_type": "font/woff2",
+      "kind": "asset",
+      "local_path": "sweepstakescasinoslist-local/_external/fonts.gstatic.com/s/bebasneue/v16/JTUSjIg69CK48gW7PXoo9WlhyyTh89Y.woff2",
+      "status": "200"
+    },
+    "https://fonts.gstatic.com/s/cabin/v35/u-4i0qWljRw-PfU81xCKCpdpbgZJl6Xvp9nsF3-OA6Fw.woff2": {
+      "content_type": "font/woff2",
+      "kind": "asset",
+      "local_path": "sweepstakescasinoslist-local/_external/fonts.gstatic.com/s/cabin/v35/u-4i0qWljRw-PfU81xCKCpdpbgZJl6Xvp9nsF3-OA6Fw.woff2",
+      "status": "200"
+    },
+    "https://fonts.gstatic.com/s/cabin/v35/u-4i0qWljRw-PfU81xCKCpdpbgZJl6XvptnsF3-OA6Fw.woff2": {
+      "content_type": "font/woff2",
+      "kind": "asset",
+      "local_path": "sweepstakescasinoslist-local/_external/fonts.gstatic.com/s/cabin/v35/u-4i0qWljRw-PfU81xCKCpdpbgZJl6XvptnsF3-OA6Fw.woff2",
+      "status": "200"
+    },
+    "https://fonts.gstatic.com/s/cabin/v35/u-4i0qWljRw-PfU81xCKCpdpbgZJl6XvqdnsF3-OAw.woff2": {
+      "content_type": "font/woff2",
+      "kind": "asset",
+      "local_path": "sweepstakescasinoslist-local/_external/fonts.gstatic.com/s/cabin/v35/u-4i0qWljRw-PfU81xCKCpdpbgZJl6XvqdnsF3-OAw.woff2",
+      "status": "200"
+    },
+    "https://fonts.gstatic.com/s/cormorantgaramond/v21/co3umX5slCNuHLi8bLeY9MK7whWMhyjypVO7abI26QOD_hg9KnDOitk9IfqxUYT9.woff2": {
+      "content_type": "font/woff2",
+      "kind": "asset",
+      "local_path": "sweepstakescasinoslist-local/_external/fonts.gstatic.com/s/cormorantgaramond/v21/co3umX5slCNuHLi8bLeY9MK7whWMhyjypVO7abI26QOD_hg9KnDOitk9IfqxUYT9.woff2",
+      "status": "200"
+    },
+    "https://fonts.gstatic.com/s/cormorantgaramond/v21/co3umX5slCNuHLi8bLeY9MK7whWMhyjypVO7abI26QOD_hg9KnTOitk9IfqxUQ.woff2": {
+      "content_type": "font/woff2",
+      "kind": "asset",
+      "local_path": "sweepstakescasinoslist-local/_external/fonts.gstatic.com/s/cormorantgaramond/v21/co3umX5slCNuHLi8bLeY9MK7whWMhyjypVO7abI26QOD_hg9KnTOitk9IfqxUQ.woff2",
+      "status": "200"
+    },
+    "https://fonts.gstatic.com/s/cormorantgaramond/v21/co3umX5slCNuHLi8bLeY9MK7whWMhyjypVO7abI26QOD_hg9KnnOitk9IfqxUYT9.woff2": {
+      "content_type": "font/woff2",
+      "kind": "asset",
+      "local_path": "sweepstakescasinoslist-local/_external/fonts.gstatic.com/s/cormorantgaramond/v21/co3umX5slCNuHLi8bLeY9MK7whWMhyjypVO7abI26QOD_hg9KnnOitk9IfqxUYT9.woff2",
+      "status": "200"
+    },
+    "https://fonts.gstatic.com/s/cormorantgaramond/v21/co3umX5slCNuHLi8bLeY9MK7whWMhyjypVO7abI26QOD_hg9KnrOitk9IfqxUYT9.woff2": {
+      "content_type": "font/woff2",
+      "kind": "asset",
+      "local_path": "sweepstakescasinoslist-local/_external/fonts.gstatic.com/s/cormorantgaramond/v21/co3umX5slCNuHLi8bLeY9MK7whWMhyjypVO7abI26QOD_hg9KnrOitk9IfqxUYT9.woff2",
+      "status": "200"
+    },
+    "https://fonts.gstatic.com/s/cormorantgaramond/v21/co3umX5slCNuHLi8bLeY9MK7whWMhyjypVO7abI26QOD_hg9KnvOitk9IfqxUYT9.woff2": {
+      "content_type": "font/woff2",
+      "kind": "asset",
+      "local_path": "sweepstakescasinoslist-local/_external/fonts.gstatic.com/s/cormorantgaramond/v21/co3umX5slCNuHLi8bLeY9MK7whWMhyjypVO7abI26QOD_hg9KnvOitk9IfqxUYT9.woff2",
+      "status": "200"
+    },
+    "https://fonts.gstatic.com/s/dmsans/v17/rP2Yp2ywxg089UriI5-g4vlH9VoD8Cmcqbu0-K6z9mXg.woff2": {
+      "content_type": "font/woff2",
+      "kind": "asset",
+      "local_path": "sweepstakescasinoslist-local/_external/fonts.gstatic.com/s/dmsans/v17/rP2Yp2ywxg089UriI5-g4vlH9VoD8Cmcqbu0-K6z9mXg.woff2",
+      "status": "200"
+    },
+    "https://fonts.gstatic.com/s/dmsans/v17/rP2Yp2ywxg089UriI5-g4vlH9VoD8Cmcqbu6-K6z9mXgjU0.woff2": {
+      "content_type": "font/woff2",
+      "kind": "asset",
+      "local_path": "sweepstakescasinoslist-local/_external/fonts.gstatic.com/s/dmsans/v17/rP2Yp2ywxg089UriI5-g4vlH9VoD8Cmcqbu6-K6z9mXgjU0.woff2",
+      "status": "200"
+    },
+    "https://fonts.gstatic.com/s/exo2/v26/7cHmv4okm5zmbtYlK-4W4nIppT4.woff2": {
+      "content_type": "font/woff2",
+      "kind": "asset",
+      "local_path": "sweepstakescasinoslist-local/_external/fonts.gstatic.com/s/exo2/v26/7cHmv4okm5zmbtYlK-4W4nIppT4.woff2",
+      "status": "200"
+    },
+    "https://fonts.gstatic.com/s/exo2/v26/7cHmv4okm5zmbtYmK-4W4nIppT4.woff2": {
+      "content_type": "font/woff2",
+      "kind": "asset",
+      "local_path": "sweepstakescasinoslist-local/_external/fonts.gstatic.com/s/exo2/v26/7cHmv4okm5zmbtYmK-4W4nIppT4.woff2",
+      "status": "200"
+    },
+    "https://fonts.gstatic.com/s/exo2/v26/7cHmv4okm5zmbtYnK-4W4nIppT4.woff2": {
+      "content_type": "font/woff2",
+      "kind": "asset",
+      "local_path": "sweepstakescasinoslist-local/_external/fonts.gstatic.com/s/exo2/v26/7cHmv4okm5zmbtYnK-4W4nIppT4.woff2",
+      "status": "200"
+    },
+    "https://fonts.gstatic.com/s/exo2/v26/7cHmv4okm5zmbtYoK-4W4nIp.woff2": {
+      "content_type": "font/woff2",
+      "kind": "asset",
+      "local_path": "sweepstakescasinoslist-local/_external/fonts.gstatic.com/s/exo2/v26/7cHmv4okm5zmbtYoK-4W4nIp.woff2",
+      "status": "200"
+    },
+    "https://fonts.gstatic.com/s/exo2/v26/7cHmv4okm5zmbtYsK-4W4nIppT4.woff2": {
+      "content_type": "font/woff2",
+      "kind": "asset",
+      "local_path": "sweepstakescasinoslist-local/_external/fonts.gstatic.com/s/exo2/v26/7cHmv4okm5zmbtYsK-4W4nIppT4.woff2",
+      "status": "200"
+    },
+    "https://fonts.gstatic.com/s/figtree/v9/_Xms-HUzqDCFdgfMm4S9DaRvzig.woff2": {
+      "content_type": "font/woff2",
+      "kind": "asset",
+      "local_path": "sweepstakescasinoslist-local/_external/fonts.gstatic.com/s/figtree/v9/_Xms-HUzqDCFdgfMm4S9DaRvzig.woff2",
+      "status": "200"
+    },
+    "https://fonts.gstatic.com/s/figtree/v9/_Xms-HUzqDCFdgfMm4q9DaRvziissg.woff2": {
+      "content_type": "font/woff2",
+      "kind": "asset",
+      "local_path": "sweepstakescasinoslist-local/_external/fonts.gstatic.com/s/figtree/v9/_Xms-HUzqDCFdgfMm4q9DaRvziissg.woff2",
+      "status": "200"
+    },
+    "https://fonts.gstatic.com/s/fraunces/v38/6NU78FyLNQOQZAnv9bYEvDiIdE9Ea92uemAk_WBq8U_9v0c2Wa0KxC9TeP2Xz5c.woff2": {
+      "content_type": "font/woff2",
+      "kind": "asset",
+      "local_path": "sweepstakescasinoslist-local/_external/fonts.gstatic.com/s/fraunces/v38/6NU78FyLNQOQZAnv9bYEvDiIdE9Ea92uemAk_WBq8U_9v0c2Wa0KxC9TeP2Xz5c.woff2",
+      "status": "200"
+    },
+    "https://fonts.gstatic.com/s/fraunces/v38/6NU78FyLNQOQZAnv9bYEvDiIdE9Ea92uemAk_WBq8U_9v0c2Wa0KxCBTeP2Xz5fU8w.woff2": {
+      "content_type": "font/woff2",
+      "kind": "asset",
+      "local_path": "sweepstakescasinoslist-local/_external/fonts.gstatic.com/s/fraunces/v38/6NU78FyLNQOQZAnv9bYEvDiIdE9Ea92uemAk_WBq8U_9v0c2Wa0KxCBTeP2Xz5fU8w.woff2",
+      "status": "200"
+    },
+    "https://fonts.gstatic.com/s/fraunces/v38/6NU78FyLNQOQZAnv9bYEvDiIdE9Ea92uemAk_WBq8U_9v0c2Wa0KxCFTeP2Xz5fU8w.woff2": {
+      "content_type": "font/woff2",
+      "kind": "asset",
+      "local_path": "sweepstakescasinoslist-local/_external/fonts.gstatic.com/s/fraunces/v38/6NU78FyLNQOQZAnv9bYEvDiIdE9Ea92uemAk_WBq8U_9v0c2Wa0KxCFTeP2Xz5fU8w.woff2",
+      "status": "200"
+    },
+    "https://fonts.gstatic.com/s/fraunces/v38/6NUs8FyLNQOQZAnv9ZwNjucMHVn85Ni7emAe9lKqZTnbB-gzTK0K1ChJdt9hFwpX9W37lrh4mv0iQublWII.woff2": {
+      "content_type": "font/woff2",
+      "kind": "asset",
+      "local_path": "sweepstakescasinoslist-local/_external/fonts.gstatic.com/s/fraunces/v38/6NUs8FyLNQOQZAnv9ZwNjucMHVn85Ni7emAe9lKqZTnbB-gzTK0K1ChJdt9hFwpX9W37lrh4mv0iQublWII.woff2",
+      "status": "200"
+    },
+    "https://fonts.gstatic.com/s/fraunces/v38/6NUs8FyLNQOQZAnv9ZwNjucMHVn85Ni7emAe9lKqZTnbB-gzTK0K1ChJdt9hFwpX9W37lrh4mvIiQublWIIkfg.woff2": {
+      "content_type": "font/woff2",
+      "kind": "asset",
+      "local_path": "sweepstakescasinoslist-local/_external/fonts.gstatic.com/s/fraunces/v38/6NUs8FyLNQOQZAnv9ZwNjucMHVn85Ni7emAe9lKqZTnbB-gzTK0K1ChJdt9hFwpX9W37lrh4mvIiQublWIIkfg.woff2",
+      "status": "200"
+    },
+    "https://fonts.gstatic.com/s/fraunces/v38/6NUs8FyLNQOQZAnv9ZwNjucMHVn85Ni7emAe9lKqZTnbB-gzTK0K1ChJdt9hFwpX9W37lrh4mvMiQublWIIkfg.woff2": {
+      "content_type": "font/woff2",
+      "kind": "asset",
+      "local_path": "sweepstakescasinoslist-local/_external/fonts.gstatic.com/s/fraunces/v38/6NUs8FyLNQOQZAnv9ZwNjucMHVn85Ni7emAe9lKqZTnbB-gzTK0K1ChJdt9hFwpX9W37lrh4mvMiQublWIIkfg.woff2",
+      "status": "200"
+    },
+    "https://fonts.gstatic.com/s/inter/v20/UcC73FwrK3iLTeHuS_nVMrMxCp50SjIa0ZL7W0Q5n-wU.woff2": {
+      "content_type": "font/woff2",
+      "kind": "asset",
+      "local_path": "sweepstakescasinoslist-local/_external/fonts.gstatic.com/s/inter/v20/UcC73FwrK3iLTeHuS_nVMrMxCp50SjIa0ZL7W0Q5n-wU.woff2",
+      "status": "200"
+    },
+    "https://fonts.gstatic.com/s/inter/v20/UcC73FwrK3iLTeHuS_nVMrMxCp50SjIa1ZL7W0Q5nw.woff2": {
+      "content_type": "font/woff2",
+      "kind": "asset",
+      "local_path": "sweepstakescasinoslist-local/_external/fonts.gstatic.com/s/inter/v20/UcC73FwrK3iLTeHuS_nVMrMxCp50SjIa1ZL7W0Q5nw.woff2",
+      "status": "200"
+    },
+    "https://fonts.gstatic.com/s/inter/v20/UcC73FwrK3iLTeHuS_nVMrMxCp50SjIa1pL7W0Q5n-wU.woff2": {
+      "content_type": "font/woff2",
+      "kind": "asset",
+      "local_path": "sweepstakescasinoslist-local/_external/fonts.gstatic.com/s/inter/v20/UcC73FwrK3iLTeHuS_nVMrMxCp50SjIa1pL7W0Q5n-wU.woff2",
+      "status": "200"
+    },
+    "https://fonts.gstatic.com/s/inter/v20/UcC73FwrK3iLTeHuS_nVMrMxCp50SjIa25L7W0Q5n-wU.woff2": {
+      "content_type": "font/woff2",
+      "kind": "asset",
+      "local_path": "sweepstakescasinoslist-local/_external/fonts.gstatic.com/s/inter/v20/UcC73FwrK3iLTeHuS_nVMrMxCp50SjIa25L7W0Q5n-wU.woff2",
+      "status": "200"
+    },
+    "https://fonts.gstatic.com/s/inter/v20/UcC73FwrK3iLTeHuS_nVMrMxCp50SjIa2JL7W0Q5n-wU.woff2": {
+      "content_type": "font/woff2",
+      "kind": "asset",
+      "local_path": "sweepstakescasinoslist-local/_external/fonts.gstatic.com/s/inter/v20/UcC73FwrK3iLTeHuS_nVMrMxCp50SjIa2JL7W0Q5n-wU.woff2",
+      "status": "200"
+    },
+    "https://fonts.gstatic.com/s/inter/v20/UcC73FwrK3iLTeHuS_nVMrMxCp50SjIa2ZL7W0Q5n-wU.woff2": {
+      "content_type": "font/woff2",
+      "kind": "asset",
+      "local_path": "sweepstakescasinoslist-local/_external/fonts.gstatic.com/s/inter/v20/UcC73FwrK3iLTeHuS_nVMrMxCp50SjIa2ZL7W0Q5n-wU.woff2",
+      "status": "200"
+    },
+    "https://fonts.gstatic.com/s/inter/v20/UcC73FwrK3iLTeHuS_nVMrMxCp50SjIa2pL7W0Q5n-wU.woff2": {
+      "content_type": "font/woff2",
+      "kind": "asset",
+      "local_path": "sweepstakescasinoslist-local/_external/fonts.gstatic.com/s/inter/v20/UcC73FwrK3iLTeHuS_nVMrMxCp50SjIa2pL7W0Q5n-wU.woff2",
+      "status": "200"
+    },
+    "https://fonts.gstatic.com/s/lexenddeca/v25/K2F1fZFYk-dHSE0UPPuwQ5qnJy_YZ2ON.woff2": {
+      "content_type": "font/woff2",
+      "kind": "asset",
+      "local_path": "sweepstakescasinoslist-local/_external/fonts.gstatic.com/s/lexenddeca/v25/K2F1fZFYk-dHSE0UPPuwQ5qnJy_YZ2ON.woff2",
+      "status": "200"
+    },
+    "https://fonts.gstatic.com/s/lexenddeca/v25/K2F1fZFYk-dHSE0UPPuwQ5qoJy_YZ2ONtuQ.woff2": {
+      "content_type": "font/woff2",
+      "kind": "asset",
+      "local_path": "sweepstakescasinoslist-local/_external/fonts.gstatic.com/s/lexenddeca/v25/K2F1fZFYk-dHSE0UPPuwQ5qoJy_YZ2ONtuQ.woff2",
+      "status": "200"
+    },
+    "https://fonts.gstatic.com/s/lexenddeca/v25/K2F1fZFYk-dHSE0UPPuwQ5qpJy_YZ2ONtuQ.woff2": {
+      "content_type": "font/woff2",
+      "kind": "asset",
+      "local_path": "sweepstakescasinoslist-local/_external/fonts.gstatic.com/s/lexenddeca/v25/K2F1fZFYk-dHSE0UPPuwQ5qpJy_YZ2ONtuQ.woff2",
+      "status": "200"
+    },
+    "https://fonts.gstatic.com/s/manrope/v20/xn7gYHE41ni1AdIRggOxSvfedN62Zw.woff2": {
+      "content_type": "font/woff2",
+      "kind": "asset",
+      "local_path": "sweepstakescasinoslist-local/_external/fonts.gstatic.com/s/manrope/v20/xn7gYHE41ni1AdIRggOxSvfedN62Zw.woff2",
+      "status": "200"
+    },
+    "https://fonts.gstatic.com/s/manrope/v20/xn7gYHE41ni1AdIRggSxSvfedN62Zw.woff2": {
+      "content_type": "font/woff2",
+      "kind": "asset",
+      "local_path": "sweepstakescasinoslist-local/_external/fonts.gstatic.com/s/manrope/v20/xn7gYHE41ni1AdIRggSxSvfedN62Zw.woff2",
+      "status": "200"
+    },
+    "https://fonts.gstatic.com/s/manrope/v20/xn7gYHE41ni1AdIRggexSvfedN4.woff2": {
+      "content_type": "font/woff2",
+      "kind": "asset",
+      "local_path": "sweepstakescasinoslist-local/_external/fonts.gstatic.com/s/manrope/v20/xn7gYHE41ni1AdIRggexSvfedN4.woff2",
+      "status": "200"
+    },
+    "https://fonts.gstatic.com/s/manrope/v20/xn7gYHE41ni1AdIRggixSvfedN62Zw.woff2": {
+      "content_type": "font/woff2",
+      "kind": "asset",
+      "local_path": "sweepstakescasinoslist-local/_external/fonts.gstatic.com/s/manrope/v20/xn7gYHE41ni1AdIRggixSvfedN62Zw.woff2",
+      "status": "200"
+    },
+    "https://fonts.gstatic.com/s/manrope/v20/xn7gYHE41ni1AdIRggmxSvfedN62Zw.woff2": {
+      "content_type": "font/woff2",
+      "kind": "asset",
+      "local_path": "sweepstakescasinoslist-local/_external/fonts.gstatic.com/s/manrope/v20/xn7gYHE41ni1AdIRggmxSvfedN62Zw.woff2",
+      "status": "200"
+    },
+    "https://fonts.gstatic.com/s/manrope/v20/xn7gYHE41ni1AdIRggqxSvfedN62Zw.woff2": {
+      "content_type": "font/woff2",
+      "kind": "asset",
+      "local_path": "sweepstakescasinoslist-local/_external/fonts.gstatic.com/s/manrope/v20/xn7gYHE41ni1AdIRggqxSvfedN62Zw.woff2",
+      "status": "200"
+    },
+    "https://fonts.gstatic.com/s/nunito/v32/XRXK3I6Li01BKofIMPyPbj8d7IEAGXNiLXcHg6baf2z4e9z5MV0.woff2": {
+      "content_type": "font/woff2",
+      "kind": "asset",
+      "local_path": "sweepstakescasinoslist-local/_external/fonts.gstatic.com/s/nunito/v32/XRXK3I6Li01BKofIMPyPbj8d7IEAGXNiLXcHg6baf2z4e9z5MV0.woff2",
+      "status": "200"
+    },
+    "https://fonts.gstatic.com/s/nunito/v32/XRXK3I6Li01BKofIMPyPbj8d7IEAGXNiLXcHgKbaf2z4e9z5MV0.woff2": {
+      "content_type": "font/woff2",
+      "kind": "asset",
+      "local_path": "sweepstakescasinoslist-local/_external/fonts.gstatic.com/s/nunito/v32/XRXK3I6Li01BKofIMPyPbj8d7IEAGXNiLXcHgKbaf2z4e9z5MV0.woff2",
+      "status": "200"
+    },
+    "https://fonts.gstatic.com/s/nunito/v32/XRXK3I6Li01BKofIMPyPbj8d7IEAGXNiLXcHgqbaf2z4e9z5MV0.woff2": {
+      "content_type": "font/woff2",
+      "kind": "asset",
+      "local_path": "sweepstakescasinoslist-local/_external/fonts.gstatic.com/s/nunito/v32/XRXK3I6Li01BKofIMPyPbj8d7IEAGXNiLXcHgqbaf2z4e9z5MV0.woff2",
+      "status": "200"
+    },
+    "https://fonts.gstatic.com/s/nunito/v32/XRXK3I6Li01BKofIMPyPbj8d7IEAGXNiLXcHiabaf2z4e9z5MV0.woff2": {
+      "content_type": "font/woff2",
+      "kind": "asset",
+      "local_path": "sweepstakescasinoslist-local/_external/fonts.gstatic.com/s/nunito/v32/XRXK3I6Li01BKofIMPyPbj8d7IEAGXNiLXcHiabaf2z4e9z5MV0.woff2",
+      "status": "200"
+    },
+    "https://fonts.gstatic.com/s/nunito/v32/XRXK3I6Li01BKofIMPyPbj8d7IEAGXNiLXcHjabaf2z4e9z5.woff2": {
+      "content_type": "font/woff2",
+      "kind": "asset",
+      "local_path": "sweepstakescasinoslist-local/_external/fonts.gstatic.com/s/nunito/v32/XRXK3I6Li01BKofIMPyPbj8d7IEAGXNiLXcHjabaf2z4e9z5.woff2",
+      "status": "200"
+    },
+    "https://fonts.gstatic.com/s/nunito/v32/XRXV3I6Li01BKofIMeaBTMnFcQIG.woff2": {
+      "content_type": "font/woff2",
+      "kind": "asset",
+      "local_path": "sweepstakescasinoslist-local/_external/fonts.gstatic.com/s/nunito/v32/XRXV3I6Li01BKofIMeaBTMnFcQIG.woff2",
+      "status": "200"
+    },
+    "https://fonts.gstatic.com/s/nunito/v32/XRXV3I6Li01BKofINeaBTMnFcQ.woff2": {
+      "content_type": "font/woff2",
+      "kind": "asset",
+      "local_path": "sweepstakescasinoslist-local/_external/fonts.gstatic.com/s/nunito/v32/XRXV3I6Li01BKofINeaBTMnFcQ.woff2",
+      "status": "200"
+    },
+    "https://fonts.gstatic.com/s/nunito/v32/XRXV3I6Li01BKofIO-aBTMnFcQIG.woff2": {
+      "content_type": "font/woff2",
+      "kind": "asset",
+      "local_path": "sweepstakescasinoslist-local/_external/fonts.gstatic.com/s/nunito/v32/XRXV3I6Li01BKofIO-aBTMnFcQIG.woff2",
+      "status": "200"
+    },
+    "https://fonts.gstatic.com/s/nunito/v32/XRXV3I6Li01BKofIOOaBTMnFcQIG.woff2": {
+      "content_type": "font/woff2",
+      "kind": "asset",
+      "local_path": "sweepstakescasinoslist-local/_external/fonts.gstatic.com/s/nunito/v32/XRXV3I6Li01BKofIOOaBTMnFcQIG.woff2",
+      "status": "200"
+    },
+    "https://fonts.gstatic.com/s/nunito/v32/XRXV3I6Li01BKofIOuaBTMnFcQIG.woff2": {
+      "content_type": "font/woff2",
+      "kind": "asset",
+      "local_path": "sweepstakescasinoslist-local/_external/fonts.gstatic.com/s/nunito/v32/XRXV3I6Li01BKofIOuaBTMnFcQIG.woff2",
+      "status": "200"
+    },
+    "https://fonts.gstatic.com/s/nunitosans/v19/pe0TMImSLYBIv1o4X1M8ce2xCx3yop4tQpF_MeTm0lfGWVpNn64CL7U8upHZIbMV51Q42ptCp7t1R-tQKr51.woff2": {
+      "content_type": "font/woff2",
+      "kind": "asset",
+      "local_path": "sweepstakescasinoslist-local/_external/fonts.gstatic.com/s/nunitosans/v19/pe0TMImSLYBIv1o4X1M8ce2xCx3yop4tQpF_MeTm0lfGWVpNn64CL7U8upHZIbMV51Q42ptCp7t1R-tQKr51.woff2",
+      "status": "200"
+    },
+    "https://fonts.gstatic.com/s/nunitosans/v19/pe0TMImSLYBIv1o4X1M8ce2xCx3yop4tQpF_MeTm0lfGWVpNn64CL7U8upHZIbMV51Q42ptCp7t4R-tQKr51pE8.woff2": {
+      "content_type": "font/woff2",
+      "kind": "asset",
+      "local_path": "sweepstakescasinoslist-local/_external/fonts.gstatic.com/s/nunitosans/v19/pe0TMImSLYBIv1o4X1M8ce2xCx3yop4tQpF_MeTm0lfGWVpNn64CL7U8upHZIbMV51Q42ptCp7t4R-tQKr51pE8.woff2",
+      "status": "200"
+    },
+    "https://fonts.gstatic.com/s/nunitosans/v19/pe0TMImSLYBIv1o4X1M8ce2xCx3yop4tQpF_MeTm0lfGWVpNn64CL7U8upHZIbMV51Q42ptCp7t6R-tQKr51pE8.woff2": {
+      "content_type": "font/woff2",
+      "kind": "asset",
+      "local_path": "sweepstakescasinoslist-local/_external/fonts.gstatic.com/s/nunitosans/v19/pe0TMImSLYBIv1o4X1M8ce2xCx3yop4tQpF_MeTm0lfGWVpNn64CL7U8upHZIbMV51Q42ptCp7t6R-tQKr51pE8.woff2",
+      "status": "200"
+    },
+    "https://fonts.gstatic.com/s/nunitosans/v19/pe0TMImSLYBIv1o4X1M8ce2xCx3yop4tQpF_MeTm0lfGWVpNn64CL7U8upHZIbMV51Q42ptCp7t7R-tQKr51pE8.woff2": {
+      "content_type": "font/woff2",
+      "kind": "asset",
+      "local_path": "sweepstakescasinoslist-local/_external/fonts.gstatic.com/s/nunitosans/v19/pe0TMImSLYBIv1o4X1M8ce2xCx3yop4tQpF_MeTm0lfGWVpNn64CL7U8upHZIbMV51Q42ptCp7t7R-tQKr51pE8.woff2",
+      "status": "200"
+    },
+    "https://fonts.gstatic.com/s/nunitosans/v19/pe0TMImSLYBIv1o4X1M8ce2xCx3yop4tQpF_MeTm0lfGWVpNn64CL7U8upHZIbMV51Q42ptCp7txR-tQKr51pE8.woff2": {
+      "content_type": "font/woff2",
+      "kind": "asset",
+      "local_path": "sweepstakescasinoslist-local/_external/fonts.gstatic.com/s/nunitosans/v19/pe0TMImSLYBIv1o4X1M8ce2xCx3yop4tQpF_MeTm0lfGWVpNn64CL7U8upHZIbMV51Q42ptCp7txR-tQKr51pE8.woff2",
+      "status": "200"
+    },
+    "https://fonts.gstatic.com/s/outfit/v15/QGYvz_MVcBeNP4NJtEtqUYLknw.woff2": {
+      "content_type": "font/woff2",
+      "kind": "asset",
+      "local_path": "sweepstakescasinoslist-local/_external/fonts.gstatic.com/s/outfit/v15/QGYvz_MVcBeNP4NJtEtqUYLknw.woff2",
+      "status": "200"
+    },
+    "https://fonts.gstatic.com/s/outfit/v15/QGYvz_MVcBeNP4NJuktqUYLkn8BJ.woff2": {
+      "content_type": "font/woff2",
+      "kind": "asset",
+      "local_path": "sweepstakescasinoslist-local/_external/fonts.gstatic.com/s/outfit/v15/QGYvz_MVcBeNP4NJuktqUYLkn8BJ.woff2",
+      "status": "200"
+    },
+    "https://fonts.gstatic.com/s/playfairdisplay/v40/nuFiD-vYSZviVYUb_rj3ij__anPXDTLYgEM86xRbPQ.woff2": {
+      "content_type": "font/woff2",
+      "kind": "asset",
+      "local_path": "sweepstakescasinoslist-local/_external/fonts.gstatic.com/s/playfairdisplay/v40/nuFiD-vYSZviVYUb_rj3ij__anPXDTLYgEM86xRbPQ.woff2",
+      "status": "200"
+    },
+    "https://fonts.gstatic.com/s/playfairdisplay/v40/nuFiD-vYSZviVYUb_rj3ij__anPXDTPYgEM86xRbPQ.woff2": {
+      "content_type": "font/woff2",
+      "kind": "asset",
+      "local_path": "sweepstakescasinoslist-local/_external/fonts.gstatic.com/s/playfairdisplay/v40/nuFiD-vYSZviVYUb_rj3ij__anPXDTPYgEM86xRbPQ.woff2",
+      "status": "200"
+    },
+    "https://fonts.gstatic.com/s/playfairdisplay/v40/nuFiD-vYSZviVYUb_rj3ij__anPXDTjYgEM86xRbPQ.woff2": {
+      "content_type": "font/woff2",
+      "kind": "asset",
+      "local_path": "sweepstakescasinoslist-local/_external/fonts.gstatic.com/s/playfairdisplay/v40/nuFiD-vYSZviVYUb_rj3ij__anPXDTjYgEM86xRbPQ.woff2",
+      "status": "200"
+    },
+    "https://fonts.gstatic.com/s/playfairdisplay/v40/nuFiD-vYSZviVYUb_rj3ij__anPXDTzYgEM86xQ.woff2": {
+      "content_type": "font/woff2",
+      "kind": "asset",
+      "local_path": "sweepstakescasinoslist-local/_external/fonts.gstatic.com/s/playfairdisplay/v40/nuFiD-vYSZviVYUb_rj3ij__anPXDTzYgEM86xQ.woff2",
+      "status": "200"
+    },
+    "https://fonts.gstatic.com/s/plusjakartasans/v12/LDIoaomQNQcsA88c7O9yZ4KMCoOg4Ko20yygg_vb.woff2": {
+      "content_type": "font/woff2",
+      "kind": "asset",
+      "local_path": "sweepstakescasinoslist-local/_external/fonts.gstatic.com/s/plusjakartasans/v12/LDIoaomQNQcsA88c7O9yZ4KMCoOg4Ko20yygg_vb.woff2",
+      "status": "200"
+    },
+    "https://fonts.gstatic.com/s/plusjakartasans/v12/LDIoaomQNQcsA88c7O9yZ4KMCoOg4Ko40yygg_vbd-E.woff2": {
+      "content_type": "font/woff2",
+      "kind": "asset",
+      "local_path": "sweepstakescasinoslist-local/_external/fonts.gstatic.com/s/plusjakartasans/v12/LDIoaomQNQcsA88c7O9yZ4KMCoOg4Ko40yygg_vbd-E.woff2",
+      "status": "200"
+    },
+    "https://fonts.gstatic.com/s/plusjakartasans/v12/LDIoaomQNQcsA88c7O9yZ4KMCoOg4Ko50yygg_vbd-E.woff2": {
+      "content_type": "font/woff2",
+      "kind": "asset",
+      "local_path": "sweepstakescasinoslist-local/_external/fonts.gstatic.com/s/plusjakartasans/v12/LDIoaomQNQcsA88c7O9yZ4KMCoOg4Ko50yygg_vbd-E.woff2",
+      "status": "200"
+    },
+    "https://fonts.gstatic.com/s/plusjakartasans/v12/LDIoaomQNQcsA88c7O9yZ4KMCoOg4Ko70yygg_vbd-E.woff2": {
+      "content_type": "font/woff2",
+      "kind": "asset",
+      "local_path": "sweepstakescasinoslist-local/_external/fonts.gstatic.com/s/plusjakartasans/v12/LDIoaomQNQcsA88c7O9yZ4KMCoOg4Ko70yygg_vbd-E.woff2",
+      "status": "200"
+    },
+    "https://fonts.gstatic.com/s/poppins/v24/pxiByp8kv8JHgFVrLBT5Z11lFd2JQEl8qw.woff2": {
+      "content_type": "font/woff2",
+      "kind": "asset",
+      "local_path": "sweepstakescasinoslist-local/_external/fonts.gstatic.com/s/poppins/v24/pxiByp8kv8JHgFVrLBT5Z11lFd2JQEl8qw.woff2",
+      "status": "200"
+    },
+    "https://fonts.gstatic.com/s/poppins/v24/pxiByp8kv8JHgFVrLBT5Z1JlFd2JQEl8qw.woff2": {
+      "content_type": "font/woff2",
+      "kind": "asset",
+      "local_path": "sweepstakescasinoslist-local/_external/fonts.gstatic.com/s/poppins/v24/pxiByp8kv8JHgFVrLBT5Z1JlFd2JQEl8qw.woff2",
+      "status": "200"
+    },
+    "https://fonts.gstatic.com/s/poppins/v24/pxiByp8kv8JHgFVrLBT5Z1xlFd2JQEk.woff2": {
+      "content_type": "font/woff2",
+      "kind": "asset",
+      "local_path": "sweepstakescasinoslist-local/_external/fonts.gstatic.com/s/poppins/v24/pxiByp8kv8JHgFVrLBT5Z1xlFd2JQEk.woff2",
+      "status": "200"
+    },
+    "https://fonts.gstatic.com/s/poppins/v24/pxiByp8kv8JHgFVrLCz7Z11lFd2JQEl8qw.woff2": {
+      "content_type": "font/woff2",
+      "kind": "asset",
+      "local_path": "sweepstakescasinoslist-local/_external/fonts.gstatic.com/s/poppins/v24/pxiByp8kv8JHgFVrLCz7Z11lFd2JQEl8qw.woff2",
+      "status": "200"
+    },
+    "https://fonts.gstatic.com/s/poppins/v24/pxiByp8kv8JHgFVrLCz7Z1JlFd2JQEl8qw.woff2": {
+      "content_type": "font/woff2",
+      "kind": "asset",
+      "local_path": "sweepstakescasinoslist-local/_external/fonts.gstatic.com/s/poppins/v24/pxiByp8kv8JHgFVrLCz7Z1JlFd2JQEl8qw.woff2",
+      "status": "200"
+    },
+    "https://fonts.gstatic.com/s/poppins/v24/pxiByp8kv8JHgFVrLCz7Z1xlFd2JQEk.woff2": {
+      "content_type": "font/woff2",
+      "kind": "asset",
+      "local_path": "sweepstakescasinoslist-local/_external/fonts.gstatic.com/s/poppins/v24/pxiByp8kv8JHgFVrLCz7Z1xlFd2JQEk.woff2",
+      "status": "200"
+    },
+    "https://fonts.gstatic.com/s/poppins/v24/pxiByp8kv8JHgFVrLDD4Z11lFd2JQEl8qw.woff2": {
+      "content_type": "font/woff2",
+      "kind": "asset",
+      "local_path": "sweepstakescasinoslist-local/_external/fonts.gstatic.com/s/poppins/v24/pxiByp8kv8JHgFVrLDD4Z11lFd2JQEl8qw.woff2",
+      "status": "200"
+    },
+    "https://fonts.gstatic.com/s/poppins/v24/pxiByp8kv8JHgFVrLDD4Z1JlFd2JQEl8qw.woff2": {
+      "content_type": "font/woff2",
+      "kind": "asset",
+      "local_path": "sweepstakescasinoslist-local/_external/fonts.gstatic.com/s/poppins/v24/pxiByp8kv8JHgFVrLDD4Z1JlFd2JQEl8qw.woff2",
+      "status": "200"
+    },
+    "https://fonts.gstatic.com/s/poppins/v24/pxiByp8kv8JHgFVrLDD4Z1xlFd2JQEk.woff2": {
+      "content_type": "font/woff2",
+      "kind": "asset",
+      "local_path": "sweepstakescasinoslist-local/_external/fonts.gstatic.com/s/poppins/v24/pxiByp8kv8JHgFVrLDD4Z1xlFd2JQEk.woff2",
+      "status": "200"
+    },
+    "https://fonts.gstatic.com/s/poppins/v24/pxiByp8kv8JHgFVrLEj6Z11lFd2JQEl8qw.woff2": {
+      "content_type": "font/woff2",
+      "kind": "asset",
+      "local_path": "sweepstakescasinoslist-local/_external/fonts.gstatic.com/s/poppins/v24/pxiByp8kv8JHgFVrLEj6Z11lFd2JQEl8qw.woff2",
+      "status": "200"
+    },
+    "https://fonts.gstatic.com/s/poppins/v24/pxiByp8kv8JHgFVrLEj6Z1JlFd2JQEl8qw.woff2": {
+      "content_type": "font/woff2",
+      "kind": "asset",
+      "local_path": "sweepstakescasinoslist-local/_external/fonts.gstatic.com/s/poppins/v24/pxiByp8kv8JHgFVrLEj6Z1JlFd2JQEl8qw.woff2",
+      "status": "200"
+    },
+    "https://fonts.gstatic.com/s/poppins/v24/pxiByp8kv8JHgFVrLEj6Z1xlFd2JQEk.woff2": {
+      "content_type": "font/woff2",
+      "kind": "asset",
+      "local_path": "sweepstakescasinoslist-local/_external/fonts.gstatic.com/s/poppins/v24/pxiByp8kv8JHgFVrLEj6Z1xlFd2JQEk.woff2",
+      "status": "200"
+    },
+    "https://fonts.gstatic.com/s/poppins/v24/pxiByp8kv8JHgFVrLGT9Z11lFd2JQEl8qw.woff2": {
+      "content_type": "font/woff2",
+      "kind": "asset",
+      "local_path": "sweepstakescasinoslist-local/_external/fonts.gstatic.com/s/poppins/v24/pxiByp8kv8JHgFVrLGT9Z11lFd2JQEl8qw.woff2",
+      "status": "200"
+    },
+    "https://fonts.gstatic.com/s/poppins/v24/pxiByp8kv8JHgFVrLGT9Z1JlFd2JQEl8qw.woff2": {
+      "content_type": "font/woff2",
+      "kind": "asset",
+      "local_path": "sweepstakescasinoslist-local/_external/fonts.gstatic.com/s/poppins/v24/pxiByp8kv8JHgFVrLGT9Z1JlFd2JQEl8qw.woff2",
+      "status": "200"
+    },
+    "https://fonts.gstatic.com/s/poppins/v24/pxiByp8kv8JHgFVrLGT9Z1xlFd2JQEk.woff2": {
+      "content_type": "font/woff2",
+      "kind": "asset",
+      "local_path": "sweepstakescasinoslist-local/_external/fonts.gstatic.com/s/poppins/v24/pxiByp8kv8JHgFVrLGT9Z1xlFd2JQEk.woff2",
+      "status": "200"
+    },
+    "https://fonts.gstatic.com/s/poppins/v24/pxiEyp8kv8JHgFVrJJbecnFHGPezSQ.woff2": {
+      "content_type": "font/woff2",
+      "kind": "asset",
+      "local_path": "sweepstakescasinoslist-local/_external/fonts.gstatic.com/s/poppins/v24/pxiEyp8kv8JHgFVrJJbecnFHGPezSQ.woff2",
+      "status": "200"
+    },
+    "https://fonts.gstatic.com/s/poppins/v24/pxiEyp8kv8JHgFVrJJfecnFHGPc.woff2": {
+      "content_type": "font/woff2",
+      "kind": "asset",
+      "local_path": "sweepstakescasinoslist-local/_external/fonts.gstatic.com/s/poppins/v24/pxiEyp8kv8JHgFVrJJfecnFHGPc.woff2",
+      "status": "200"
+    },
+    "https://fonts.gstatic.com/s/poppins/v24/pxiEyp8kv8JHgFVrJJnecnFHGPezSQ.woff2": {
+      "content_type": "font/woff2",
+      "kind": "asset",
+      "local_path": "sweepstakescasinoslist-local/_external/fonts.gstatic.com/s/poppins/v24/pxiEyp8kv8JHgFVrJJnecnFHGPezSQ.woff2",
+      "status": "200"
+    },
+    "https://fonts.gstatic.com/s/sora/v17/xMQ9uFFYT72X5wkB_18qmnndmSdSnh2BAfO5mnuyOo1lfiQwV6-xo6eeIw.woff2": {
+      "content_type": "font/woff2",
+      "kind": "asset",
+      "local_path": "sweepstakescasinoslist-local/_external/fonts.gstatic.com/s/sora/v17/xMQ9uFFYT72X5wkB_18qmnndmSdSnh2BAfO5mnuyOo1lfiQwV6-xo6eeIw.woff2",
+      "status": "200"
+    },
+    "https://fonts.gstatic.com/s/sora/v17/xMQ9uFFYT72X5wkB_18qmnndmSdSnh2BAfO5mnuyOo1lfiQwWa-xo6eeI7fM.woff2": {
+      "content_type": "font/woff2",
+      "kind": "asset",
+      "local_path": "sweepstakescasinoslist-local/_external/fonts.gstatic.com/s/sora/v17/xMQ9uFFYT72X5wkB_18qmnndmSdSnh2BAfO5mnuyOo1lfiQwWa-xo6eeI7fM.woff2",
+      "status": "200"
+    },
+    "https://fonts.gstatic.com/s/spacegrotesk/v22/V8mDoQDjQSkFtoMM3T6r8E7mPb54C_k3HqUtEw.woff2": {
+      "content_type": "font/woff2",
+      "kind": "asset",
+      "local_path": "sweepstakescasinoslist-local/_external/fonts.gstatic.com/s/spacegrotesk/v22/V8mDoQDjQSkFtoMM3T6r8E7mPb54C_k3HqUtEw.woff2",
+      "status": "200"
+    },
+    "https://fonts.gstatic.com/s/spacegrotesk/v22/V8mDoQDjQSkFtoMM3T6r8E7mPb94C_k3HqUtEw.woff2": {
+      "content_type": "font/woff2",
+      "kind": "asset",
+      "local_path": "sweepstakescasinoslist-local/_external/fonts.gstatic.com/s/spacegrotesk/v22/V8mDoQDjQSkFtoMM3T6r8E7mPb94C_k3HqUtEw.woff2",
+      "status": "200"
+    },
+    "https://fonts.gstatic.com/s/spacegrotesk/v22/V8mDoQDjQSkFtoMM3T6r8E7mPbF4C_k3HqU.woff2": {
+      "content_type": "font/woff2",
+      "kind": "asset",
+      "local_path": "sweepstakescasinoslist-local/_external/fonts.gstatic.com/s/spacegrotesk/v22/V8mDoQDjQSkFtoMM3T6r8E7mPbF4C_k3HqU.woff2",
+      "status": "200"
+    },
+    "https://fonts.gstatic.com/s/syne/v24/8vIH7w4qzmVxm25L9G78HEZnMg.woff2": {
+      "content_type": "font/woff2",
+      "kind": "asset",
+      "local_path": "sweepstakescasinoslist-local/_external/fonts.gstatic.com/s/syne/v24/8vIH7w4qzmVxm25L9G78HEZnMg.woff2",
+      "status": "200"
+    },
+    "https://fonts.gstatic.com/s/syne/v24/8vIH7w4qzmVxm2BL9G78HEY.woff2": {
+      "content_type": "font/woff2",
+      "kind": "asset",
+      "local_path": "sweepstakescasinoslist-local/_external/fonts.gstatic.com/s/syne/v24/8vIH7w4qzmVxm2BL9G78HEY.woff2",
+      "status": "200"
+    },
+    "https://fonts.gstatic.com/s/syne/v24/8vIH7w4qzmVxm2NL9G78HEZnMg.woff2": {
+      "content_type": "font/woff2",
+      "kind": "asset",
+      "local_path": "sweepstakescasinoslist-local/_external/fonts.gstatic.com/s/syne/v24/8vIH7w4qzmVxm2NL9G78HEZnMg.woff2",
+      "status": "200"
+    },
+    "https://fonts.gstatic.com/s/unbounded/v12/Yq6W-LOTXCb04q32xlpwtMZfvRIkSYZH.woff2": {
+      "content_type": "font/woff2",
+      "kind": "asset",
+      "local_path": "sweepstakescasinoslist-local/_external/fonts.gstatic.com/s/unbounded/v12/Yq6W-LOTXCb04q32xlpwtMZfvRIkSYZH.woff2",
+      "status": "200"
+    },
+    "https://fonts.gstatic.com/s/unbounded/v12/Yq6W-LOTXCb04q32xlpwtcZfvRIkSYZH.woff2": {
+      "content_type": "font/woff2",
+      "kind": "asset",
+      "local_path": "sweepstakescasinoslist-local/_external/fonts.gstatic.com/s/unbounded/v12/Yq6W-LOTXCb04q32xlpwtcZfvRIkSYZH.woff2",
+      "status": "200"
+    },
+    "https://fonts.gstatic.com/s/unbounded/v12/Yq6W-LOTXCb04q32xlpwtsZfvRIkSYZH.woff2": {
+      "content_type": "font/woff2",
+      "kind": "asset",
+      "local_path": "sweepstakescasinoslist-local/_external/fonts.gstatic.com/s/unbounded/v12/Yq6W-LOTXCb04q32xlpwtsZfvRIkSYZH.woff2",
+      "status": "200"
+    },
+    "https://fonts.gstatic.com/s/unbounded/v12/Yq6W-LOTXCb04q32xlpwu8ZfvRIkSQ.woff2": {
+      "content_type": "font/woff2",
+      "kind": "asset",
+      "local_path": "sweepstakescasinoslist-local/_external/fonts.gstatic.com/s/unbounded/v12/Yq6W-LOTXCb04q32xlpwu8ZfvRIkSQ.woff2",
+      "status": "200"
+    },
+    "https://fonts.gstatic.com/s/unbounded/v12/Yq6W-LOTXCb04q32xlpwv8ZfvRIkSYZH.woff2": {
+      "content_type": "font/woff2",
+      "kind": "asset",
+      "local_path": "sweepstakescasinoslist-local/_external/fonts.gstatic.com/s/unbounded/v12/Yq6W-LOTXCb04q32xlpwv8ZfvRIkSYZH.woff2",
+      "status": "200"
+    },
+    "https://sweepstakescasinoslist.com": {
+      "content_type": "text/html",
+      "kind": "page",
+      "local_path": "sweepstakescasinoslist-local/index.html",
+      "status": "200"
+    },
+    "https://sweepstakescasinoslist.com/": {
+      "content_type": "text/html",
+      "kind": "page",
+      "local_path": "sweepstakescasinoslist-local/index.html",
+      "status": "200"
+    },
+    "https://sweepstakescasinoslist.com/robots.txt": {
+      "content_type": "text/plain",
+      "kind": "asset",
+      "local_path": "sweepstakescasinoslist-local/robots.txt",
+      "status": "200"
+    },
+    "https://sweepstakescasinoslist.com/sitemap.xml": {
+      "content_type": "application/xml",
+      "kind": "asset",
+      "local_path": "sweepstakescasinoslist-local/sitemap.xml",
+      "status": "200"
+    },
+    "https://sweepstakescasinoslist.com/style.css": {
+      "content_type": "text/css",
+      "kind": "css",
+      "local_path": "sweepstakescasinoslist-local/style.css",
+      "status": "200"
+    },
+    "https://sweepstakescasinoslist.com/sweepsbonus/acebet-promo-code.html": {
+      "content_type": "text/html",
+      "kind": "page",
+      "local_path": "sweepstakescasinoslist-local/sweepsbonus/acebet-promo-code.html",
+      "status": "200"
+    },
+    "https://sweepstakescasinoslist.com/sweepsbonus/big-pirate-promo-code.html": {
+      "content_type": "text/html",
+      "kind": "page",
+      "local_path": "sweepstakescasinoslist-local/sweepsbonus/big-pirate-promo-code.html",
+      "status": "200"
+    },
+    "https://sweepstakescasinoslist.com/sweepsbonus/casino-click-promo-code.html": {
+      "content_type": "text/html",
+      "kind": "page",
+      "local_path": "sweepstakescasinoslist-local/sweepsbonus/casino-click-promo-code.html",
+      "status": "200"
+    },
+    "https://sweepstakescasinoslist.com/sweepsbonus/crown-coins-promo-code.html": {
+      "content_type": "text/html",
+      "kind": "page",
+      "local_path": "sweepstakescasinoslist-local/sweepsbonus/crown-coins-promo-code.html",
+      "status": "200"
+    },
+    "https://sweepstakescasinoslist.com/sweepsbonus/dexyplay-promo-code.html": {
+      "content_type": "text/html",
+      "kind": "page",
+      "local_path": "sweepstakescasinoslist-local/sweepsbonus/dexyplay-promo-code.html",
+      "status": "200"
+    },
+    "https://sweepstakescasinoslist.com/sweepsbonus/freespin-promo-code.html": {
+      "content_type": "text/html",
+      "kind": "page",
+      "local_path": "sweepstakescasinoslist-local/sweepsbonus/freespin-promo-code.html",
+      "status": "200"
+    },
+    "https://sweepstakescasinoslist.com/sweepsbonus/hello-millions-promo-code.html": {
+      "content_type": "text/html",
+      "kind": "page",
+      "local_path": "sweepstakescasinoslist-local/sweepsbonus/hello-millions-promo-code.html",
+      "status": "200"
+    },
+    "https://sweepstakescasinoslist.com/sweepsbonus/high5-casino-promo-code.html": {
+      "content_type": "text/html",
+      "kind": "page",
+      "local_path": "sweepstakescasinoslist-local/sweepsbonus/high5-casino-promo-code.html",
+      "status": "200"
+    },
+    "https://sweepstakescasinoslist.com/sweepsbonus/jackpot-go-promo-code.html": {
+      "content_type": "text/html",
+      "kind": "page",
+      "local_path": "sweepstakescasinoslist-local/sweepsbonus/jackpot-go-promo-code.html",
+      "status": "200"
+    },
+    "https://sweepstakescasinoslist.com/sweepsbonus/jackpota-casino-promo-code.html": {
+      "content_type": "text/html",
+      "kind": "page",
+      "local_path": "sweepstakescasinoslist-local/sweepsbonus/jackpota-casino-promo-code.html",
+      "status": "200"
+    },
+    "https://sweepstakescasinoslist.com/sweepsbonus/jackpota-promo-code.html": {
+      "content_type": "text/html",
+      "kind": "page",
+      "local_path": "sweepstakescasinoslist-local/sweepsbonus/jackpota-promo-code.html",
+      "status": "200"
+    },
+    "https://sweepstakescasinoslist.com/sweepsbonus/jackpotgo-promo-code.html": {
+      "content_type": "text/html",
+      "kind": "page",
+      "local_path": "sweepstakescasinoslist-local/sweepsbonus/jackpotgo-promo-code.html",
+      "status": "200"
+    },
+    "https://sweepstakescasinoslist.com/sweepsbonus/lucky-bunny-promo-code.html": {
+      "content_type": "text/html",
+      "kind": "page",
+      "local_path": "sweepstakescasinoslist-local/sweepsbonus/lucky-bunny-promo-code.html",
+      "status": "200"
+    },
+    "https://sweepstakescasinoslist.com/sweepsbonus/mega-bonanza-promo-code.html": {
+      "content_type": "text/html",
+      "kind": "page",
+      "local_path": "sweepstakescasinoslist-local/sweepsbonus/mega-bonanza-promo-code.html",
+      "status": "200"
+    },
+    "https://sweepstakescasinoslist.com/sweepsbonus/rolla-casino-promo-code.html": {
+      "content_type": "text/html",
+      "kind": "page",
+      "local_path": "sweepstakescasinoslist-local/sweepsbonus/rolla-casino-promo-code.html",
+      "status": "200"
+    },
+    "https://sweepstakescasinoslist.com/sweepsbonus/spinblitz-promo-code.html": {
+      "content_type": "text/html",
+      "kind": "page",
+      "local_path": "sweepstakescasinoslist-local/sweepsbonus/spinblitz-promo-code.html",
+      "status": "200"
+    },
+    "https://sweepstakescasinoslist.com/sweepsbonus/spinfinite-promo-code.html": {
+      "content_type": "text/html",
+      "kind": "page",
+      "local_path": "sweepstakescasinoslist-local/sweepsbonus/spinfinite-promo-code.html",
+      "status": "200"
+    },
+    "https://sweepstakescasinoslist.com/sweepsbonus/splash-coins-promo-code.html": {
+      "content_type": "text/html",
+      "kind": "page",
+      "local_path": "sweepstakescasinoslist-local/sweepsbonus/splash-coins-promo-code.html",
+      "status": "200"
+    },
+    "https://sweepstakescasinoslist.com/sweepsbonus/spree-promo-code.html": {
+      "content_type": "text/html",
+      "kind": "page",
+      "local_path": "sweepstakescasinoslist-local/sweepsbonus/spree-promo-code.html",
+      "status": "200"
+    },
+    "https://sweepstakescasinoslist.com/sweepsbonus/sweepico-promo-code.html": {
+      "content_type": "text/html",
+      "kind": "page",
+      "local_path": "sweepstakescasinoslist-local/sweepsbonus/sweepico-promo-code.html",
+      "status": "200"
+    },
+    "https://sweepstakescasinoslist.com/sweepsbonus/sweet-sweeps-promo-code.html": {
+      "content_type": "text/html",
+      "kind": "page",
+      "local_path": "sweepstakescasinoslist-local/sweepsbonus/sweet-sweeps-promo-code.html",
+      "status": "200"
+    },
+    "https://sweepstakescasinoslist.com/sweepsbonus/wow-vegas-promo-code.html": {
+      "content_type": "text/html",
+      "kind": "page",
+      "local_path": "sweepstakescasinoslist-local/sweepsbonus/wow-vegas-promo-code.html",
+      "status": "200"
+    },
+    "https://sweepstakescasinoslist.com/sweepsreviews/acebet-review.html": {
+      "content_type": "text/html",
+      "kind": "page",
+      "local_path": "sweepstakescasinoslist-local/sweepsreviews/acebet-review.html",
+      "status": "200"
+    },
+    "https://sweepstakescasinoslist.com/sweepsreviews/big-pirate-review.html": {
+      "content_type": "text/html",
+      "kind": "page",
+      "local_path": "sweepstakescasinoslist-local/sweepsreviews/big-pirate-review.html",
+      "status": "200"
+    },
+    "https://sweepstakescasinoslist.com/sweepsreviews/casino-click-review.html": {
+      "content_type": "text/html",
+      "kind": "page",
+      "local_path": "sweepstakescasinoslist-local/sweepsreviews/casino-click-review.html",
+      "status": "200"
+    },
+    "https://sweepstakescasinoslist.com/sweepsreviews/crown-coins-review.html": {
+      "content_type": "text/html",
+      "kind": "page",
+      "local_path": "sweepstakescasinoslist-local/sweepsreviews/crown-coins-review.html",
+      "status": "200"
+    },
+    "https://sweepstakescasinoslist.com/sweepsreviews/dexyplay-review.html": {
+      "content_type": "text/html",
+      "kind": "page",
+      "local_path": "sweepstakescasinoslist-local/sweepsreviews/dexyplay-review.html",
+      "status": "200"
+    },
+    "https://sweepstakescasinoslist.com/sweepsreviews/freespin-review.html": {
+      "content_type": "text/html",
+      "kind": "page",
+      "local_path": "sweepstakescasinoslist-local/sweepsreviews/freespin-review.html",
+      "status": "200"
+    },
+    "https://sweepstakescasinoslist.com/sweepsreviews/hello-millions-review.html": {
+      "content_type": "text/html",
+      "kind": "page",
+      "local_path": "sweepstakescasinoslist-local/sweepsreviews/hello-millions-review.html",
+      "status": "200"
+    },
+    "https://sweepstakescasinoslist.com/sweepsreviews/high5-casino-review.html": {
+      "content_type": "text/html",
+      "kind": "page",
+      "local_path": "sweepstakescasinoslist-local/sweepsreviews/high5-casino-review.html",
+      "status": "200"
+    },
+    "https://sweepstakescasinoslist.com/sweepsreviews/jackpota-review.html": {
+      "content_type": "text/html",
+      "kind": "page",
+      "local_path": "sweepstakescasinoslist-local/sweepsreviews/jackpota-review.html",
+      "status": "200"
+    },
+    "https://sweepstakescasinoslist.com/sweepsreviews/jackpotgo-review.html": {
+      "content_type": "text/html",
+      "kind": "page",
+      "local_path": "sweepstakescasinoslist-local/sweepsreviews/jackpotgo-review.html",
+      "status": "200"
+    },
+    "https://sweepstakescasinoslist.com/sweepsreviews/lucky-bunny-review.html": {
+      "content_type": "text/html",
+      "kind": "page",
+      "local_path": "sweepstakescasinoslist-local/sweepsreviews/lucky-bunny-review.html",
+      "status": "200"
+    },
+    "https://sweepstakescasinoslist.com/sweepsreviews/mega-bonanza-review.html": {
+      "content_type": "text/html",
+      "kind": "page",
+      "local_path": "sweepstakescasinoslist-local/sweepsreviews/mega-bonanza-review.html",
+      "status": "200"
+    },
+    "https://sweepstakescasinoslist.com/sweepsreviews/rolla-casino-review.html": {
+      "content_type": "text/html",
+      "kind": "page",
+      "local_path": "sweepstakescasinoslist-local/sweepsreviews/rolla-casino-review.html",
+      "status": "200"
+    },
+    "https://sweepstakescasinoslist.com/sweepsreviews/spinblitz-review.html": {
+      "content_type": "text/html",
+      "kind": "page",
+      "local_path": "sweepstakescasinoslist-local/sweepsreviews/spinblitz-review.html",
+      "status": "200"
+    },
+    "https://sweepstakescasinoslist.com/sweepsreviews/spinfinite-review.html": {
+      "content_type": "text/html",
+      "kind": "page",
+      "local_path": "sweepstakescasinoslist-local/sweepsreviews/spinfinite-review.html",
+      "status": "200"
+    },
+    "https://sweepstakescasinoslist.com/sweepsreviews/splash-coins-review.html": {
+      "content_type": "text/html",
+      "kind": "page",
+      "local_path": "sweepstakescasinoslist-local/sweepsreviews/splash-coins-review.html",
+      "status": "200"
+    },
+    "https://sweepstakescasinoslist.com/sweepsreviews/spree-review.html": {
+      "content_type": "text/html",
+      "kind": "page",
+      "local_path": "sweepstakescasinoslist-local/sweepsreviews/spree-review.html",
+      "status": "200"
+    },
+    "https://sweepstakescasinoslist.com/sweepsreviews/sweepico-casino-review.html": {
+      "content_type": "text/html",
+      "kind": "page",
+      "local_path": "sweepstakescasinoslist-local/sweepsreviews/sweepico-casino-review.html",
+      "status": "200"
+    },
+    "https://sweepstakescasinoslist.com/sweepsreviews/sweet-sweeps-review.html": {
+      "content_type": "text/html",
+      "kind": "page",
+      "local_path": "sweepstakescasinoslist-local/sweepsreviews/sweet-sweeps-review.html",
+      "status": "200"
+    },
+    "https://sweepstakescasinoslist.com/sweepsreviews/wow-vegas-review.html": {
+      "content_type": "text/html",
+      "kind": "page",
+      "local_path": "sweepstakescasinoslist-local/sweepsreviews/wow-vegas-review.html",
+      "status": "200"
+    },
+    "https://sweepstakescasinoslist.com/sweepstakes-casino/contact.html": {
+      "content_type": "text/html",
+      "kind": "page",
+      "local_path": "sweepstakescasinoslist-local/sweepstakes-casino/contact.html",
+      "status": "200"
+    },
+    "https://sweepstakescasinoslist.com/sweepstakes-casino/dexyplay-review.html": {
+      "content_type": "text/html",
+      "kind": "page",
+      "local_path": "sweepstakescasinoslist-local/sweepstakes-casino/dexyplay-review.html",
+      "status": "200"
+    },
+    "https://sweepstakescasinoslist.com/sweepstakes-casino/freespin-review.html": {
+      "content_type": "text/html",
+      "kind": "page",
+      "local_path": "sweepstakescasinoslist-local/sweepstakes-casino/freespin-review.html",
+      "status": "200"
+    },
+    "https://sweepstakescasinoslist.com/sweepstakes-casino/how-we-rate.html": {
+      "content_type": "text/html",
+      "kind": "page",
+      "local_path": "sweepstakescasinoslist-local/sweepstakes-casino/how-we-rate.html",
+      "status": "200"
+    },
+    "https://sweepstakescasinoslist.com/sweepstakes-casino/lucky-bunny-review.html": {
+      "content_type": "text/html",
+      "kind": "page",
+      "local_path": "sweepstakescasinoslist-local/sweepstakes-casino/lucky-bunny-review.html",
+      "status": "200"
+    },
+    "https://sweepstakescasinoslist.com/sweepstakes-casino/our-mission.html": {
+      "content_type": "text/html",
+      "kind": "page",
+      "local_path": "sweepstakescasinoslist-local/sweepstakes-casino/our-mission.html",
+      "status": "200"
+    },
+    "https://sweepstakescasinoslist.com/sweepstakes-casino/partials/footer.html": {
+      "content_type": "text/html",
+      "kind": "page",
+      "local_path": "sweepstakescasinoslist-local/sweepstakes-casino/partials/footer.html",
+      "status": "200"
+    },
+    "https://sweepstakescasinoslist.com/sweepstakes-casino/partials/include.js": {
+      "content_type": "application/javascript",
+      "kind": "asset",
+      "local_path": "sweepstakescasinoslist-local/sweepstakes-casino/partials/include.js",
+      "status": "200"
+    },
+    "https://sweepstakescasinoslist.com/sweepstakes-casino/partials/nav.html": {
+      "content_type": "text/html",
+      "kind": "page",
+      "local_path": "sweepstakescasinoslist-local/sweepstakes-casino/partials/nav.html",
+      "status": "200"
+    },
+    "https://sweepstakescasinoslist.com/sweepstakes-casino/privacy-policy.html": {
+      "content_type": "text/html",
+      "kind": "page",
+      "local_path": "sweepstakescasinoslist-local/sweepstakes-casino/privacy-policy.html",
+      "status": "200"
+    },
+    "https://sweepstakescasinoslist.com/sweepstakes-casino/responsible-gaming.html": {
+      "content_type": "text/html",
+      "kind": "page",
+      "local_path": "sweepstakescasinoslist-local/sweepstakes-casino/responsible-gaming.html",
+      "status": "200"
+    },
+    "https://sweepstakescasinoslist.com/sweepstakes-casino/rolla-casino-review.html": {
+      "content_type": "text/html",
+      "kind": "page",
+      "local_path": "sweepstakescasinoslist-local/sweepstakes-casino/rolla-casino-review.html",
+      "status": "200"
+    },
+    "https://sweepstakescasinoslist.com/sweepstakes-casino/terms-of-use.html": {
+      "content_type": "text/html",
+      "kind": "page",
+      "local_path": "sweepstakescasinoslist-local/sweepstakes-casino/terms-of-use.html",
+      "status": "200"
+    },
+    "https://sweepstakescasinoslist.com/sweepstakes-casino/wow-vegas-review.html": {
+      "content_type": "text/html",
+      "kind": "page",
+      "local_path": "sweepstakescasinoslist-local/sweepstakes-casino/wow-vegas-review.html",
+      "status": "200"
+    },
+    "https://sweepstakescasinoslist.com/sweepstakeslogo/acebetlogo.jpg": {
+      "content_type": "image/jpeg",
+      "kind": "asset",
+      "local_path": "sweepstakescasinoslist-local/sweepstakeslogo/acebetlogo.jpg",
+      "status": "200"
+    },
+    "https://sweepstakescasinoslist.com/sweepstakeslogo/bigpiratelogo.jpg": {
+      "content_type": "image/jpeg",
+      "kind": "asset",
+      "local_path": "sweepstakescasinoslist-local/sweepstakeslogo/bigpiratelogo.jpg",
+      "status": "200"
+    },
+    "https://sweepstakescasinoslist.com/sweepstakeslogo/casinoclicklogo.jpg": {
+      "content_type": "image/jpeg",
+      "kind": "asset",
+      "local_path": "sweepstakescasinoslist-local/sweepstakeslogo/casinoclicklogo.jpg",
+      "status": "200"
+    },
+    "https://sweepstakescasinoslist.com/sweepstakeslogo/crowncoinslogo.jpg": {
+      "content_type": "image/jpeg",
+      "kind": "asset",
+      "local_path": "sweepstakescasinoslist-local/sweepstakeslogo/crowncoinslogo.jpg",
+      "status": "200"
+    },
+    "https://sweepstakescasinoslist.com/sweepstakeslogo/dexyplaylogo.jpg": {
+      "content_type": "image/jpeg",
+      "kind": "asset",
+      "local_path": "sweepstakescasinoslist-local/sweepstakeslogo/dexyplaylogo.jpg",
+      "status": "200"
+    },
+    "https://sweepstakescasinoslist.com/sweepstakeslogo/freespinlogo.jpg": {
+      "content_type": "image/jpeg",
+      "kind": "asset",
+      "local_path": "sweepstakescasinoslist-local/sweepstakeslogo/freespinlogo.jpg",
+      "status": "200"
+    },
+    "https://sweepstakescasinoslist.com/sweepstakeslogo/hellomillionslogo.jpg": {
+      "content_type": "image/jpeg",
+      "kind": "asset",
+      "local_path": "sweepstakescasinoslist-local/sweepstakeslogo/hellomillionslogo.jpg",
+      "status": "200"
+    },
+    "https://sweepstakescasinoslist.com/sweepstakeslogo/high5casinologo.jpg": {
+      "content_type": "image/jpeg",
+      "kind": "asset",
+      "local_path": "sweepstakescasinoslist-local/sweepstakeslogo/high5casinologo.jpg",
+      "status": "200"
+    },
+    "https://sweepstakescasinoslist.com/sweepstakeslogo/high5logo.jpg": {
+      "content_type": "image/jpeg",
+      "kind": "asset",
+      "local_path": "sweepstakescasinoslist-local/sweepstakeslogo/high5logo.jpg",
+      "status": "200"
+    },
+    "https://sweepstakescasinoslist.com/sweepstakeslogo/jackpotalogo.jpg": {
+      "content_type": "image/jpeg",
+      "kind": "asset",
+      "local_path": "sweepstakescasinoslist-local/sweepstakeslogo/jackpotalogo.jpg",
+      "status": "200"
+    },
+    "https://sweepstakescasinoslist.com/sweepstakeslogo/jackpotgologo.jpg": {
+      "content_type": "image/jpeg",
+      "kind": "asset",
+      "local_path": "sweepstakescasinoslist-local/sweepstakeslogo/jackpotgologo.jpg",
+      "status": "200"
+    },
+    "https://sweepstakescasinoslist.com/sweepstakeslogo/luckybunny.jpg": {
+      "content_type": "image/jpeg",
+      "kind": "asset",
+      "local_path": "sweepstakescasinoslist-local/sweepstakeslogo/luckybunny.jpg",
+      "status": "200"
+    },
+    "https://sweepstakescasinoslist.com/sweepstakeslogo/luckybunnylogo.jpg": {
+      "content_type": "image/jpeg",
+      "kind": "asset",
+      "local_path": "sweepstakescasinoslist-local/sweepstakeslogo/luckybunnylogo.jpg",
+      "status": "200"
+    },
+    "https://sweepstakescasinoslist.com/sweepstakeslogo/megabonanzalogo.jpg": {
+      "content_type": "image/jpeg",
+      "kind": "asset",
+      "local_path": "sweepstakescasinoslist-local/sweepstakeslogo/megabonanzalogo.jpg",
+      "status": "200"
+    },
+    "https://sweepstakescasinoslist.com/sweepstakeslogo/rollacasinologo.jpeg": {
+      "content_type": "image/jpeg",
+      "kind": "asset",
+      "local_path": "sweepstakescasinoslist-local/sweepstakeslogo/rollacasinologo.jpeg",
+      "status": "200"
+    },
+    "https://sweepstakescasinoslist.com/sweepstakeslogo/spinblitzlogo.jpg": {
+      "content_type": "image/jpeg",
+      "kind": "asset",
+      "local_path": "sweepstakescasinoslist-local/sweepstakeslogo/spinblitzlogo.jpg",
+      "status": "200"
+    },
+    "https://sweepstakescasinoslist.com/sweepstakeslogo/spinfinitelogo.jpg": {
+      "content_type": "image/jpeg",
+      "kind": "asset",
+      "local_path": "sweepstakescasinoslist-local/sweepstakeslogo/spinfinitelogo.jpg",
+      "status": "200"
+    },
+    "https://sweepstakescasinoslist.com/sweepstakeslogo/splashcoinslogo.jpg": {
+      "content_type": "image/jpeg",
+      "kind": "asset",
+      "local_path": "sweepstakescasinoslist-local/sweepstakeslogo/splashcoinslogo.jpg",
+      "status": "200"
+    },
+    "https://sweepstakescasinoslist.com/sweepstakeslogo/spreelogo.jpg": {
+      "content_type": "image/jpeg",
+      "kind": "asset",
+      "local_path": "sweepstakescasinoslist-local/sweepstakeslogo/spreelogo.jpg",
+      "status": "200"
+    },
+    "https://sweepstakescasinoslist.com/sweepstakeslogo/sweepicologo.jpg": {
+      "content_type": "image/jpeg",
+      "kind": "asset",
+      "local_path": "sweepstakescasinoslist-local/sweepstakeslogo/sweepicologo.jpg",
+      "status": "200"
+    },
+    "https://sweepstakescasinoslist.com/sweepstakeslogo/sweepstakescasinoslist.jpg": {
+      "content_type": "image/jpeg",
+      "kind": "asset",
+      "local_path": "sweepstakescasinoslist-local/sweepstakeslogo/sweepstakescasinoslist.jpg",
+      "status": "200"
+    },
+    "https://sweepstakescasinoslist.com/sweepstakeslogo/sweetsweepslogo.jpg": {
+      "content_type": "image/jpeg",
+      "kind": "asset",
+      "local_path": "sweepstakescasinoslist-local/sweepstakeslogo/sweetsweepslogo.jpg",
+      "status": "200"
+    },
+    "https://sweepstakescasinoslist.com/sweepstakeslogo/wowvegaslogo.jpg": {
+      "content_type": "image/jpeg",
+      "kind": "asset",
+      "local_path": "sweepstakescasinoslist-local/sweepstakeslogo/wowvegaslogo.jpg",
+      "status": "200"
+    },
+    "https://www.googletagmanager.com/gtag/js?id=G-GQ5RET36XP": {
+      "content_type": "application/javascript; charset=UTF-8",
+      "kind": "asset",
+      "local_path": "sweepstakescasinoslist-local/_external/www.googletagmanager.com/gtag/js__q3cba65feee",
+      "status": "200"
+    },
+    "https://www.googletagmanager.com/gtag/js?id=G-XR0EZ750YM": {
+      "content_type": "application/javascript; charset=UTF-8",
+      "kind": "asset",
+      "local_path": "sweepstakescasinoslist-local/_external/www.googletagmanager.com/gtag/js__q720409fef8",
+      "status": "200"
+    }
+  },
+  "fetched_count": 230,
+  "generated_at": "2026-06-18T07:52:58Z",
+  "local_aliases": {
+    "sweepsreviews/how-we-rate.html": "../sweepstakes-casino/how-we-rate.html",
+    "sweepsreviews/index.html": "../index.html#rankings",
+    "sweepsreviews/jackpot-go-review.html": "sweepsreviews/jackpotgo-review.html",
+    "sweepsreviews/jackpota-casino-review.html": "sweepsreviews/jackpota-review.html",
+    "sweepsreviews/our-mission.html": "../sweepstakes-casino/our-mission.html",
+    "sweepsreviews/responsible-gaming.html": "../sweepstakes-casino/responsible-gaming.html",
+    "sweepsreviews/sweepico-review.html": "sweepsreviews/sweepico-casino-review.html"
+  },
+  "root_url": "https://sweepstakescasinoslist.com/"
+}
