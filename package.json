@@ -1,0 +1,17 @@
+{
+  "name": "sweepstakes-casinos-list-astro",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "generate:pages": "node scripts/generate-astro-pages.mjs",
+    "astro:dev": "npm run generate:pages && ASTRO_TELEMETRY_DISABLED=1 astro dev",
+    "dev": "npm run build && ASTRO_TELEMETRY_DISABLED=1 astro preview",
+    "prebuild": "npm run generate:pages",
+    "build": "ASTRO_TELEMETRY_DISABLED=1 astro build",
+    "preview": "ASTRO_TELEMETRY_DISABLED=1 astro preview"
+  },
+  "devDependencies": {
+    "astro": "^7.0.0"
+  }
+}

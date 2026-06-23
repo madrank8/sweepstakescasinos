@@ -1,16 +1,30 @@
-# Sweepstakes Casinos List Local Mirror
+# Sweepstakes Casinos List Astro Site
 
-Static mirror of `https://sweepstakescasinoslist.com/`.
+Astro-powered static site for `https://sweepstakescasinoslist.com/`.
+
+The mirrored HTML files in the project root remain the content source. `npm run dev` and `npm run build` regenerate Astro routes under `src/pages/` and copy static assets into `public/`.
+
+Astro is configured with `build.format: "preserve"` so existing `.html` URLs and nested `index.html` files are preserved.
 
 ## Run Locally
 
-For best results, serve the folder over HTTP so shared partials and scripts can load:
-
 ```bash
-cd sweepstakescasinoslist-local
-python3 -m http.server 4173
+npm install
+npm run dev
 ```
 
-Then open `http://localhost:4173/`.
+Then open the local Astro preview URL shown in the terminal.
 
-Opening `index.html` directly may work for most static content, but browser file restrictions can block shared partial loading on some pages.
+For Astro's raw hot dev server, use:
+
+```bash
+npm run astro:dev
+```
+
+## Build
+
+```bash
+npm run build
+```
+
+The production files are emitted to `dist/`.

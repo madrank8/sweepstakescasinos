@@ -1,4 +1,8 @@
 .DS_Store
 node_modules/
+.astro/
 dist/
 build/
+.vercel
+public/
+src/pages/
