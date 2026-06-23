@@ -41,7 +41,7 @@ function writePage(sourcePath) {
   mkdirSync(dirname(destination), { recursive: true });
   const content =
     sourcePath === 'index.html'
-      ? `---\nimport { getStaticHtml } from '${importPath}';\nconst html = getStaticHtml('${sourcePath}');\n---\n<Fragment set:html={html} />\n`
+      ? `---\nimport { getStaticHtml } from '${importPath}';\nimport Analytics from '@vercel/analytics/astro';\nconst html = getStaticHtml('${sourcePath}');\n---\n<Fragment set:html={html} />\n<Analytics />\n`
       : `import { getStaticHtml } from '${importPath}';\n\nexport function GET() {\n  return new Response(getStaticHtml('${sourcePath}'), {\n    headers: {\n      'content-type': 'text/html; charset=utf-8'\n    }\n  });\n}\n`;
 
   writeFileSync(destination, content);
