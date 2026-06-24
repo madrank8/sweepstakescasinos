@@ -12,4 +12,4 @@ Disallow: /sweepstakes-casino/responsible-gaming.html
 # Internal partials — never need to be crawled
 Disallow: /sweepstakes-casino/partials/
 
-Sitemap: https://classroom70x.com/sitemap.xml
+Sitemap: https://sweepastro.vercel.app/sitemap.xml
