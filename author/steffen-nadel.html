@@ -17,9 +17,6 @@
 
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"ProfilePage","mainEntity":{"@type":"Person","name":"Steffen Nadel","jobTitle":"Sweepstakes Casino Analyst","description":"US sweepstakes casino analyst covering signup bonuses, KYC and identity verification, and Sweeps Coins redemption testing.","url":"https://sweepastro.vercel.app/author/steffen-nadel/","sameAs":["https://www.linkedin.com/in/steffen-nadel"],"knowsAbout":["Sweepstakes casinos","Sweeps Coins redemption","KYC verification","Casino bonus terms","Responsible gaming"],"worksFor":{"@type":"Organization","name":"Sweepstakes Casinos List","url":"https://sweepastro.vercel.app/"}}}</script>
 
-<!-- Shared nav + footer loader (edit /partials/nav.html or footer.html to update everywhere) -->
-<script src="/partials/include.js" defer></script>
-
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="/_external/fonts.googleapis.com/css2__qba979b498c" rel="stylesheet">
 
@@ -93,6 +90,15 @@ nav{position:sticky;top:0;z-index:200;background:rgba(15,23,42,0.96);backdrop-fi
 
 footer{background:#0a1628;color:rgba(255,255,255,0.6);padding:38px 20px 20px;}
 .footer-inner{max-width:1200px;margin:0 auto;}
+.footer-top{display:flex;flex-wrap:wrap;gap:28px;justify-content:space-between;margin-bottom:26px;padding-bottom:26px;border-bottom:1px solid rgba(255,255,255,0.07);}
+.footer-brand{font-family:'Sora',sans-serif;font-weight:900;font-size:1.1rem;color:white;margin-bottom:10px;}
+.footer-brand .accent{color:#fbbf24;}
+.footer-desc{font-size:0.79rem;max-width:240px;line-height:1.6;}
+.footer-links h4{color:white;font-weight:600;font-size:0.8rem;text-transform:uppercase;letter-spacing:0.07em;margin-bottom:10px;}
+.footer-links a{display:block;color:rgba(255,255,255,0.5);font-size:0.8rem;text-decoration:none;margin-bottom:7px;transition:color .2s;}
+.footer-links a:hover{color:white;}
+.footer-bottom{display:flex;flex-wrap:wrap;gap:10px;align-items:flex-start;justify-content:space-between;font-size:0.73rem;}
+.footer-disclaimer{font-size:0.69rem;color:rgba(255,255,255,0.32);max-width:580px;line-height:1.55;}
 
 @media(max-width:600px){
   .nav-links a:not(.nav-cta){display:none;}
@@ -103,8 +109,22 @@ footer{background:#0a1628;color:rgba(255,255,255,0.6);padding:38px 20px 20px;}
 </head>
 <body>
 
-<!-- Shared nav (loaded from /partials/nav.html) -->
-<div data-include="/partials/nav.html"></div>
+<nav>
+<div class="nav-inner">
+  <a href="/" class="nav-brand" aria-label="New Sweepstakes Casinos Home">
+    <span style="font-family:'Sora',sans-serif;font-size:1.1rem;font-weight:900;letter-spacing:-0.3px;">
+      <span style="color:#ffffff;">Sweepstakes</span><span style="color:#fbbf24;">Casinos</span><span style="color:#ffffff;">List</span><span style="color:#fbbf24;">.com</span>
+    </span>
+  </a>
+    <div class="nav-links">
+      <a href="/#offers" class="nav-cta">&#127873; Best Deals</a>
+      <a href="/#how-we-rate">How We Rate</a>
+      <a href="/#faq">FAQ</a>
+      <a href="/about/" rel="nofollow">Our Mission</a>
+      <a href="/responsible-gaming/" rel="nofollow">Responsible</a>
+    </div>
+  </div>
+</nav>
 
 <header class="page-hero">
   <div class="page-hero-inner">
@@ -161,8 +181,38 @@ footer{background:#0a1628;color:rgba(255,255,255,0.6);padding:38px 20px 20px;}
   </div>
 </main>
 
-<!-- Shared footer (loaded from /partials/footer.html) -->
-<div data-include="/partials/footer.html"></div>
+<footer>
+  <div class="footer-inner">
+    <div class="footer-top">
+      <div>
+        <div class="footer-brand"><b>SweepstakesCasinosList.com</b></div>
+        <p class="footer-desc">Independent sweepstakes casino reviews and bonus guides for USA players. We earn a referral fee when you sign up &#8212; this never influences our ratings.</p>
+      </div>
+      <div class="footer-links">
+        <h4>Top Sweeps Reviews</h4>
+        <a href="/reviews/rolla/">Rolla Casino Review</a>
+        <a href="/reviews/crown-coins/">Crown Coins Review</a>
+        <a href="/reviews/wow-vegas/">WOW Vegas Review</a>
+        <a href="/reviews/sweet-sweeps/">Sweet Sweeps Review</a>
+        <a href="/reviews/sweepico/">Sweepico Review</a>
+      </div>
+      <div class="footer-links">
+        <h4>Legal</h4>
+        <a href="/contact/" rel="nofollow">Contact</a>
+        <a href="/about/" rel="nofollow">Our Mission</a>
+        <a href="/legal/privacy/" rel="nofollow">Privacy Policy</a>
+        <a href="/legal/terms/" rel="nofollow">Terms of Use</a>
+        <a href="/how-we-rate/" rel="nofollow">How We Rate</a>
+        <a href="/responsible-gaming/" rel="nofollow">Responsible Gaming</a>
+        <a href="/sitemap.xml">Sitemap</a>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <div>&#169; 2026 New Sweepstakes Casinos &#8212; SweepstakesCasinosList.com - All Rights Reserved</div>
+      <div class="footer-disclaimer">Sweepstakes casinos are not gambling sites. No real money is wagered. SC have no cash value until redeemed per each platform's official rules. No purchase necessary. Must be 18+ (21+ where required). Not available in all states. Play responsibly. Need help? US 1-800-GAMBLER &#183; CA 1-866-531-2600.</div>
+    </div>
+  </div>
+</footer>
 
 </body>
 </html>
