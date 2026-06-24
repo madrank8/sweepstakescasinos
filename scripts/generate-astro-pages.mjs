@@ -4,7 +4,7 @@ import { dirname, join, relative } from 'node:path';
 const root = process.cwd();
 const pagesDir = join(root, 'src', 'pages');
 const publicDir = join(root, 'public');
-const ignoreDirs = new Set(['.git', 'node_modules', 'dist', 'public', 'src', 'scripts', '_external', 'sweepstakeslogo']);
+const ignoreDirs = new Set(['.git', 'node_modules', 'dist', 'public', 'src', 'scripts', '_external', 'sweepstakeslogo', 'output', '.cursor', '.planning', '.vercel']);
 const pageFiles = [];
 
 function walk(dir) {
@@ -63,6 +63,31 @@ function copyPublicAssets() {
     recursive: true,
     force: true
   });
+
+  copyPilotReviews();
+}
+
+function copyPilotReviews() {
+  const pilotSourceRoot = join(root, 'output', 'review-articles');
+  const pilotPublicDir = join(publicDir, 'pilot');
+
+  mkdirSync(pilotPublicDir, { recursive: true });
+
+  let copied = 0;
+  if (!statSync(pilotSourceRoot, { throwIfNoEntry: false })) {
+    return;
+  }
+
+  for (const entry of readdirSync(pilotSourceRoot)) {
+    const articleHtml = join(pilotSourceRoot, entry, `${entry}.html`);
+    if (!statSync(articleHtml, { throwIfNoEntry: false })) continue;
+    copyFileSync(articleHtml, join(pilotPublicDir, `${entry}.html`));
+    copied += 1;
+  }
+
+  if (copied > 0) {
+    console.log(`Copied ${copied} pilot review(s) to public/pilot/.`);
+  }
 }
 
 rmSync(pagesDir, { recursive: true, force: true });
