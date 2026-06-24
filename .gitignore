@@ -6,3 +6,5 @@ build/
 .vercel
 public/
 src/pages/
+.context-brain.db
+output/
