@@ -74,7 +74,12 @@ function writeSitemapAndRobots() {
       if (f.endsWith('.html')) urls.push(`/reviews/${f.replace(/\.html$/, '')}/`);
     }
   }
-  if (existsSync(join(root, 'author', 'steffen-nadel.html'))) urls.push('/author/steffen-nadel/');
+  const authorDir = join(root, 'author');
+  if (existsSync(authorDir)) {
+    for (const f of readdirSync(authorDir).sort()) {
+      if (f.endsWith('.html')) urls.push(`/author/${f.replace(/\.html$/, '')}/`);
+    }
+  }
 
   const body = urls.map((u) =>
     `  <url>\n    <loc>${ORIGIN}${u}</loc>\n    <lastmod>${today}</lastmod>\n    <changefreq>weekly</changefreq>\n    <priority>${u === '/' ? '1.0' : '0.8'}</priority>\n  </url>`
