@@ -1,15 +1,7 @@
 User-agent: *
 Allow: /
 
-# Noindex pages — also blocked from crawling
-Disallow: /sweepstakes-casino/contact.html
-Disallow: /sweepstakes-casino/privacy-policy.html
-Disallow: /sweepstakes-casino/terms-of-use.html
-Disallow: /sweepstakes-casino/our-mission.html
-Disallow: /sweepstakes-casino/how-we-rate.html
-Disallow: /sweepstakes-casino/responsible-gaming.html
-
-# Internal partials — never need to be crawled
-Disallow: /sweepstakes-casino/partials/
+# Affiliate redirect endpoints — not for indexing (legal/contact use noindex meta instead)
+Disallow: /bonuses/
 
 Sitemap: https://sweepastro.vercel.app/sitemap.xml

@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>How We Rate Sweepstakes Casinos - Methodology | SweepstakesCasinosList.com</title>
+<meta name="description" content="The 7-criteria scoring system behind every sweepstakes casino review on our site: redemption speed, bonus value, games, KYC, support, T&Cs, and stability.">
+<meta name="robots" content="noindex, nofollow">
+<meta name="author" content="New Sweepstakes Casinos">
+<link rel="canonical" href="https://sweepastro.vercel.app/how-we-rate/">
+<!-- Shared nav + footer loader (edit /partials/nav.html or footer.html to update everywhere) -->
+<script src="/partials/include.js" defer></script>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="/_external/fonts.googleapis.com/css2__qba979b498c" rel="stylesheet">
+
+<style>
+:root{
+  --navy:#0a1628;
+  --blue:#1a56db;
+  --gold:#fbbf24;
+  --green:#10b981;
+  --red:#ef4444;
+  --red-2:#dc2626;
+  --shadow-sm:0 2px 8px rgba(15,23,42,0.06);
+  --shadow:0 4px 20px rgba(15,23,42,0.08);
+  --shadow-lg:0 12px 40px rgba(15,23,42,0.13);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{font-family:'DM Sans',sans-serif;background:linear-gradient(180deg,#eef2f8 0%,#dde4ef 100%);color:#0f172a;overflow-x:hidden;line-height:1.6;min-height:100vh;}
+
+nav{position:sticky;top:0;z-index:200;background:rgba(15,23,42,0.96);backdrop-filter:blur(14px);border-bottom:1px solid rgba(255,255,255,0.08);padding:0 20px;}
+.nav-inner{max-width:1200px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;height:68px;gap:12px;}
+.nav-brand{font-family:'Sora',sans-serif;font-weight:900;font-size:1.05rem;color:white;text-decoration:none;letter-spacing:-0.3px;display:flex;align-items:center;gap:8px;}
+.nav-brand .accent{color:#fbbf24;}
+.nav-links{display:flex;align-items:center;gap:4px;flex-wrap:wrap;}
+.nav-links a{font-size:0.82rem;font-weight:500;color:rgba(255,255,255,0.78);text-decoration:none;padding:6px 11px;border-radius:8px;transition:all .2s;}
+.nav-links a:hover{background:rgba(255,255,255,0.08);color:white;}
+.nav-cta{background:linear-gradient(135deg,#fbbf24,#f59e0b)!important;color:#0a1628!important;padding:8px 16px!important;border-radius:8px!important;font-weight:800!important;letter-spacing:0.02em;box-shadow:0 4px 12px rgba(251,191,36,0.4);}
+.nav-cta:hover{box-shadow:0 6px 18px rgba(251,191,36,0.55);transform:translateY(-1px);}
+
+.page-hero{position:relative;overflow:hidden;padding:50px 20px 38px;text-align:center;background:#0a1628;}
+.page-hero::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at top,rgba(26,86,219,0.18) 0%,transparent 60%);pointer-events:none;}
+.page-hero-inner{position:relative;z-index:2;max-width:820px;margin:0 auto;}
+.breadcrumb{display:inline-flex;align-items:center;gap:8px;font-size:0.75rem;color:rgba(255,255,255,0.55);margin-bottom:14px;}
+.breadcrumb a{color:rgba(255,255,255,0.78);text-decoration:none;}
+.breadcrumb a:hover{color:#fbbf24;}
+.breadcrumb .sep{opacity:0.4;}
+.page-hero h1{font-family:'Sora',sans-serif;font-size:clamp(1.6rem,3.6vw,2.3rem);font-weight:900;color:white;line-height:1.18;letter-spacing:-0.5px;margin-bottom:10px;}
+.page-hero h1 .accent{color:#fbbf24;}
+.page-hero-sub{font-size:clamp(0.88rem,1.5vw,1rem);color:rgba(255,255,255,0.78);max-width:640px;margin:0 auto;line-height:1.65;}
+
+.content-section{max-width:880px;margin:0 auto;padding:48px 20px 60px;}
+.content-card{background:white;border-radius:18px;box-shadow:var(--shadow);padding:38px 36px;border:1px solid #e2e8f0;}
+.content-card h2{font-family:'Sora',sans-serif;font-size:1.5rem;font-weight:800;color:#0a1628;margin-bottom:14px;letter-spacing:-0.3px;margin-top:8px;}
+.content-card h2:first-child{margin-top:0;}
+.content-card h3{font-family:'Sora',sans-serif;font-size:1.15rem;font-weight:700;color:#0a1628;margin-top:28px;margin-bottom:10px;}
+.content-card h4{font-family:'Sora',sans-serif;font-size:1rem;font-weight:700;color:#0a1628;margin-top:20px;margin-bottom:8px;}
+.content-card p{font-size:0.95rem;color:#334155;line-height:1.75;margin-bottom:14px;}
+.content-card ul,.content-card ol{margin:8px 0 18px 22px;}
+.content-card ul li,.content-card ol li{font-size:0.93rem;color:#334155;margin-bottom:6px;line-height:1.6;}
+.content-card strong{color:#0a1628;font-weight:700;}
+.content-card a{color:#1a56db;text-decoration:none;font-weight:600;}
+.content-card a:hover{text-decoration:underline;}
+.content-card .last-updated{display:inline-block;font-size:0.75rem;font-weight:700;background:#ecfdf5;color:#065f46;border:1px solid #a7f3d0;padding:5px 12px;border-radius:100px;margin-bottom:18px;}
+
+.notice-box{background:#fef9e7;border:1px solid #fde68a;border-left:4px solid #f59e0b;border-radius:10px;padding:16px 18px;margin:18px 0;}
+.notice-box p{font-size:0.88rem;color:#78350f;margin-bottom:0;}
+.notice-box strong{color:#78350f;}
+
+.info-box{background:#eff6ff;border:1px solid #bfdbfe;border-left:4px solid #1a56db;border-radius:10px;padding:16px 18px;margin:18px 0;}
+.info-box p{font-size:0.88rem;color:#1e3a8a;margin-bottom:0;}
+.info-box strong{color:#1e3a8a;}
+
+.danger-box{background:#fef2f2;border:1px solid #fecaca;border-left:4px solid #dc2626;border-radius:10px;padding:16px 18px;margin:18px 0;}
+.danger-box p{font-size:0.88rem;color:#7f1d1d;margin-bottom:0;}
+.danger-box strong{color:#7f1d1d;}
+
+.criteria-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;margin:18px 0 22px;}
+.criteria-card{background:linear-gradient(165deg,#fafcff 0%,#eef4ff 100%);border:1px solid #e2e8f0;border-radius:14px;padding:18px 20px;}
+.criteria-card .icon{font-size:1.7rem;margin-bottom:6px;}
+.criteria-card h4{font-family:'Sora',sans-serif;font-size:0.95rem;font-weight:700;color:#0a1628;margin-top:0;margin-bottom:6px;}
+.criteria-card p{font-size:0.83rem;color:#475569;line-height:1.55;margin-bottom:6px;}
+.criteria-card .weight{font-size:0.7rem;font-weight:700;color:#dc2626;letter-spacing:0.05em;text-transform:uppercase;}
+
+footer{background:#0a1628;color:rgba(255,255,255,0.6);padding:38px 20px 20px;}
+.footer-inner{max-width:1200px;margin:0 auto;}
+.footer-top{display:flex;flex-wrap:wrap;gap:28px;justify-content:space-between;margin-bottom:26px;padding-bottom:26px;border-bottom:1px solid rgba(255,255,255,0.07);}
+.footer-brand{font-family:'Sora',sans-serif;font-weight:900;font-size:1.1rem;color:white;margin-bottom:10px;}
+.footer-brand .accent{color:#fbbf24;}
+.footer-desc{font-size:0.79rem;max-width:240px;line-height:1.6;}
+.footer-links h4{color:white;font-weight:600;font-size:0.8rem;text-transform:uppercase;letter-spacing:0.07em;margin-bottom:10px;}
+.footer-links a{display:block;color:rgba(255,255,255,0.5);font-size:0.8rem;text-decoration:none;margin-bottom:7px;transition:color .2s;}
+.footer-links a:hover{color:white;}
+.footer-bottom{display:flex;flex-wrap:wrap;gap:10px;align-items:flex-start;justify-content:space-between;font-size:0.73rem;}
+.footer-disclaimer{font-size:0.69rem;color:rgba(255,255,255,0.32);max-width:580px;line-height:1.55;}
+
+@media(max-width:600px){
+  .nav-links a:not(.nav-cta){display:none;}
+  .content-card{padding:26px 22px;}
+  .content-card h2{font-size:1.3rem;}
+}
+</style>
+</head>
+<body>
+
+<!-- Shared nav (loaded from /partials/nav.html) -->
+<div data-include="/partials/nav.html"></div>
+
+<header class="page-hero">
+  <div class="page-hero-inner">
+    <div class="breadcrumb">
+      <a href="/">Home</a>
+      <span class="sep">›</span>
+      <span>How We Rate</span>
+    </div>
+    <h1>How We <span class="accent">Rate</span></h1>
+    <p class="page-hero-sub">A transparent, hands-on, 7-criteria scoring system. Here is exactly how every sweepstakes casino on this guide earned its score.</p>
+  </div>
+</header>
+
+<main class="content-section">
+  <div class="content-card">
+
+    <span class="last-updated">Last updated: May 3, 2026</span>
+
+    <h2>The Short Version</h2>
+    <p>Every sweepstakes casino on this site is scored against <strong>seven fixed criteria</strong> totaling 100 points. The scores are produced by hands-on testing — we register a real account, claim the welcome bonus, play, request a redemption, and document every step. Our affiliate relationship with the operator does <strong>not</strong> shift any score.</p>
+
+    <p>Sites scoring below 60/100, or scoring 0 on the redemption-speed criterion, are removed from our rankings entirely.</p>
+
+    <h2>The 7 Criteria & Their Weights</h2>
+
+    <div class="criteria-grid">
+      <div class="criteria-card">
+        <div class="icon">⚡</div>
+        <h4>Redemption Speed</h4>
+        <p>How long from KYC-verified redemption request to money in your hand. We measure to the hour.</p>
+        <div class="weight">Weight: 25 / 100</div>
+      </div>
+      <div class="criteria-card">
+        <div class="icon">🎁</div>
+        <h4>Welcome Bonus Value</h4>
+        <p>Real claimable SC value at sign-up, after wagering requirements and redemption thresholds.</p>
+        <div class="weight">Weight: 15 / 100</div>
+      </div>
+      <div class="criteria-card">
+        <div class="icon">🎰</div>
+        <h4>Game Library</h4>
+        <p>Game count, provider quality, RTP transparency, presence of live dealer and exclusive titles.</p>
+        <div class="weight">Weight: 15 / 100</div>
+      </div>
+      <div class="criteria-card">
+        <div class="icon">🪪</div>
+        <h4>KYC & Onboarding Friction</h4>
+        <p>Documents required, verification turnaround, false-rejection rate, support during KYC.</p>
+        <div class="weight">Weight: 15 / 100</div>
+      </div>
+      <div class="criteria-card">
+        <div class="icon">🛟</div>
+        <h4>Customer Support</h4>
+        <p>Live chat availability, average response time, agent competence, complaint escalation path.</p>
+        <div class="weight">Weight: 10 / 100</div>
+      </div>
+      <div class="criteria-card">
+        <div class="icon">📜</div>
+        <h4>Terms & Conditions Fairness</h4>
+        <p>Wagering requirements, max-bet rules, dormancy clauses, max-redemption caps, history of changes.</p>
+        <div class="weight">Weight: 10 / 100</div>
+      </div>
+      <div class="criteria-card">
+        <div class="icon">🔧</div>
+        <h4>Platform Stability</h4>
+        <p>Uptime, page-load speed, mobile experience, security headers, history of outages or breaches.</p>
+        <div class="weight">Weight: 10 / 100</div>
+      </div>
+    </div>
+
+    <h2>How Each Score Is Built</h2>
+
+    <h3>1. Redemption Speed (25 points)</h3>
+    <p>The single most important criterion, and the one most casinos game in their marketing. We do not trust operator-published "average" times. Instead, we measure ours:</p>
+    <ul>
+      <li>Submit a redemption request at a known time after KYC is complete.</li>
+      <li>Time-stamp every status change (pending → approved → processing → paid).</li>
+      <li>Repeat across at least three redemption methods (PayPal, ACH, gift card).</li>
+      <li>Repeat the entire test at three different days/times within a quarter.</li>
+    </ul>
+    <p>Scoring band: 0–24 hours = full 25 points. 24–72 hours = 20. 72 hours – 1 week = 12. 1–2 weeks = 5. More than 2 weeks, or any failed redemption = 0 (and the brand is automatically delisted).</p>
+
+    <h3>2. Welcome Bonus Value (15 points)</h3>
+    <p>Marketing materials inflate bonuses with promotional Gold Coins, locked-up Sweeps Coins, or impossible playthrough requirements. We score the <strong>realistic claimable value</strong> — what an average player can actually redeem after meeting the playthrough on a 96% RTP slot. Maximum redemption caps and time limits are factored in.</p>
+
+    <h3>3. Game Library (15 points)</h3>
+    <p>Quality matters more than raw count. A site with 4,000 white-label slots scores lower than a site with 1,500 well-curated titles from Pragmatic Play, Hacksaw, NetEnt, Relax Gaming, and similar regulated providers. Bonus points for:</p>
+    <ul>
+      <li>Live dealer integrations (Evolution, Pragmatic Live)</li>
+      <li>Published RTP per game</li>
+      <li>Exclusive titles unavailable elsewhere</li>
+      <li>Working demo/free-play mode</li>
+    </ul>
+
+    <h3>4. KYC & Onboarding Friction (15 points)</h3>
+    <p>Identity verification is a legal requirement, not a flaw — but how it's implemented separates good operators from bad. We score:</p>
+    <ul>
+      <li>Documents required (more than ID + selfie + proof of address = friction)</li>
+      <li>Turnaround time (under 24 hours = full points)</li>
+      <li>False-rejection handling (does support actually help, or auto-deny?)</li>
+      <li>Whether KYC is required at registration, at first redemption, or only above a threshold</li>
+    </ul>
+
+    <h3>5. Customer Support (10 points)</h3>
+    <p>We open three real support tickets per review cycle: one trivial ("Where is my SC balance?"), one urgent ("My redemption is stuck"), and one complaint ("Why was my account flagged?"). We score response time, resolution quality, and whether the agent escalated when they should have.</p>
+
+    <h3>6. Terms & Conditions Fairness (10 points)</h3>
+    <p>Red-flag clauses we look for:</p>
+    <ul>
+      <li>Maximum redemption caps below $5,000 per request</li>
+      <li>Dormancy clauses that void SC after &lt;180 days</li>
+      <li>Wagering requirements above 1× on welcome SC</li>
+      <li>"At our sole discretion" language attached to redemption decisions</li>
+      <li>Recent (within 12 months) changes that hurt existing players</li>
+    </ul>
+
+    <h3>7. Platform Stability (10 points)</h3>
+    <p>Measured via independent uptime monitors over the prior 90 days, mobile UX testing on iOS/Android, security header audit (HSTS, CSP, etc.), and a search of public breach databases. A history of unplanned 4+ hour outages or any unresolved security incident significantly reduces the score.</p>
+
+    <h2>Why Some Sites Aren't Listed</h2>
+    <p>You will notice some heavily advertised sweepstakes casinos missing from our top lists. The most common reasons:</p>
+    <ul>
+      <li><strong>Failed the redemption test.</strong> Our policy is strict — no redemption, no listing.</li>
+      <li><strong>Pattern of complaints.</strong> Multiple verified player complaints about the same issue (e.g., KYC denials without explanation) automatically trigger a re-investigation. Repeated failures = delisting.</li>
+      <li><strong>Operator pressure.</strong> If an operator pressures us to remove negative content or refuses to acknowledge documented player issues, we delist them and stop accepting their referral fees.</li>
+      <li><strong>Legal/regulatory issues.</strong> Sites with active state cease-and-desist orders, AGCO bans, or pending consumer-protection litigation are removed until resolved.</li>
+    </ul>
+
+    <h2>Re-testing Schedule</h2>
+    <p>Every listed site is re-tested at least once per quarter (every 90 days). High-traffic sites — top 5 in our rankings — are re-tested every 30 days. A site can move up or down the rankings between scheduled reviews if we receive verified complaints or significant operator changes.</p>
+
+    <h2>The Affiliate Wall</h2>
+    <p>Our reviewers are not told which operators have signed referral agreements with us until <strong>after</strong> a review is published. Affiliate-relationship status is, of course, ultimately public — but separating the writing from the deal-making materially reduces unconscious bias. Operators that try to negotiate ranking position as a condition of partnership are permanently delisted.</p>
+
+    <h2>Spotted Something Wrong?</h2>
+    <p>If a score on this site looks wrong to you — based on your real experience as a player — please tell us. Email <a href="mailto:geeko@sweepstakescasinoreviews.com">geeko@sweepstakescasinoreviews.com</a> with the operator name and what specifically you experienced. Real complaints from real players are the single biggest driver of our re-investigations.</p>
+  </div>
+</main>
+
+<!-- Shared footer (loaded from /partials/footer.html) -->
+<div data-include="/partials/footer.html"></div>
+
+</body>
+</html>

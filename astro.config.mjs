@@ -1,9 +1,9 @@
 import { defineConfig } from 'astro/config';
 
 export default defineConfig({
-  site: 'https://sweepstakescasinoslist.com',
-  trailingSlash: 'never',
+  site: 'https://sweepastro.vercel.app',
+  trailingSlash: 'ignore',
   build: {
-    format: 'preserve'
+    format: 'directory'
   }
 });
