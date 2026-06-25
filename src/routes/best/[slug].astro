@@ -1,0 +1,125 @@
+---
+/**
+ * "Best of" / comparison hub pages (MDX `comparisons` collection -> /best/<slug>/).
+ * SSR (prerender=false) so the partner comparison is geo-aware: affiliate CTAs
+ * render via <AffiliateLink> (gateway + suppression) per the visitor's state.
+ * Authored in src/routes; copied into src/pages by the generator.
+ */
+export const prerender = false;
+
+import { getEntry, render } from 'astro:content';
+import ContentLayout from '../../layouts/ContentLayout.astro';
+import AffiliateLink from '../../components/AffiliateLink.astro';
+import { getPartner, AFFILIATE_PARTNERS } from '../../data/affiliates';
+import { shouldRenderAffiliateCta } from '../../data/geo';
+
+const ORIGIN = 'https://sweepstakeslist.vercel.app';
+
+const slug = Astro.params.slug;
+const entry = slug ? await getEntry('comparisons', slug) : undefined;
+if (!entry || entry.data.draft) {
+  return new Response('Not found', { status: 404 });
+}
+const { Content } = await render(entry);
+
+const state = Astro.locals.usState;
+const orderedSlugs =
+  entry.data.partnerSlugs.length > 0
+    ? entry.data.partnerSlugs
+    : AFFILIATE_PARTNERS.map((p) => p.slug);
+const partners = orderedSlugs
+  .map((s) => getPartner(s))
+  .filter((p): p is NonNullable<typeof p> => Boolean(p));
+
+const canonicalPath = `/best/${entry.id}/`;
+const breadcrumbs = [
+  { name: 'Home', path: '/' },
+  { name: 'Best Casinos', path: canonicalPath },
+];
+
+const itemListLd = {
+  '@context': 'https://schema.org',
+  '@type': 'ItemList',
+  itemListElement: partners.map((p, i) => ({
+    '@type': 'ListItem',
+    position: i + 1,
+    name: p.name,
+    url: `${ORIGIN}/reviews/${p.slug}/`,
+  })),
+};
+const faq = entry.data.faq ?? [];
+const faqLd =
+  faq.length > 0
+    ? {
+        '@context': 'https://schema.org',
+        '@type': 'FAQPage',
+        mainEntity: faq.map((f) => ({
+          '@type': 'Question',
+          name: f.q,
+          acceptedAnswer: { '@type': 'Answer', text: f.a },
+        })),
+      }
+    : null;
+const jsonLd = faqLd ? [itemListLd, faqLd] : [itemListLd];
+---
+<ContentLayout
+  title={entry.data.title}
+  description={entry.data.description}
+  canonicalPath={canonicalPath}
+  breadcrumbs={breadcrumbs}
+  heroTitle={entry.data.heroTitle}
+  heroSubtitle={entry.data.description}
+  jsonLd={jsonLd}
+>
+  <Content />
+
+  <h2>Our top-rated sweepstakes casinos</h2>
+  <ol class="best-list">
+    {partners.map((p, i) => {
+      const canCta = shouldRenderAffiliateCta(p, state);
+      return (
+        <li class="best-item">
+          <span class="best-rank">#{i + 1}</span>
+          <div class="best-body">
+            <a class="best-name" href={`/reviews/${p.slug}/`}>{p.name}</a>
+            <span class={`best-avail ${canCta ? 'ok' : 'no'}`}>
+              {canCta ? 'Available in your location' : 'Not available in your location'}
+            </span>
+          </div>
+          <div class="best-cta">
+            <a class="best-review" href={`/reviews/${p.slug}/`}>Read review</a>
+            <AffiliateLink slug={p.slug} label="Get bonus" />
+          </div>
+        </li>
+      );
+    })}
+  </ol>
+
+  {faq.length > 0 && (
+    <section aria-label="Frequently asked questions">
+      <h2>Frequently asked questions</h2>
+      {faq.map((f) => (
+        <>
+          <h3>{f.q}</h3>
+          <p>{f.a}</p>
+        </>
+      ))}
+    </section>
+  )}
+
+  <style>
+    .best-list{list-style:none;margin:18px 0 8px;padding:0;}
+    .best-item{display:flex;align-items:center;gap:14px;padding:14px 16px;border:1px solid #e2e8f0;border-radius:14px;background:linear-gradient(165deg,#fafcff,#eef4ff);margin-bottom:12px;}
+    .best-rank{font-family:'Sora',sans-serif;font-weight:900;color:#1a56db;font-size:1.1rem;min-width:34px;}
+    .best-body{flex:1;display:flex;flex-direction:column;gap:2px;}
+    .best-name{font-family:'Sora',sans-serif;font-weight:800;color:#0a1628;font-size:1.02rem;text-decoration:none;}
+    .best-avail{font-size:.74rem;font-weight:700;}
+    .best-avail.ok{color:#047857;}
+    .best-avail.no{color:#b91c1c;}
+    .best-cta{display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:flex-end;}
+    .best-review{font-size:.82rem;font-weight:700;}
+    .best-cta .affiliate-cta{display:inline-block;background:linear-gradient(135deg,#fbbf24,#f59e0b);color:#0a1628;font-weight:800;padding:9px 16px;border-radius:10px;text-decoration:none;font-size:.85rem;}
+    .best-cta .affiliate-unavailable{font-size:.74rem;color:#b91c1c;font-weight:700;}
+    @media(max-width:560px){.best-item{flex-wrap:wrap;}.best-cta{width:100%;justify-content:flex-start;}}
+  </style>
+</ContentLayout>

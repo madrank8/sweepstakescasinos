@@ -3,7 +3,9 @@
  * <AffiliateLink> — the ONLY sanctioned way to render an affiliate CTA.
  *
  * - Always emits rel="sponsored nofollow" + target="_blank" + safe noopener.
- * - Routes to the partner's Gemified tracking link (never hardcode raw URLs).
+ * - Routes through the /bonuses/<slug>/ gateway (the raw Gemified URL never
+ *   appears in page HTML; the gateway issues the redirect only after its own
+ *   server-side geo check).
  * - Geo-suppresses: returns nothing (or an info note) when the visitor's state
  *   is site-banned or the partner is restricted there. Decision is centralized
  *   in `shouldRenderAffiliateCta()` — do not branch on states here.
@@ -46,7 +48,7 @@ const ctaLabel = label ?? `Visit ${partner.name}`;
 ---
 {canRender ? (
   <a
-    href={partner.trackingLink}
+    href={`/bonuses/${partner.slug}/`}
     rel="sponsored nofollow"
     target="_blank"
     data-affiliate={partner.slug}

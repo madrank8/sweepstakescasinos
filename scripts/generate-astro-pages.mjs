@@ -175,6 +175,19 @@ function writeSitemapAndRobots() {
     }
   }
 
+  // MDX content collections (skip drafts). comparisons render under /best/.
+  const collectionUrlPrefix = { guides: '/guides', comparisons: '/best', states: '/states' };
+  for (const [name, prefix] of Object.entries(collectionUrlPrefix)) {
+    const dir = join(root, 'src', 'content', name);
+    if (!existsSync(dir)) continue;
+    for (const f of readdirSync(dir).sort()) {
+      if (!f.endsWith('.mdx')) continue;
+      const fm = readFileSync(join(dir, f), 'utf8').slice(0, 600);
+      if (/\bdraft:\s*true\b/.test(fm)) continue;
+      urls.push(`${prefix}/${f.replace(/\.mdx$/, '')}/`);
+    }
+  }
+
   const body = urls.map((u) =>
     `  <url>\n    <loc>${ORIGIN}${u}</loc>\n    <lastmod>${today}</lastmod>\n    <changefreq>weekly</changefreq>\n    <priority>${u === '/' ? '1.0' : '0.8'}</priority>\n  </url>`
   ).join('\n');

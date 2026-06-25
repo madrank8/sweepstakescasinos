@@ -14,6 +14,21 @@ import { ALL_US_STATE_CODES } from './data/usStates';
 
 const isoDate = z.coerce.date();
 
+const faqItem = z.object({ q: z.string(), a: z.string() });
+
+const guides = defineCollection({
+  loader: glob({ pattern: '**/*.mdx', base: './src/content/guides' }),
+  schema: z.object({
+    title: z.string(),
+    description: z.string(),
+    heroTitle: z.string().optional(),
+    /** Optional FAQ rendered as a visible section + FAQPage JSON-LD. */
+    faq: z.array(faqItem).default([]),
+    updated: isoDate.optional(),
+    draft: z.boolean().default(false),
+  }),
+});
+
 const states = defineCollection({
   loader: glob({ pattern: '**/*.mdx', base: './src/content/states' }),
   schema: z.object({
@@ -53,12 +68,14 @@ const comparisons = defineCollection({
   schema: z.object({
     title: z.string(),
     description: z.string(),
+    heroTitle: z.string().optional(),
     /** Ordered AffiliatePartner.slug list featured in this comparison. */
     partnerSlugs: z.array(z.string()).default([]),
+    faq: z.array(faqItem).default([]),
     published: isoDate.optional(),
     updated: isoDate.optional(),
     draft: z.boolean().default(false),
   }),
 });
 
-export const collections = { states, reviews, comparisons };
+export const collections = { states, reviews, comparisons, guides };
