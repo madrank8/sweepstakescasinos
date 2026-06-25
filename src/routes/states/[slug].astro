@@ -1,0 +1,81 @@
+---
+/**
+ * State legality pages (MDX content collection -> /states/<code>/).
+ * Prerendered static pages. Partner availability is shown as EDITORIAL links to
+ * reviews (no affiliate CTAs here); actual affiliate clicks always go through
+ * the geo-gated /bonuses/ gateway, which suppresses by the visitor's state.
+ *
+ * Authored in src/routes and copied into src/pages by the page generator so it
+ * survives the generator's wipe of src/pages.
+ */
+import { getCollection, render } from 'astro:content';
+import ContentLayout from '../../layouts/ContentLayout.astro';
+import { AFFILIATE_PARTNERS } from '../../data/affiliates';
+import { isPartnerAvailableInState, isStateBannedSitewide } from '../../data/geo';
+import { stateName, type UsStateCode } from '../../data/usStates';
+
+export const prerender = true;
+
+export async function getStaticPaths() {
+  const entries = await getCollection('states', (e) => !e.data.draft);
+  return entries.map((entry) => ({ params: { slug: entry.id }, props: { entry } }));
+}
+
+const { entry } = Astro.props;
+const { Content } = await render(entry);
+
+const code = entry.data.stateCode as UsStateCode;
+const name = stateName(code);
+const banned = isStateBannedSitewide(code);
+const availablePartners = banned
+  ? []
+  : AFFILIATE_PARTNERS.filter((p) => isPartnerAvailableInState(p, code));
+
+const canonicalPath = `/states/${entry.id}/`;
+const breadcrumbs = [
+  { name: 'Home', path: '/' },
+  { name: 'State Legality', path: '/state-legality/' },
+  { name: name, path: canonicalPath },
+];
+---
+<ContentLayout
+  title={entry.data.title}
+  description={entry.data.description}
+  canonicalPath={canonicalPath}
+  breadcrumbs={breadcrumbs}
+  heroSubtitle={entry.data.description}
+>
+  <Content />
+
+  <h2>Available sweepstakes casinos in {name}</h2>
+  {banned ? (
+    <div class="notice-box">
+      <p>
+        Because of {name}&rsquo;s rules on marketing sweepstakes casinos, we show
+        informational content only here and do not promote affiliate offers.
+        Please review the law and each operator&rsquo;s official rules before
+        playing.
+      </p>
+    </div>
+  ) : availablePartners.length > 0 ? (
+    <ul>
+      {availablePartners.map((p) => (
+        <li>
+          <a href={`/reviews/${p.slug}/`}>{p.name} review</a>
+          {p.model === 'cpa' ? '' : ''}
+        </li>
+      ))}
+    </ul>
+  ) : (
+    <p>No reviewed operators currently list availability in {name}.</p>
+  )}
+
+  <div class="info-box">
+    <p>
+      Play responsibly &middot; 21+. Free, confidential help is available 24/7 at
+      <a href="tel:18004262537">1-800-GAMBLER</a>. See our
+      <a href="/responsible-gaming/">Responsible Gaming</a> page. This page is
+      informational and not legal advice.
+    </p>
+  </div>
+</ContentLayout>

@@ -111,3 +111,16 @@ export function injectOrgSchema(html: string): string {
 export function decorateChrome(html: string): string {
   return injectOrgSchema(injectComplianceRibbon(html));
 }
+
+/**
+ * Raw markup accessors for native Astro layouts (e.g. MDX content pages) that
+ * don't pass through the set:html pipeline but must render the same chrome.
+ * The caller is responsible for date-stamping the ribbon's __UPDATED_DATE__.
+ */
+export function complianceRibbonMarkup(): string {
+  return RIBBON;
+}
+
+export function orgSchemaMarkup(): string {
+  return ORG_SCRIPT;
+}

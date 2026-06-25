@@ -134,6 +134,15 @@ const partner = result.partner;
   writeFileSync(destination, content);
 }
 
+// Copy committed app routes (collection consumers, dynamic SSR routes) into
+// src/pages so they survive the wipe above. Authored under src/routes.
+function copyAppRoutes() {
+  const routesDir = join(root, 'src', 'routes');
+  if (existsSync(routesDir)) {
+    cpSync(routesDir, pagesDir, { recursive: true, force: true });
+  }
+}
+
 function copyPublicAssets() {
   rmSync(publicDir, { recursive: true, force: true });
   mkdirSync(publicDir, { recursive: true });
@@ -184,6 +193,7 @@ rmSync(pagesDir, { recursive: true, force: true });
 walk(root);
 pageFiles.sort().forEach(writePage);
 writeBonusGateway();
+copyAppRoutes();
 copyPublicAssets();
 
 console.log(`Generated Astro pages (directory format) + SSR bonus gateway + sitemap/robots.`);
