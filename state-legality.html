@@ -57,6 +57,17 @@
       </tbody>
     </table>
 
+    <h2>How we enforce this on the site</h2>
+    <p>These rules are not just editorial policy &mdash; they are enforced automatically by the website on every request, so visitors in restricted locations are never served an affiliate offer:</p>
+    <ul>
+      <li><strong>Edge geolocation.</strong> Your US state is resolved at the network edge before any offer is rendered.</li>
+      <li><strong>Site-wide suppression</strong> of all affiliate calls-to-action in the info-only states above, for every operator.</li>
+      <li><strong>Per-operator suppression</strong> in any additional state where a specific brand is unavailable.</li>
+      <li><strong>A single server-side gateway</strong> through which all affiliate links pass &mdash; the tracking link is only issued after the location check passes.</li>
+      <li><strong>Fail-closed default:</strong> if your location can't be determined, we show informational content only.</li>
+    </ul>
+    <p>For the full breakdown, see our <a href="/legal/affiliate-disclosure/">Affiliate Disclosure</a>.</p>
+
     <h2>Per-brand availability</h2>
     <p>Beyond the statewide rules above, each operator maintains its own list of states it does not serve. So even in a state where sweepstakes play is generally available, a specific brand may be unavailable. Our review and comparison pages automatically reflect both layers &mdash; if a brand isn't available where you are, its "Claim" button is replaced with a "not available in your location" note.</p>
 
