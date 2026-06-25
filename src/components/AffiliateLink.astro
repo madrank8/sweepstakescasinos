@@ -1,0 +1,61 @@
+---
+/**
+ * <AffiliateLink> — the ONLY sanctioned way to render an affiliate CTA.
+ *
+ * - Always emits rel="sponsored nofollow" + target="_blank" + safe noopener.
+ * - Routes to the partner's Gemified tracking link (never hardcode raw URLs).
+ * - Geo-suppresses: returns nothing (or an info note) when the visitor's state
+ *   is site-banned or the partner is restricted there. Decision is centralized
+ *   in `shouldRenderAffiliateCta()` — do not branch on states here.
+ *
+ * Requires geo middleware to have populated `Astro.locals.usState` (SSR).
+ */
+import { getPartner, type AffiliatePartner } from '../data/affiliates';
+import { shouldRenderAffiliateCta, suppressionReason } from '../data/geo';
+
+interface Props {
+  /** Partner slug (preferred) ... */
+  slug?: string;
+  /** ...or pass the partner object directly. */
+  partner?: AffiliatePartner;
+  /** Visible CTA label. */
+  label?: string;
+  /** Extra classes for the anchor. */
+  class?: string;
+  /** Show a small "not available in your state" note when suppressed. */
+  showUnavailableNote?: boolean;
+}
+
+const {
+  slug,
+  partner: partnerProp,
+  label,
+  class: className = '',
+  showUnavailableNote = false,
+} = Astro.props;
+
+const partner = partnerProp ?? (slug ? getPartner(slug) : undefined);
+if (!partner) {
+  throw new Error(`<AffiliateLink>: unknown partner (slug="${slug ?? ''}")`);
+}
+
+const state = Astro.locals.usState;
+const canRender = shouldRenderAffiliateCta(partner, state);
+const reason = suppressionReason(partner, state);
+const ctaLabel = label ?? `Visit ${partner.name}`;
+---
+{canRender ? (
+  <a
+    href={partner.trackingLink}
+    rel="sponsored nofollow"
+    target="_blank"
+    data-affiliate={partner.slug}
+    class={`affiliate-cta ${className}`.trim()}
+  >
+    {ctaLabel}
+  </a>
+) : showUnavailableNote ? (
+  <p class="affiliate-unavailable" data-reason={reason}>
+    {partner.name} isn’t available in your location. This page is informational only.
+  </p>
+) : null}

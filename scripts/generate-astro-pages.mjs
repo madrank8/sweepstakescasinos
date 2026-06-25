@@ -1,10 +1,15 @@
-import { copyFileSync, cpSync, mkdirSync, readdirSync, rmSync, statSync, writeFileSync, existsSync } from 'node:fs';
+import { copyFileSync, cpSync, mkdirSync, readdirSync, readFileSync, rmSync, statSync, writeFileSync, existsSync } from 'node:fs';
 import { dirname, join, relative } from 'node:path';
+import { AFFILIATE_PARTNERS } from '../src/data/affiliates.ts';
 
 const root = process.cwd();
 const pagesDir = join(root, 'src', 'pages');
 const publicDir = join(root, 'public');
 const ORIGIN = 'https://sweepstakeslist.vercel.app';
+
+// The 13 affiliate partners are served by the SSR gateway (src/pages/bonuses/[slug].astro),
+// NOT as static interstitials. Skip generating static pages for their bonus slugs.
+const PARTNER_SLUGS = new Set(AFFILIATE_PARTNERS.map((p) => p.slug));
 
 // Directories that are assets/system, not content pages.
 const ignoreDirs = new Set([
@@ -35,17 +40,97 @@ function relImport(fromFile, toFile) {
   return path;
 }
 
+/** A page is "affiliate" if it embeds at least one /bonuses/<partner-slug>/ CTA. */
+function isAffiliatePage(sourcePath) {
+  const html = readFileSync(join(root, sourcePath), 'utf8');
+  for (const slug of PARTNER_SLUGS) {
+    if (html.includes(`/bonuses/${slug}/`) || html.includes(`/bonuses/${slug}"`)) return true;
+  }
+  return false;
+}
+
 // With build.format: 'directory', `src/pages/reviews/crown-coins.astro`
 // is emitted as `/reviews/crown-coins/index.html` -> clean URL `/reviews/crown-coins/`.
 function writePage(sourcePath) {
+  // The partner bonus interstitials are replaced by the SSR gateway route.
+  const bonusMatch = sourcePath.match(/^bonuses\/([a-z0-9-]+)\.html$/);
+  if (bonusMatch && PARTNER_SLUGS.has(bonusMatch[1])) return;
+
   const noExt = sourcePath.replace(/\.html$/, '');
   const destination = noExt === 'index'
     ? join(pagesDir, 'index.astro')
     : join(pagesDir, `${noExt}.astro`);
-  const importPath = relImport(destination, join(root, 'src', 'lib', 'staticHtml.js'));
   mkdirSync(dirname(destination), { recursive: true });
-  const content =
-    `---\nimport { getStaticHtml } from '${importPath}';\nconst html = getStaticHtml('${sourcePath}');\n---\n<Fragment set:html={html} />\n`;
+
+  const staticHtmlImport = relImport(destination, join(root, 'src', 'lib', 'staticHtml.js'));
+
+  let content;
+  if (isAffiliatePage(sourcePath)) {
+    // SSR + geo-suppression of affiliate CTAs per request.
+    // Import the HTML via ?raw so it ships inside the Vercel function bundle
+    // (runtime fs reads of source files are NOT available in serverless).
+    const suppressImport = relImport(destination, join(root, 'src', 'lib', 'affiliateHtml'));
+    const rawImport = relImport(destination, join(root, sourcePath));
+    content =
+      `---\n` +
+      `export const prerender = false;\n` +
+      `import rawHtml from '${rawImport}?raw';\n` +
+      `import { prepareSsrAffiliateHtml } from '${suppressImport}';\n` +
+      `const html = prepareSsrAffiliateHtml(rawHtml, Astro.locals.usState);\n` +
+      `---\n<Fragment set:html={html} />\n`;
+  } else {
+    // No affiliate CTAs -> keep static for performance.
+    content =
+      `---\n` +
+      `export const prerender = true;\n` +
+      `import { getStaticHtml } from '${staticHtmlImport}';\n` +
+      `const html = getStaticHtml('${sourcePath}');\n` +
+      `---\n<Fragment set:html={html} />\n`;
+  }
+  writeFileSync(destination, content);
+}
+
+// SSR gateway: the single chokepoint where the Gemified link is emitted, and
+// only after the geo check passes. Replaces the 13 static bonus interstitials.
+function writeBonusGateway() {
+  const destination = join(pagesDir, 'bonuses', '[slug].astro');
+  mkdirSync(dirname(destination), { recursive: true });
+  const gatewayImport = relImport(destination, join(root, 'src', 'lib', 'bonusGateway'));
+  const content = `---
+export const prerender = false;
+import { resolveBonusGateway } from '${gatewayImport}';
+
+const result = resolveBonusGateway(Astro.params.slug, Astro.locals.usState);
+if (result.status === 'redirect') return Astro.redirect(result.url, 302);
+if (result.status === 'not-found') return new Response('Not found', { status: 404 });
+const partner = result.partner;
+---
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex, nofollow" />
+    <title>Not available in your location</title>
+    <link rel="stylesheet" href="/style.css" />
+  </head>
+  <body>
+    <main style="max-width:640px;margin:8vh auto;padding:0 20px;text-align:center;">
+      <p style="font-size:0.8rem;letter-spacing:.08em;text-transform:uppercase;opacity:.6;">21+ · Play responsibly</p>
+      <h1>{partner.name} isn’t available in your location</h1>
+      <p>
+        Based on your location, we’re showing informational content only. Affiliate
+        offers for {partner.name} are not available where you are.
+      </p>
+      <p>
+        If you or someone you know has a gambling problem, call
+        <strong>1-800-GAMBLER</strong> for confidential help.
+      </p>
+      <p><a href="/">← Back to home</a></p>
+    </main>
+  </body>
+</html>
+`;
   writeFileSync(destination, content);
 }
 
@@ -98,6 +183,7 @@ function writeSitemapAndRobots() {
 rmSync(pagesDir, { recursive: true, force: true });
 walk(root);
 pageFiles.sort().forEach(writePage);
+writeBonusGateway();
 copyPublicAssets();
 
-console.log(`Generated ${pageFiles.length} Astro pages (directory format) + sitemap/robots.`);
+console.log(`Generated Astro pages (directory format) + SSR bonus gateway + sitemap/robots.`);
