@@ -11,7 +11,7 @@ import { readFileSync, writeFileSync, mkdirSync, rmSync, readdirSync, existsSync
 import { join, dirname } from 'node:path';
 
 const root = process.cwd();
-const ORIGIN = 'https://sweepastro.vercel.app';
+const ORIGIN = 'https://sweepstakeslist.vercel.app';
 
 // brand slug for review source basenames (canonical + any dup spellings)
 const reviewSlug = {

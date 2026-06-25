@@ -4,7 +4,7 @@ import { readFileSync, writeFileSync, readdirSync, existsSync, statSync } from '
 import { join } from 'node:path';
 
 const root = process.cwd();
-const ORIGIN = 'https://sweepastro.vercel.app';
+const ORIGIN = 'https://sweepstakeslist.vercel.app';
 
 const reviewSlug = {
   'acebet-review':'acebet','big-pirate-review':'big-pirate','casino-click-review':'casino-click',

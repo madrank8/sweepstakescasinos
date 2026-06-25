@@ -1,7 +1,7 @@
 # Canonical Review Page Template
 
 **Reference file:** `sweepsreviews/crown-coins-review.html`  
-**Live:** `https://sweepastro.vercel.app/sweepsreviews/crown-coins-review.html`
+**Live:** `https://sweepstakeslist.vercel.app/sweepsreviews/crown-coins-review.html`
 
 ## Rule
 

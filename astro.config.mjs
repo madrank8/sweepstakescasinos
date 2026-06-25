@@ -1,7 +1,7 @@
 import { defineConfig } from 'astro/config';
 
 export default defineConfig({
-  site: 'https://sweepastro.vercel.app',
+  site: 'https://sweepstakeslist.vercel.app',
   trailingSlash: 'ignore',
   build: {
     format: 'directory'

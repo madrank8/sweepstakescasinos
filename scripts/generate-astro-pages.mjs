@@ -4,7 +4,7 @@ import { dirname, join, relative } from 'node:path';
 const root = process.cwd();
 const pagesDir = join(root, 'src', 'pages');
 const publicDir = join(root, 'public');
-const ORIGIN = 'https://sweepastro.vercel.app';
+const ORIGIN = 'https://sweepstakeslist.vercel.app';
 
 // Directories that are assets/system, not content pages.
 const ignoreDirs = new Set([
