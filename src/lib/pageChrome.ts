@@ -45,3 +45,69 @@ export function injectComplianceRibbon(html: string): string {
   if (html.includes(RIBBON_MARKER)) return html;
   return html.replace(BODY_OPEN, (match) => `${match}\n${RIBBON}`);
 }
+
+const ORIGIN = 'https://sweepstakeslist.vercel.app';
+const ORG_MARKER = '<!--sc-org-graph-->';
+
+/**
+ * Canonical publisher entity graph (one Organization + one WebSite with stable
+ * @id), referenced by other page schema. Founder links to the author Person
+ * node (@id on /author/ilija-milosevic/). No SearchAction (no site search).
+ */
+const ORG_GRAPH = {
+  '@context': 'https://schema.org',
+  '@graph': [
+    {
+      '@type': 'Organization',
+      '@id': `${ORIGIN}/#organization`,
+      name: 'Sweepstakes Casinos List',
+      alternateName: 'SweepstakesCasinosList.com',
+      url: `${ORIGIN}/`,
+      logo: {
+        '@type': 'ImageObject',
+        '@id': `${ORIGIN}/#logo`,
+        url: `${ORIGIN}/sweepstakeslogo/sweepstakescasinoslist.jpg`,
+        caption: 'Sweepstakes Casinos List',
+      },
+      image: { '@id': `${ORIGIN}/#logo` },
+      description:
+        'Independent review site comparing US sweepstakes (social) casinos, bonuses, and redemption policies.',
+      founder: { '@id': `${ORIGIN}/author/ilija-milosevic/#person` },
+      knowsAbout: [
+        'Sweepstakes casinos',
+        'Social casinos',
+        'Casino bonuses',
+        'Responsible gaming',
+        'US gaming law',
+      ],
+    },
+    {
+      '@type': 'WebSite',
+      '@id': `${ORIGIN}/#website`,
+      url: `${ORIGIN}/`,
+      name: 'Sweepstakes Casinos List',
+      publisher: { '@id': `${ORIGIN}/#organization` },
+      inLanguage: 'en-US',
+    },
+  ],
+};
+
+const ORG_SCRIPT = `${ORG_MARKER}\n<script type="application/ld+json">${JSON.stringify(
+  ORG_GRAPH,
+)}</script>`;
+
+const HEAD_CLOSE = /<\/head>/i;
+
+/**
+ * Inject the publisher Organization + WebSite JSON-LD before </head>.
+ * Idempotent; no-op for documents without a </head>.
+ */
+export function injectOrgSchema(html: string): string {
+  if (html.includes(ORG_MARKER)) return html;
+  return html.replace(HEAD_CLOSE, (match) => `${ORG_SCRIPT}\n${match}`);
+}
+
+/** Apply all global page chrome (compliance ribbon + publisher schema). */
+export function decorateChrome(html: string): string {
+  return injectOrgSchema(injectComplianceRibbon(html));
+}

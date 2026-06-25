@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { stampUpdatedDate } from './htmlStamp.ts';
-import { injectComplianceRibbon } from './pageChrome.ts';
+import { decorateChrome } from './pageChrome.ts';
 
 const projectRoot = process.cwd();
 
@@ -15,5 +15,5 @@ const projectRoot = process.cwd();
  */
 export function getStaticHtml(relativePath) {
   const html = readFileSync(resolve(projectRoot, relativePath), 'utf8');
-  return stampUpdatedDate(injectComplianceRibbon(html));
+  return stampUpdatedDate(decorateChrome(html));
 }

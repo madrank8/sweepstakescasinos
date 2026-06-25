@@ -1,7 +1,7 @@
 import { getPartner } from '../data/affiliates';
 import { shouldRenderAffiliateCta } from '../data/geo';
 import { stampUpdatedDate } from './htmlStamp';
-import { injectComplianceRibbon } from './pageChrome';
+import { decorateChrome } from './pageChrome';
 import type { UsStateCode } from '../data/usStates';
 
 /**
@@ -56,5 +56,5 @@ export function prepareSsrAffiliateHtml(
   rawHtml: string,
   state: UsStateCode | null | undefined,
 ): string {
-  return suppressAffiliateCtas(stampUpdatedDate(injectComplianceRibbon(rawHtml)), state);
+  return suppressAffiliateCtas(stampUpdatedDate(decorateChrome(rawHtml)), state);
 }
