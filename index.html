@@ -142,7 +142,7 @@
 <main class="main" id="rankings">
 
   <div class="sec-head">
-    <h2 class="sec-title">🏆 New Sweepstakes Casinos List — Updated May 2026</h2>
+    <h2 class="sec-title">🏆 New Sweepstakes Casinos List — Updated <span id="lastUpdated">June 2026</span></h2>
     <span class="verified-tag"><span style="width:6px;height:6px;background:var(--green);border-radius:50%;display:inline-block;animation:pulse 1.8s infinite;"></span> Live & Verified</span>
   </div>
   <p class="sec-desc">All bonuses confirmed active today. Every sweepstakes casino below passed our 4-point live test. Click any button to activate your sign-up bonus and free SC instantly.</p>
@@ -1070,6 +1070,15 @@
 </footer>
 
 <script>
+// ── Auto-update "Updated [Month] [Year]" ──
+(function(){
+  var el=document.getElementById('lastUpdated');
+  if(!el) return;
+  var now=new Date();
+  var months=['January','February','March','April','May','June','July','August','September','October','November','December'];
+  el.textContent=months[now.getMonth()]+' '+now.getFullYear();
+})();
+
 // ── Mobile nav ──
 document.getElementById('nav-ham').addEventListener('click',function(){
   document.getElementById('nav-links').classList.toggle('open');
