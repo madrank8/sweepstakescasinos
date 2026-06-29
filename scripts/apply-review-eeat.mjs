@@ -7,7 +7,7 @@ import { readFileSync, writeFileSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
 
 const dir = join(process.cwd(), 'reviews');
-const AUTHOR_JSONLD = '"author":{"@type":"Person","name":"Steffen Nadel","jobTitle":"US Sweepstakes Casino Analyst","url":"https://sweepstakeslist.vercel.app/author/steffen-nadel/","sameAs":["https://www.linkedin.com/in/steffen-nadel"]},"publisher":{"@type":"Organization","name":"Sweepstakes Casinos List","url":"https://sweepstakeslist.vercel.app/"}';
+const AUTHOR_JSONLD = '"author":{"@type":"Person","name":"Steffen Nadel","jobTitle":"US Sweepstakes Casino Analyst","url":"https://sweepstakeswiz.com/author/steffen-nadel/","sameAs":["https://www.linkedin.com/in/steffen-nadel"]},"publisher":{"@type":"Organization","name":"Sweepstakes Casinos List","url":"https://sweepstakeswiz.com/"}';
 const BYLINE = 'By <strong><a href="/author/steffen-nadel/" rel="author" style="color:inherit">Steffen Nadel</a></strong>';
 const AI_NOTE = 'This review is AI-assisted and human-edited &#8212; no fabricated testing or &#8220;verified player&#8221; testimonials are presented as fact. ';
 

@@ -4,4 +4,4 @@ Allow: /
 # Affiliate redirect endpoints — not for indexing (legal/contact use noindex meta instead)
 Disallow: /bonuses/
 
-Sitemap: https://sweepstakeslist.vercel.app/sitemap.xml
+Sitemap: https://sweepstakeswiz.com/sitemap.xml

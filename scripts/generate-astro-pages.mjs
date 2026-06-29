@@ -1,11 +1,12 @@
 import { copyFileSync, cpSync, mkdirSync, readdirSync, readFileSync, rmSync, statSync, writeFileSync, existsSync } from 'node:fs';
 import { dirname, join, relative } from 'node:path';
 import { AFFILIATE_PARTNERS } from '../src/data/affiliates.ts';
+import { SITE } from '../src/data/site.ts';
 
 const root = process.cwd();
 const pagesDir = join(root, 'src', 'pages');
 const publicDir = join(root, 'public');
-const ORIGIN = 'https://sweepstakeslist.vercel.app';
+const ORIGIN = SITE.origin;
 
 // The 13 affiliate partners are served by the SSR gateway (src/pages/bonuses/[slug].astro),
 // NOT as static interstitials. Skip generating static pages for their bonus slugs.
@@ -22,9 +23,17 @@ const pageFiles = [];
 
 function walk(dir) {
   for (const entry of readdirSync(dir)) {
+    // Skip transient sidecar files (e.g. SQLite -wal/-shm) that can vanish
+    // between readdir and stat and would otherwise crash the walk.
+    if (entry.startsWith('.context-brain.db')) continue;
     const absolute = join(dir, entry);
     const rel = relative(root, absolute);
-    const stats = statSync(absolute);
+    let stats;
+    try {
+      stats = statSync(absolute);
+    } catch {
+      continue; // entry disappeared mid-walk; ignore
+    }
     if (stats.isDirectory()) {
       if (ignoreDirs.has(entry)) continue;
       walk(absolute);
@@ -147,7 +156,7 @@ function copyPublicAssets() {
   rmSync(publicDir, { recursive: true, force: true });
   mkdirSync(publicDir, { recursive: true });
 
-  for (const file of ['style.css']) {
+  for (const file of ['style.css', 'favicon.ico']) {
     if (existsSync(join(root, file))) copyFileSync(join(root, file), join(publicDir, file));
   }
   for (const dir of ['_external', 'sweepstakeslogo', 'partials']) {

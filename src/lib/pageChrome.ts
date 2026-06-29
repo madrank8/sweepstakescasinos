@@ -46,7 +46,9 @@ export function injectComplianceRibbon(html: string): string {
   return html.replace(BODY_OPEN, (match) => `${match}\n${RIBBON}`);
 }
 
-const ORIGIN = 'https://sweepstakeslist.vercel.app';
+import { SITE } from '../data/site';
+
+const ORIGIN = SITE.origin;
 const ORG_MARKER = '<!--sc-org-graph-->';
 
 /**
@@ -60,19 +62,19 @@ const ORG_GRAPH = {
     {
       '@type': 'Organization',
       '@id': `${ORIGIN}/#organization`,
-      name: 'Sweepstakes Casinos List',
-      alternateName: 'SweepstakesCasinosList.com',
+      name: SITE.name,
+      alternateName: SITE.altName,
       url: `${ORIGIN}/`,
       logo: {
         '@type': 'ImageObject',
         '@id': `${ORIGIN}/#logo`,
-        url: `${ORIGIN}/sweepstakeslogo/sweepstakescasinoslist.jpg`,
-        caption: 'Sweepstakes Casinos List',
+        url: `${ORIGIN}${SITE.logo}`,
+        caption: SITE.name,
       },
       image: { '@id': `${ORIGIN}/#logo` },
       description:
         'Independent review site comparing US sweepstakes (social) casinos, bonuses, and redemption policies.',
-      founder: { '@id': `${ORIGIN}/author/ilija-milosevic/#person` },
+      founder: { '@id': `${ORIGIN}/author/${SITE.authorSlug}/#person` },
       knowsAbout: [
         'Sweepstakes casinos',
         'Social casinos',
@@ -85,7 +87,7 @@ const ORG_GRAPH = {
       '@type': 'WebSite',
       '@id': `${ORIGIN}/#website`,
       url: `${ORIGIN}/`,
-      name: 'Sweepstakes Casinos List',
+      name: SITE.name,
       publisher: { '@id': `${ORIGIN}/#organization` },
       inLanguage: 'en-US',
     },
@@ -107,9 +109,25 @@ export function injectOrgSchema(html: string): string {
   return html.replace(HEAD_CLOSE, (match) => `${ORG_SCRIPT}\n${match}`);
 }
 
-/** Apply all global page chrome (compliance ribbon + publisher schema). */
+const FAVICON_MARKER = '<!--sc-favicons-->';
+
+const FAVICONS = `${FAVICON_MARKER}
+<link rel="icon" href="/favicon.ico" sizes="any">
+<link rel="icon" type="image/png" href="${SITE.logo.replace('sweepstakeswiz.png', 'sweepstakeswiz-mark.png')}">
+<link rel="apple-touch-icon" href="/sweepstakeslogo/apple-touch-icon.png">`;
+
+/**
+ * Inject the Sweepstakes Wiz favicon / touch-icon links before </head>.
+ * Idempotent; no-op for documents without a </head>.
+ */
+export function injectFavicon(html: string): string {
+  if (html.includes(FAVICON_MARKER)) return html;
+  return html.replace(HEAD_CLOSE, (match) => `${FAVICONS}\n${match}`);
+}
+
+/** Apply all global page chrome (favicons + compliance ribbon + publisher schema). */
 export function decorateChrome(html: string): string {
-  return injectOrgSchema(injectComplianceRibbon(html));
+  return injectFavicon(injectOrgSchema(injectComplianceRibbon(html)));
 }
 
 /**
@@ -123,4 +141,8 @@ export function complianceRibbonMarkup(): string {
 
 export function orgSchemaMarkup(): string {
   return ORG_SCRIPT;
+}
+
+export function faviconMarkup(): string {
+  return FAVICONS;
 }

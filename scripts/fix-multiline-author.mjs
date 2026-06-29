@@ -8,7 +8,7 @@ const personMultiline = `"author": {
     "@type": "Person",
     "name": "Steffen Nadel",
     "jobTitle": "US Sweepstakes Casino Analyst",
-    "url": "https://sweepstakeslist.vercel.app/author/steffen-nadel/",
+    "url": "https://sweepstakeswiz.com/author/steffen-nadel/",
     "sameAs": ["https://www.linkedin.com/in/steffen-nadel"]
   }`;
 

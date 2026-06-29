@@ -6,9 +6,9 @@
  * plus a per-page BreadcrumbList and optional extra JSON-LD.
  */
 import { stampUpdatedDate } from '../lib/htmlStamp';
-import { complianceRibbonMarkup, orgSchemaMarkup } from '../lib/pageChrome';
+import { complianceRibbonMarkup, orgSchemaMarkup, faviconMarkup } from '../lib/pageChrome';
 
-const ORIGIN = 'https://sweepstakeslist.vercel.app';
+const ORIGIN = 'https://sweepstakeswiz.com';
 
 interface Crumb {
   name: string;
@@ -65,6 +65,7 @@ const extraLd = jsonLd ? (Array.isArray(jsonLd) ? jsonLd : [jsonLd]) : [];
     <meta name="description" content={description} />
     <meta name="robots" content={robots} />
     <link rel="canonical" href={canonical} />
+    <Fragment set:html={faviconMarkup()} />
     <meta property="og:type" content="article" />
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
