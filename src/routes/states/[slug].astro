@@ -37,6 +37,20 @@ const breadcrumbs = [
   { name: 'State Legality', path: '/state-legality/' },
   { name: name, path: canonicalPath },
 ];
+
+const faq = entry.data.faq ?? [];
+const faqLd =
+  faq.length > 0
+    ? {
+        '@context': 'https://schema.org',
+        '@type': 'FAQPage',
+        mainEntity: faq.map((f) => ({
+          '@type': 'Question',
+          name: f.q,
+          acceptedAnswer: { '@type': 'Answer', text: f.a },
+        })),
+      }
+    : undefined;
 ---
 <ContentLayout
   title={entry.data.title}
@@ -44,6 +58,7 @@ const breadcrumbs = [
   canonicalPath={canonicalPath}
   breadcrumbs={breadcrumbs}
   heroSubtitle={entry.data.description}
+  jsonLd={faqLd}
 >
   <Content />
 
@@ -68,6 +83,18 @@ const breadcrumbs = [
     </ul>
   ) : (
     <p>No reviewed operators currently list availability in {name}.</p>
+  )}
+
+  {faq.length > 0 && (
+    <section aria-label="Frequently asked questions">
+      <h2>Frequently asked questions</h2>
+      {faq.map((f) => (
+        <>
+          <h3>{f.q}</h3>
+          <p>{f.a}</p>
+        </>
+      ))}
+    </section>
   )}
 
   <div class="info-box">

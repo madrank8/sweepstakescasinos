@@ -38,6 +38,8 @@ const states = defineCollection({
     description: z.string(),
     /** Legal posture for affiliate offers in this state. */
     legalStatus: z.enum(['available', 'info-only', 'restricted']),
+    /** Optional FAQ rendered as a visible section + FAQPage JSON-LD. */
+    faq: z.array(faqItem).default([]),
     updated: isoDate.optional(),
     draft: z.boolean().default(false),
   }),
