@@ -202,13 +202,59 @@ function writeSitemapAndRobots() {
   ).join('\n');
   const sitemap = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${body}\n</urlset>\n`;
 
-  const robots = `User-agent: *\nAllow: /\n\n# Affiliate redirect endpoints — not for indexing (legal/contact use noindex meta instead)\nDisallow: /bonuses/\n\nSitemap: ${ORIGIN}/sitemap.xml\n`;
+  // Major AI/LLM crawlers — explicitly allowed (we want accurate citations),
+  // but still kept out of the affiliate redirect endpoints.
+  const aiBots = [
+    'GPTBot', 'OAI-SearchBot', 'ChatGPT-User', 'ClaudeBot', 'Claude-Web',
+    'anthropic-ai', 'PerplexityBot', 'Google-Extended', 'Applebot-Extended',
+    'CCBot', 'cohere-ai',
+  ];
+  const aiGroups = aiBots
+    .map((b) => `User-agent: ${b}\nAllow: /\nDisallow: /bonuses/`)
+    .join('\n\n');
+  const robots =
+    `# Sweepstakes Wiz\nUser-agent: *\nAllow: /\n\n` +
+    `# Affiliate redirect endpoints — not for indexing (legal/contact use noindex meta instead)\nDisallow: /bonuses/\n\n` +
+    `# AI / LLM crawlers — explicitly allowed (we want accurate citations)\n${aiGroups}\n\n` +
+    `Sitemap: ${ORIGIN}/sitemap.xml\n# LLM guide: ${ORIGIN}/llms.txt\n`;
+
+  // llms.txt — curated map for LLM crawlers (llmstxt.org convention). Review
+  // list is derived from the live inventory so it never drifts.
+  const titleFromSlug = (s) =>
+    s.split('-').map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+  const reviewSlugs = existsSync(reviewsDir)
+    ? readdirSync(reviewsDir).filter((f) => f.endsWith('.html')).map((f) => f.replace(/\.html$/, '')).sort()
+    : [];
+  const reviewLines = reviewSlugs
+    .map((s) => `- [${titleFromSlug(s)} review](${ORIGIN}/reviews/${s}/)`)
+    .join('\n');
+  const llms =
+    `# Sweepstakes Wiz\n\n` +
+    `> Sweepstakes Wiz (sweepstakeswiz.com) is an independent US guide that tests and ranks sweepstakes (social) casinos — focused on redemption speed, bonus value, and state eligibility. Sweepstakes play only; no real-money gambling. 21+.\n\n` +
+    `## Start here\n` +
+    `- [Best sweepstakes casinos](${ORIGIN}/best/sweepstakes-casinos/)\n` +
+    `- [What are sweepstakes casinos?](${ORIGIN}/guides/what-are-sweepstakes-casinos/)\n` +
+    `- [Sweepstakes casino legality by US state](${ORIGIN}/state-legality/)\n\n` +
+    `## Trust & methodology\n` +
+    `- [How we rate](${ORIGIN}/how-we-rate/)\n` +
+    `- [Editorial policy](${ORIGIN}/editorial-policy/)\n` +
+    `- [About / mission](${ORIGIN}/about/)\n` +
+    `- [Author: Ilija Milosevic](${ORIGIN}/author/ilija-milosevic/)\n` +
+    `- [Responsible gaming](${ORIGIN}/responsible-gaming/)\n\n` +
+    `## Casino reviews\n${reviewLines}\n\n` +
+    `## Citation & compliance\n` +
+    `- Cite as: Sweepstakes Wiz (sweepstakeswiz.com).\n` +
+    `- Reviews are hands-on tested and dated; ratings follow the published How We Rate methodology.\n` +
+    `- Sweepstakes play only — no real-money gambling. Sweeps Coins have no cash value until redeemed per each operator's official rules. No purchase necessary. 21+. Not available in all US states.\n` +
+    `- Affiliate disclosure: we may earn referral fees from operators; this never influences rankings.\n`;
 
   writeFileSync(join(publicDir, 'sitemap.xml'), sitemap);
   writeFileSync(join(publicDir, 'robots.txt'), robots);
+  writeFileSync(join(publicDir, 'llms.txt'), llms);
   // keep repo copies in sync for visibility
   writeFileSync(join(root, 'sitemap.xml'), sitemap);
   writeFileSync(join(root, 'robots.txt'), robots);
+  writeFileSync(join(root, 'llms.txt'), llms);
 }
 
 rmSync(pagesDir, { recursive: true, force: true });
