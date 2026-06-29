@@ -37,7 +37,7 @@ html{scroll-behavior:smooth;}
 body{font-family:"DM Sans",sans-serif;background:var(--lt-bg);color:var(--lt-tx);line-height:1.68;overflow-x:hidden;padding-bottom:76px;}
 .site-nav{position:sticky;top:0;z-index:400;background:var(--bg-nav);border-bottom:1px solid rgba(192,38,211,.18);padding:0 20px;}
 .site-nav-inner{max-width:1200px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;height:58px;gap:12px;position:relative;}
-.site-nav-brand{font-family:"Sora",sans-serif;font-weight:900;font-size:.98rem;color:#fff;text-decoration:none;flex-shrink:0;}
+.site-nav-brand{display:inline-flex;align-items:center;gap:7px;font-family:"Sora",sans-serif;font-weight:900;font-size:.98rem;color:#fff;text-decoration:none;flex-shrink:0;}
 .site-nav-brand span{color:var(--tl);}
 .site-nav-links{display:flex;align-items:center;gap:2px;}
 .site-nav-links a{font-size:.79rem;font-weight:600;color:rgba(255,255,255,.6);text-decoration:none;padding:7px 11px;border-radius:8px;transition:all .15s;}
@@ -305,7 +305,7 @@ h1.h1 .ac{background:linear-gradient(135deg,var(--tl),var(--t1));-webkit-backgro
 <!-- ════════ SITE NAV ════════ -->
 <nav class="site-nav" role="navigation" aria-label="Main navigation">
   <div class="site-nav-inner">
-    <a title="Sweepstakes Wiz" class="site-nav-brand" href="/">Sweepstakes<span>Wiz</span>.com</a>
+    <a title="Sweepstakes Wiz" class="site-nav-brand" href="/"><img src="/sweepstakeslogo/sweepstakeswiz-mark.png" alt="Sweepstakes Wiz" width="34" height="34" style="height:34px;width:34px;object-fit:contain;">Sweepstakes<span>Wiz</span>.com</a>
     <button class="site-nav-toggle" id="navToggle" aria-label="Toggle menu" aria-expanded="false"><span></span><span></span><span></span></button>
     <div class="site-nav-links" id="navLinks">
       <a href="/#offers">Top Casinos</a>
