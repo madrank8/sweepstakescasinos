@@ -73,6 +73,13 @@ nav{position:sticky;top:0;z-index:200;background:rgba(15,23,42,0.96);backdrop-fi
 .legal-table th{font-family:'Sora',sans-serif;font-weight:700;color:#0a1628;background:#f8fafc;}
 .legal-table .status-banned{color:#b91c1c;font-weight:700;}
 .legal-table .status-ok{color:#047857;font-weight:700;}
+.legal-table .muted{color:#94a3b8;font-size:0.82rem;}
+.state-table-wrap{overflow-x:auto;margin:16px 0 22px;-webkit-overflow-scrolling:touch;}
+.verdict-box{background:#f0fdf4;border:1px solid #bbf7d0;border-left:4px solid #10b981;border-radius:10px;padding:16px 18px;margin:0 0 20px;}
+.verdict-box p{font-size:0.92rem;color:#14532d;margin-bottom:0;line-height:1.65;}
+.state-guide-list{list-style:none;margin:12px 0 18px;padding:0;}
+.state-guide-list li{margin-bottom:10px;padding:12px 14px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;}
+.state-guide-list a{font-size:0.93rem;}
 
 .link-cols{columns:2;column-gap:30px;margin:10px 0 18px;}
 .link-cols a{display:block;margin-bottom:8px;}
