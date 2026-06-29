@@ -184,6 +184,17 @@ function writeSitemapAndRobots() {
     }
   }
 
+  // Indexable trust / E-E-A-T pages (others — contact, sitemap, privacy/terms/
+  // cookie/dmca — are noindex by design and intentionally excluded).
+  const trustPages = [
+    'about.html', 'how-we-rate.html', 'editorial-policy.html',
+    'responsible-gaming.html', 'state-legality.html',
+    'legal/affiliate-disclosure.html',
+  ];
+  for (const rel of trustPages) {
+    if (existsSync(join(root, rel))) urls.push(`/${rel.replace(/\.html$/, '')}/`);
+  }
+
   // MDX content collections (skip drafts). comparisons render under /best/.
   const collectionUrlPrefix = { guides: '/guides', comparisons: '/best', states: '/states' };
   for (const [name, prefix] of Object.entries(collectionUrlPrefix)) {
