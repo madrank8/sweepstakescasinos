@@ -8,3 +8,7 @@ public/
 src/pages/
 .context-brain.db
 output/
+evidence/*
+!evidence/README.md
+!evidence/testing-results.template.csv
+!evidence/brands.json

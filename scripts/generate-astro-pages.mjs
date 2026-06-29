@@ -15,7 +15,7 @@ const PARTNER_SLUGS = new Set(AFFILIATE_PARTNERS.map((p) => p.slug));
 // Directories that are assets/system, not content pages.
 const ignoreDirs = new Set([
   '.git', 'node_modules', 'dist', 'public', 'src', 'scripts',
-  '_external', 'sweepstakeslogo', 'partials', 'output',
+  '_external', 'sweepstakeslogo', 'partials', 'testing', 'output',
   '.cursor', '.planning', '.vercel'
 ]);
 
@@ -159,7 +159,7 @@ function copyPublicAssets() {
   for (const file of ['style.css', 'favicon.ico']) {
     if (existsSync(join(root, file))) copyFileSync(join(root, file), join(publicDir, file));
   }
-  for (const dir of ['_external', 'sweepstakeslogo', 'partials']) {
+  for (const dir of ['_external', 'sweepstakeslogo', 'partials', 'testing']) {
     if (existsSync(join(root, dir))) cpSync(join(root, dir), join(publicDir, dir), { recursive: true, force: true });
   }
 
