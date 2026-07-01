@@ -75,6 +75,14 @@ nav{position:sticky;top:0;z-index:200;background:rgba(15,23,42,0.96);backdrop-fi
 .legal-table .status-ok{color:#047857;font-weight:700;}
 .legal-table .muted{color:#94a3b8;font-size:0.82rem;}
 .state-table-wrap{overflow-x:auto;margin:16px 0 22px;-webkit-overflow-scrolling:touch;}
+
+/* Bare markdown tables authored in MDX content (guides, comparisons). These have
+   no class, so they need base styling + mobile horizontal scroll. */
+.content-card table{width:100%;border-collapse:collapse;margin:18px 0 22px;font-size:0.9rem;display:block;overflow-x:auto;-webkit-overflow-scrolling:touch;}
+.content-card th,.content-card td{text-align:left;padding:10px 13px;border:1px solid #e2e8f0;color:#334155;vertical-align:top;line-height:1.55;}
+.content-card thead th{font-family:'Sora',sans-serif;font-weight:700;color:#0a1628;background:#f8fafc;}
+.content-card tbody tr:nth-child(even){background:#fafcff;}
+.content-card tbody td:first-child{font-weight:600;color:#0a1628;}
 .verdict-box{background:#f0fdf4;border:1px solid #bbf7d0;border-left:4px solid #10b981;border-radius:10px;padding:16px 18px;margin:0 0 20px;}
 .verdict-box p{font-size:0.92rem;color:#14532d;margin-bottom:0;line-height:1.65;}
 .state-guide-list{list-style:none;margin:12px 0 18px;padding:0;}
