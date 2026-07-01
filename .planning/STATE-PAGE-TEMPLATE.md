@@ -15,6 +15,7 @@ legal-research sections must be genuinely state-specific; see the scaled-content
 
 `src/routes/states/[slug].astro` renders these for every state — authors get them for free:
 
+- **State flag badge** — a framed flag + state name above the verdict, resolved automatically from `images/states/<code>.png` (lowercased `stateCode`). All 50 state flags are already self-hosted (from flagcdn; DC excluded — not on the CDN). Adding a new state needs **no** work here as long as its flag file exists.
 - **Breadcrumb** Home › State Legality › {State} (+ `BreadcrumbList` schema).
 - **Available-operators list** — auto-filtered from `geo.ts` / `affiliates.ts` (reviews links only; **never** affiliate CTAs on state pages).
 - **"Sweepstakes casino legality in other states"** — auto sibling cross-links to every other state guide.
@@ -102,4 +103,4 @@ Tailor only the `alt` tail for the state's specific law where useful (see CA/NY)
 | New York | ✅ | info-only |
 | Next batch | OH, IL, PA, GA, NC (available); WA, MI, NJ, CT (info-only); IN/OK (scheduled bans) | — |
 
-Adding a state: create `src/content/states/<slug>.mdx` from this template, add its row link on `/state-legality/`, rebuild (sitemap + sibling links update automatically).
+Adding a state: create `src/content/states/<slug>.mdx` from this template, add its row link on `/state-legality/`, rebuild (sitemap, sibling links, and the flag badge update automatically; all 50 flags are already present in `images/states/`).
