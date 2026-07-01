@@ -182,7 +182,7 @@ function copyPublicAssets() {
   for (const file of ['style.css', 'favicon.ico']) {
     if (existsSync(join(root, file))) copyFileSync(join(root, file), join(publicDir, file));
   }
-  for (const dir of ['_external', 'sweepstakeslogo', 'partials', 'testing']) {
+  for (const dir of ['_external', 'sweepstakeslogo', 'partials', 'testing', 'images']) {
     if (existsSync(join(root, dir))) cpSync(join(root, dir), join(publicDir, dir), { recursive: true, force: true });
   }
 
