@@ -178,9 +178,10 @@ const siblings = allStates
   </div>
 
   <style>
-    .state-flag-bar{display:flex;align-items:center;gap:12px;margin:0 0 20px;}
-    .state-flag{height:46px;width:auto;border:1px solid #e2e8f0;border-radius:6px;box-shadow:0 1px 4px rgba(10,22,40,.14);display:block;}
-    .state-flag-bar span{font-family:'Sora',sans-serif;font-weight:800;color:#0a1628;font-size:1.1rem;letter-spacing:-0.2px;}
+    .state-flag-bar{display:flex;align-items:center;gap:16px;margin:0 0 24px;}
+    .state-flag{height:66px;width:auto;display:block;background:#fff;padding:5px;border:1px solid #dbe3ee;border-radius:10px;box-shadow:0 3px 12px rgba(10,22,40,.18);}
+    .state-flag-bar span{font-family:'Sora',sans-serif;font-weight:800;color:#0a1628;font-size:1.4rem;letter-spacing:-0.3px;}
+    @media(max-width:480px){.state-flag{height:54px;}.state-flag-bar span{font-size:1.2rem;}}
     .state-siblings{margin:8px 0 22px;}
     .state-siblings ul{margin:8px 0 0;padding-left:20px;}
     .state-siblings li{margin:6px 0;line-height:1.55;}
