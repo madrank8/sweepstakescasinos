@@ -19,7 +19,8 @@
     "testing:status": "tsx scripts/verify-testing-evidence.ts --status-only",
     "testing:apply": "tsx scripts/apply-testing-results.ts",
     "testing:anchors": "tsx scripts/add-testing-anchors.ts",
-    "ci": "npm run verify:availability && npm run testing:verify && npm run build"
+    "content:lint": "tsx scripts/lint-experience-claims.ts",
+    "ci": "npm run verify:availability && npm run content:lint && npm run testing:verify && npm run build"
   },
   "devDependencies": {
     "astro": "^7.0.0",
