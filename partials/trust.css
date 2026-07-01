@@ -74,6 +74,8 @@ nav{position:sticky;top:0;z-index:200;background:rgba(15,23,42,0.96);backdrop-fi
 .legal-table .status-banned{color:#b91c1c;font-weight:700;}
 .legal-table .status-ok{color:#047857;font-weight:700;}
 .legal-table .muted{color:#94a3b8;font-size:0.82rem;}
+.legal-table .sflag{height:18px;width:auto;border-radius:3px;border:1px solid #e2e8f0;vertical-align:middle;margin-right:9px;box-shadow:0 1px 2px rgba(10,22,40,.14);}
+.legal-table td:first-child{font-weight:600;color:#0a1628;}
 .state-table-wrap{overflow-x:auto;margin:16px 0 22px;-webkit-overflow-scrolling:touch;}
 
 /* Bare markdown tables authored in MDX content (guides, comparisons). These have
