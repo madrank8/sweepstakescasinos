@@ -2,6 +2,7 @@ import { getPartner } from '../data/affiliates';
 import { shouldRenderAffiliateCta } from '../data/geo';
 import { stampUpdatedDate } from './htmlStamp';
 import { decorateChrome } from './pageChrome';
+import { injectReaderReports } from './readerReportsDisplay';
 import type { UsStateCode } from '../data/usStates';
 
 /**
@@ -57,4 +58,17 @@ export function prepareSsrAffiliateHtml(
   state: UsStateCode | null | undefined,
 ): string {
   return suppressAffiliateCtas(stampUpdatedDate(decorateChrome(rawHtml)), state);
+}
+
+/**
+ * SSR affiliate REVIEW pages: run the affiliate pipeline, then inject the Reader
+ * Reports section for `slug`. (Kept separate from prepareSsrAffiliateHtml so the
+ * homepage — also an affiliate page — does not get the review block.)
+ */
+export function prepareSsrAffiliateReviewHtml(
+  rawHtml: string,
+  state: UsStateCode | null | undefined,
+  slug: string,
+): string {
+  return injectReaderReports(prepareSsrAffiliateHtml(rawHtml, state), slug);
 }

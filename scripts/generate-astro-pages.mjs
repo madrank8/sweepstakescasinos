@@ -73,6 +73,11 @@ function writePage(sourcePath) {
 
   const staticHtmlImport = relImport(destination, join(root, 'src', 'lib', 'staticHtml.js'));
 
+  // Reviews get the Reader Reports section (aggregated player data + form)
+  // injected; other pages (home, trust, legal) do not.
+  const reviewMatch = sourcePath.match(/^reviews\/([a-z0-9-]+)\.html$/);
+  const reviewSlug = reviewMatch ? reviewMatch[1] : null;
+
   let content;
   if (isAffiliatePage(sourcePath)) {
     // SSR + geo-suppression of affiliate CTAs per request.
@@ -80,12 +85,30 @@ function writePage(sourcePath) {
     // (runtime fs reads of source files are NOT available in serverless).
     const suppressImport = relImport(destination, join(root, 'src', 'lib', 'affiliateHtml'));
     const rawImport = relImport(destination, join(root, sourcePath));
+    if (reviewSlug) {
+      content =
+        `---\n` +
+        `export const prerender = false;\n` +
+        `import rawHtml from '${rawImport}?raw';\n` +
+        `import { prepareSsrAffiliateReviewHtml } from '${suppressImport}';\n` +
+        `const html = prepareSsrAffiliateReviewHtml(rawHtml, Astro.locals.usState, '${reviewSlug}');\n` +
+        `---\n<Fragment set:html={html} />\n`;
+    } else {
+      content =
+        `---\n` +
+        `export const prerender = false;\n` +
+        `import rawHtml from '${rawImport}?raw';\n` +
+        `import { prepareSsrAffiliateHtml } from '${suppressImport}';\n` +
+        `const html = prepareSsrAffiliateHtml(rawHtml, Astro.locals.usState);\n` +
+        `---\n<Fragment set:html={html} />\n`;
+    }
+  } else if (reviewSlug) {
+    // Non-partner review -> static, but still gets the Reader Reports section.
     content =
       `---\n` +
-      `export const prerender = false;\n` +
-      `import rawHtml from '${rawImport}?raw';\n` +
-      `import { prepareSsrAffiliateHtml } from '${suppressImport}';\n` +
-      `const html = prepareSsrAffiliateHtml(rawHtml, Astro.locals.usState);\n` +
+      `export const prerender = true;\n` +
+      `import { getStaticReviewHtml } from '${staticHtmlImport}';\n` +
+      `const html = getStaticReviewHtml('${sourcePath}', '${reviewSlug}');\n` +
       `---\n<Fragment set:html={html} />\n`;
   } else {
     // No affiliate CTAs -> keep static for performance.
