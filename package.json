@@ -11,7 +11,7 @@
     "generate:pages": "tsx scripts/generate-astro-pages.mjs",
     "astro:dev": "npm run generate:pages && ASTRO_TELEMETRY_DISABLED=1 astro dev",
     "dev": "npm run build && ASTRO_TELEMETRY_DISABLED=1 astro preview",
-    "prebuild": "npm run generate:pages",
+    "prebuild": "npm run content:lint && npm run generate:pages",
     "build": "ASTRO_TELEMETRY_DISABLED=1 astro build",
     "preview": "ASTRO_TELEMETRY_DISABLED=1 astro preview",
     "testing:scaffold": "node scripts/testing-scaffold.mjs",
