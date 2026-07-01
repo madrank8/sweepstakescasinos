@@ -69,7 +69,10 @@ const webPageLd = {
   url: `${ORIGIN}${canonicalPath}`,
   ...(updatedIso ? { datePublished: updatedIso, dateModified: updatedIso } : {}),
   isPartOf: { '@type': 'WebSite', name: 'Sweepstakes Wiz', url: `${ORIGIN}/` },
-  about: { '@type': 'Thing', name: `Sweepstakes casino legality in ${name}` },
+  about: [
+    { '@type': 'Thing', name: `Sweepstakes casino legality in ${name}` },
+    { '@type': 'Thing', name: 'Sweepstakes', sameAs: 'https://en.wikipedia.org/wiki/Sweepstake' },
+  ],
   author: {
     '@type': 'Person',
     '@id': `${ORIGIN}/author/ilija-milosevic/#person`,
