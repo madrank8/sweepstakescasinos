@@ -134,7 +134,9 @@ function processBrand(slug: string, row: TestingResultRow | undefined): boolean 
   let html = readFileSync(reviewPath, 'utf8');
   const before = html;
 
-  if (softenOnly && !row) {
+  if (softenOnly) {
+    // Honest-language pass: strip fabricated first-hand claims regardless of
+    // any CSV row. Never re-applies hands-on data in soften mode.
     html = applySoftenOverclaimsOnly(html);
   } else if (!row) {
     console.log(`Skip ${slug} — no CSV row`);
@@ -186,7 +188,8 @@ let slugs: string[];
 if (slugFilter) {
   slugs = [slugFilter];
 } else if (softenOnly) {
-  slugs = TESTING_BRANDS.filter((b) => b.overclaimFlag).map((b) => b.slug);
+  // Apply the honest-language pass to every review, not just flagged ones.
+  slugs = TESTING_BRANDS.map((b) => b.slug);
 } else {
   slugs = rows.map((r) => r.brand_slug);
 }

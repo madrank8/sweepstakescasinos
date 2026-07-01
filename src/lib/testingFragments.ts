@@ -120,20 +120,35 @@ export function prependReviewBodyMeasured(existingBody: string, row: TestingResu
 }
 
 export const OVERCLAIM_PATTERNS: Array<[RegExp, string]> = [
-  [/We ran a structured 14-day hands-on test[^<]*/gi, ''],
-  [/We ran a structured 14-day hands-on test:[^<]*/gi, ''],
+  // Full fabricated first-hand sentences — remove entirely.
+  [/We ran a structured 14-day hands-on test:?[^<]*/gi, ''],
   [/Our hands-on tests cleared[^<]*/gi, ''],
   [/Our hands-on tests confirmed[^<]*/gi, ''],
-  [/We tested the platform hands-on[^<]*/gi, ''],
-  [/We tested [^.<]+ hands-on[^<]*/gi, ''],
+  [/Our test redemption #\d[^<]*/gi, ''],
+
+  // First-person / self-testing phrases — reframe to honest editorial language
+  // while preserving the surrounding sentence. Order: specific before general.
+  [/We tested the platform hands-on/gi, 'We analyzed the platform'],
+  [/Full hands-on expert review/gi, 'In-depth expert review'],
+  [/Full hands-on ([\w.\-]+) review/gi, 'In-depth $1 review'],
+  [/hands-on expert review/gi, 'in-depth expert review'],
+  [/14-Day Live Review/gi, '2026 Review'],
   [/14-day hands-on test/gi, 'editorial analysis'],
   [/14-day live test/gi, 'editorial analysis'],
+  [/14-day hands-on/gi, 'in-depth'],
   [/Hands-on platform test/gi, 'Editorial analysis'],
   [/Hands-on test/gi, 'Editorial analysis'],
-  [/Our test redemption #\d[^<]*/gi, ''],
+  [/Live Review/g, 'Expert Review'],
+  [/Payouts Tested/g, 'Payouts Explained'],
+  [/Evolution Live Tested/gi, 'Evolution Live'],
+  [/tested payouts/gi, 'payout speed'],
+  [/redemption speed hands-on/gi, 'redemption speed'],
+  [/ over 14 days/gi, ''],
+  [/our 14-day test/gi, 'our analysis'],
+  [/\(our tests confirmed\)/gi, '(per published policy)'],
   [/all five sources we verified/gi, 'third-party sources we cross-checked'],
-  [/everything tested and verified/gi, 'editorially reviewed'],
-  [/tested and verified/gi, 'editorially reviewed'],
+  [/everything tested and verified/gi, 'everything reviewed in depth'],
+  [/tested and verified/gi, 'independently reviewed'],
 ];
 
 export function softenOverclaimHtml(html: string): string {
