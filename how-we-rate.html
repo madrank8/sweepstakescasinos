@@ -117,7 +117,7 @@ footer{background:#0a1628;color:rgba(255,255,255,0.6);padding:38px 20px 20px;}
       <span>How We Rate</span>
     </div>
     <h1>How We <span class="accent">Rate</span></h1>
-    <p class="page-hero-sub">A transparent, 7-criteria scoring system built from published operator terms, aggregated third-party data, and real reader reports. Here is exactly how every sweepstakes casino on this guide earned its score.</p>
+    <p class="page-hero-sub">A transparent, 4-criteria scoring system built from published operator terms, aggregated third-party data, and real reader reports. Here is exactly how every sweepstakes casino on this guide earned its score.</p>
   </div>
 </header>
 
@@ -127,7 +127,7 @@ footer{background:#0a1628;color:rgba(255,255,255,0.6);padding:38px 20px 20px;}
     <span class="last-updated">Last updated: July 1, 2026</span>
 
     <h2>The Short Version</h2>
-    <p>Every sweepstakes casino on this site is scored against <strong>seven fixed criteria</strong> totaling 100 points. Each score is built from three honest sources: our <strong>analysis of the operator's published terms</strong>, <strong>aggregated third-party data</strong> (Trustpilot volume/scores/trends and other public review sources), and <strong>reader-submitted reports</strong> from real players. Our affiliate relationship with an operator does <strong>not</strong> shift any score.</p>
+    <p>Every sweepstakes casino on this site is scored against <strong>four weighted criteria</strong> totaling 100 points. Each score is built from three honest sources: our <strong>analysis of the operator's published terms</strong>, <strong>aggregated third-party data</strong> (Trustpilot volume/scores/trends and other public review sources), and <strong>reader-submitted reports</strong> from real players. Our affiliate relationship with an operator does <strong>not</strong> shift any score.</p>
 
     <div class="info-box">
       <p><strong>Straight about our method:</strong> We are an independent editorial site, not a mystery-shopping operation. We do <strong>not</strong> claim to personally register, cash out, and stopwatch every brand. Where a page reports payout speed, that figure comes from the operator's published policy cross-checked against aggregated user reports — clearly labelled and dated — never a fabricated "we tested it" number.</p>
@@ -135,50 +135,33 @@ footer{background:#0a1628;color:rgba(255,255,255,0.6);padding:38px 20px 20px;}
 
     <p>Sites with unresolved legal action, a persistent pattern of unexplained non-payment in the public record, or terms so opaque we cannot assess them are left off our rankings.</p>
 
-    <h2>The 7 Criteria & Their Weights</h2>
+    <h2>The 4 Criteria &amp; Their Weights</h2>
+    <p style="font-size:.82rem;color:#64748b;margin:-6px 0 12px;">These four criteria and weights are the same ones shown on our homepage — they are defined once in a single config and verified to match on both pages at build time.</p>
 
     <div class="criteria-grid">
       <div class="criteria-card">
         <div class="icon">⚡</div>
-        <h4>Redemption Speed</h4>
-        <p>Published redemption windows per method, cross-checked against aggregated user-reported timings.</p>
-        <div class="weight">Weight: 25 / 100</div>
+        <h4>Redemption Terms &amp; Speed</h4>
+        <p>Published redemption policy — minimums, playthrough, approval windows and payout rails — weighed against what players report at scale on Trustpilot.</p>
+        <div class="weight">Weight: 30%</div>
       </div>
       <div class="criteria-card">
         <div class="icon">🎁</div>
-        <h4>Welcome Bonus Value</h4>
-        <p>Real claimable SC value at sign-up, after wagering requirements and redemption thresholds.</p>
-        <div class="weight">Weight: 15 / 100</div>
+        <h4>Sign-Up Bonus Value</h4>
+        <p>The true SC-equivalent of the welcome package, including the playthrough multiple and how many steps stand between you and the advertised number.</p>
+        <div class="weight">Weight: 25%</div>
       </div>
       <div class="criteria-card">
         <div class="icon">🎰</div>
-        <h4>Game Library</h4>
-        <p>Game count, provider quality, RTP transparency, presence of live dealer and exclusive titles.</p>
-        <div class="weight">Weight: 15 / 100</div>
+        <h4>Ongoing Free Value</h4>
+        <p>Recurring free-SC paths — daily login streaks, social drops, referral SC and the mail-in AMOE route — not just the headline welcome figure.</p>
+        <div class="weight">Weight: 25%</div>
       </div>
       <div class="criteria-card">
-        <div class="icon">🪪</div>
-        <h4>KYC & Onboarding Friction</h4>
-        <p>Documents required, published verification turnaround, and the KYC experience players report.</p>
-        <div class="weight">Weight: 15 / 100</div>
-      </div>
-      <div class="criteria-card">
-        <div class="icon">🛟</div>
-        <h4>Customer Support</h4>
-        <p>Support channels offered, published availability, and the response quality players report.</p>
-        <div class="weight">Weight: 10 / 100</div>
-      </div>
-      <div class="criteria-card">
-        <div class="icon">📜</div>
-        <h4>Terms & Conditions Fairness</h4>
-        <p>Wagering requirements, max-bet rules, dormancy clauses, max-redemption caps, history of changes.</p>
-        <div class="weight">Weight: 10 / 100</div>
-      </div>
-      <div class="criteria-card">
-        <div class="icon">🔧</div>
-        <h4>Platform Stability</h4>
-        <p>Mobile experience, security headers, and the public record of outages or breaches.</p>
-        <div class="weight">Weight: 10 / 100</div>
+        <div class="icon">💬</div>
+        <h4>Trust &amp; Support</h4>
+        <p>Operator and licensing transparency, security (SSL, RNG-tested studios), support channels, and the balance of sentiment across each brand&#8217;s full review history.</p>
+        <div class="weight">Weight: 20%</div>
       </div>
     </div>
 
@@ -192,51 +175,35 @@ footer{background:#0a1628;color:rgba(255,255,255,0.6);padding:38px 20px 20px;}
 
     <h2>How Each Score Is Built</h2>
 
-    <h3>1. Redemption Speed (25 points)</h3>
+    <h3>1. Redemption Terms &amp; Speed (30%)</h3>
     <p>The single most important criterion, and the one most casinos game in their marketing. We do not simply repeat an operator's "average" time. Instead we compare:</p>
     <ul>
-      <li>The redemption window the operator <strong>publishes</strong> for each method (e-wallet, bank, gift card, crypto).</li>
+      <li>The redemption window the operator <strong>publishes</strong> for each method (e-wallet, bank, gift card, crypto), plus minimums, fees, and caps.</li>
       <li>Aggregated <strong>user-reported</strong> timings from Trustpilot and reader submissions, including the spread — not just the best case.</li>
-      <li>Any minimums, fees, and caps that affect how quickly a real player can actually cash out.</li>
+      <li>Whether the terms are clear, and whether there is any pattern of withheld or delayed payouts in the public record.</li>
     </ul>
-    <p>Scoring band (published policy weighted by how consistently reader/third-party reports match it): 0–24 hours = full 25 points. 24–72 hours = 20. 72 hours – 1 week = 12. 1–2 weeks = 5. More than 2 weeks, or a persistent pattern of non-payment in the public record = 0.</p>
+    <p>Brands with opaque redemption terms, or a persistent pattern of non-payment in the public record, are marked down heavily or left off the rankings entirely.</p>
 
-    <h3>2. Welcome Bonus Value (15 points)</h3>
-    <p>Marketing materials inflate bonuses with promotional Gold Coins, locked-up Sweeps Coins, or impossible playthrough requirements. We score the <strong>realistic claimable value</strong> — what an average player can actually redeem after meeting the playthrough on a 96% RTP slot. Maximum redemption caps and time limits are factored in.</p>
+    <h3>2. Sign-Up Bonus Value (25%)</h3>
+    <p>Marketing inflates bonuses with promotional Gold Coins, locked-up Sweeps Coins, or heavy playthrough. We score the <strong>realistic claimable value</strong> — what an average player can actually redeem after meeting the playthrough on a 96% RTP slot — and factor in how many steps stand between you and the advertised number. A 1× playthrough beats a bigger bonus locked behind 5×. Maximum redemption caps and time limits are factored in.</p>
 
-    <h3>3. Game Library (15 points)</h3>
-    <p>Quality matters more than raw count. A site with 4,000 white-label slots scores lower than a site with 1,500 well-curated titles from Pragmatic Play, Hacksaw, NetEnt, Relax Gaming, and similar regulated providers. Bonus points for:</p>
+    <h3>3. Ongoing Free Value (25%)</h3>
+    <p>The welcome offer is one-time; what keeps a balance alive is recurring free SC. We map each brand's ongoing no-purchase paths:</p>
     <ul>
-      <li>Live dealer integrations (Evolution, Pragmatic Live)</li>
-      <li>Published RTP per game</li>
-      <li>Exclusive titles unavailable elsewhere</li>
-      <li>Working demo/free-play mode</li>
+      <li>Daily login streaks and time-based faucets</li>
+      <li>Social-media drops and community giveaways</li>
+      <li>Referral SC and loyalty/VIP top-ups</li>
+      <li>The mail-in AMOE route and how workable it actually is</li>
     </ul>
 
-    <h3>4. KYC & Onboarding Friction (15 points)</h3>
-    <p>Identity verification is a legal requirement, not a flaw — but how it's implemented separates good operators from bad. We assess:</p>
+    <h3>4. Trust &amp; Support (20%)</h3>
+    <p>This criterion folds together everything that determines whether a brand can be trusted with your time and identity:</p>
     <ul>
-      <li>Documents the operator requires (more than ID + selfie + proof of address = friction)</li>
-      <li>Published turnaround time (under 24 hours = full points)</li>
-      <li>How players report false-rejection handling — does support actually help, or auto-deny?</li>
-      <li>Whether KYC is required at registration, at first redemption, or only above a threshold</li>
+      <li><strong>Operator &amp; licensing transparency</strong> — who runs it, disclosed clearly and verifiable.</li>
+      <li><strong>Security &amp; fairness</strong> — SSL, RNG-tested studios, and the quality of the games/software providers behind the lobby.</li>
+      <li><strong>KYC &amp; terms fairness</strong> — documents required, published verification turnaround, and red-flag clauses (low redemption caps, short dormancy windows, wagering above 1× on welcome SC, "sole discretion" payout language).</li>
+      <li><strong>Support &amp; sentiment</strong> — channels offered, published availability, and the balance of positive-to-negative themes across each brand's full review history, not cherry-picked quotes.</li>
     </ul>
-
-    <h3>5. Customer Support (10 points)</h3>
-    <p>We record which support channels a brand offers (live chat, email, phone), their published availability, and what players consistently report about response time and resolution quality in third-party reviews and reader reports.</p>
-
-    <h3>6. Terms & Conditions Fairness (10 points)</h3>
-    <p>Red-flag clauses we look for:</p>
-    <ul>
-      <li>Maximum redemption caps below $5,000 per request</li>
-      <li>Dormancy clauses that void SC after &lt;180 days</li>
-      <li>Wagering requirements above 1× on welcome SC</li>
-      <li>"At our sole discretion" language attached to redemption decisions</li>
-      <li>Recent (within 12 months) changes that hurt existing players</li>
-    </ul>
-
-    <h3>7. Platform Stability (10 points)</h3>
-    <p>Assessed via mobile UX on iOS/Android, a security header review (HSTS, CSP, etc.), and a search of public breach databases and outage reports. A history of unplanned 4+ hour outages or any unresolved security incident significantly reduces the score.</p>
 
     <h2>Why Some Sites Aren't Listed</h2>
     <p>You will notice some heavily advertised sweepstakes casinos missing from our top lists. The most common reasons:</p>
