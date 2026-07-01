@@ -100,6 +100,16 @@ const siblings = allStates
   heroSubtitle={entry.data.description}
   jsonLd={jsonLd}
 >
+  <div class="state-flag-bar">
+    <img
+      class="state-flag"
+      src={`/images/states/${code.toLowerCase()}.png`}
+      alt={`${name} state flag`}
+      loading="eager"
+    />
+    <span>{name}</span>
+  </div>
+
   <Content />
 
   <h2>Available sweepstakes casinos in {name}</h2>
@@ -168,6 +178,9 @@ const siblings = allStates
   </div>
 
   <style>
+    .state-flag-bar{display:flex;align-items:center;gap:12px;margin:0 0 20px;}
+    .state-flag{height:46px;width:auto;border:1px solid #e2e8f0;border-radius:6px;box-shadow:0 1px 4px rgba(10,22,40,.14);display:block;}
+    .state-flag-bar span{font-family:'Sora',sans-serif;font-weight:800;color:#0a1628;font-size:1.1rem;letter-spacing:-0.2px;}
     .state-siblings{margin:8px 0 22px;}
     .state-siblings ul{margin:8px 0 0;padding-left:20px;}
     .state-siblings li{margin:6px 0;line-height:1.55;}
