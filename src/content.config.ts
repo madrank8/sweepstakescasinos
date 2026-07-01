@@ -26,6 +26,11 @@ const guides = defineCollection({
     faq: z.array(faqItem).default([]),
     updated: isoDate.optional(),
     draft: z.boolean().default(false),
+    /** Hub grouping + sort for the /guides/ index page. */
+    category: z.string().optional(),
+    order: z.number().optional(),
+    /** Short card label for the hub grid (falls back to description). */
+    cardSummary: z.string().optional(),
   }),
 });
 

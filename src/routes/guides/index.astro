@@ -1,0 +1,251 @@
+---
+/**
+ * Guides hub / index (/guides/). A topical-authority + internal-linking node
+ * that orients newcomers, groups the guide cluster by category, cross-links to
+ * the commercial + legality hubs, and emits CollectionPage + ItemList +
+ * FAQPage JSON-LD (BreadcrumbList comes from ContentLayout).
+ *
+ * Auto-lists the `guides` collection, so new guides appear here on rebuild.
+ */
+import { getCollection } from 'astro:content';
+import ContentLayout from '../../layouts/ContentLayout.astro';
+
+export const prerender = true;
+
+const ORIGIN = 'https://sweepstakeswiz.com';
+const canonicalPath = '/guides/';
+
+const entries = await getCollection('guides', (e) => !e.data.draft);
+
+const stripTags = (s: string) => s.replace(/<[^>]+>/g, '').trim();
+const displayTitle = (e: (typeof entries)[number]) =>
+  e.data.heroTitle ? stripTags(e.data.heroTitle) : e.data.title;
+
+type Card = {
+  slug: string;
+  title: string;
+  summary: string;
+  category: string;
+  order: number;
+};
+
+const cards: Card[] = entries.map((e) => ({
+  slug: e.id,
+  title: displayTitle(e),
+  summary: e.data.cardSummary ?? e.data.description,
+  category: e.data.category ?? 'More Guides',
+  order: e.data.order ?? 99,
+}));
+
+// Fixed category order; anything else falls to the end.
+const CATEGORY_ORDER = ['The Basics', 'How-To', 'Safety & Legality', 'More Guides'];
+const groups = CATEGORY_ORDER
+  .map((name) => ({
+    name,
+    items: cards.filter((c) => c.category === name).sort((a, b) => a.order - b.order),
+  }))
+  .filter((g) => g.items.length > 0);
+
+// "Start here" featured pick (the pillar), with a graceful fallback.
+const featured =
+  cards.find((c) => c.slug === 'what-are-sweepstakes-casinos') ??
+  [...cards].sort((a, b) => a.order - b.order)[0];
+
+const title = 'Sweepstakes Casino Guides: Basics, Value, Safety & How-To';
+const description =
+  'Learn how sweepstakes casinos work — Gold Coins vs Sweeps Coins, how to redeem for cash, whether they are legit, and which states allow them. Plain-English guides from Sweepstakes Wiz.';
+
+const breadcrumbs = [
+  { name: 'Home', path: '/' },
+  { name: 'Guides', path: canonicalPath },
+];
+
+// ── Schema: CollectionPage + ItemList of the guides ──────────────────────────
+const collectionLd = {
+  '@context': 'https://schema.org',
+  '@type': 'CollectionPage',
+  name: title,
+  description,
+  url: `${ORIGIN}${canonicalPath}`,
+  isPartOf: { '@type': 'WebSite', name: 'Sweepstakes Wiz', url: `${ORIGIN}/` },
+  mainEntity: {
+    '@type': 'ItemList',
+    itemListElement: cards.map((c, i) => ({
+      '@type': 'ListItem',
+      position: i + 1,
+      url: `${ORIGIN}/guides/${c.slug}/`,
+      name: c.title,
+    })),
+  },
+};
+
+const hubFaq = [
+  {
+    q: 'Where should I start if I am new to sweepstakes casinos?',
+    a: 'Start with "What Is a Sweepstakes Casino?" to understand the model, then read "Sweeps Coins Explained" and "Gold Coins vs Sweeps Coins" so the two currencies make sense. After that, "How to Redeem Sweeps Coins" and "Are Sweepstakes Casinos Legit?" cover cashing out and staying safe.',
+  },
+  {
+    q: 'How do sweepstakes casinos work?',
+    a: 'You play casino-style games with two virtual currencies. Gold Coins are for fun and have no cash value; Sweeps Coins are a promotional entry currency you can redeem for prizes under each operator\u2019s rules. Because there is always a free, no-purchase way to get Sweeps Coins, the model operates as a sweepstakes rather than real-money gambling in most US states.',
+  },
+  {
+    q: 'Are these guides based on hands-on testing?',
+    a: 'No. Our guides are editorial analysis of operators\u2019 published terms and cited third-party sources, supplemented by moderated reader reports. We do not present invented first-hand testing as fact, and any illustrations are disclosed as AI-generated.',
+  },
+  {
+    q: 'How often are the guides updated?',
+    a: 'Each guide shows an "Updated" date and is refreshed when laws, operator terms, or market conditions change \u2014 which, given the fast-moving state legislation around sweepstakes casinos, can be frequently.',
+  },
+];
+
+const faqLd = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: hubFaq.map((f) => ({
+    '@type': 'Question',
+    name: f.q,
+    acceptedAnswer: { '@type': 'Answer', text: f.a },
+  })),
+};
+
+const jsonLd = [collectionLd, faqLd];
+---
+<ContentLayout
+  title={title}
+  description={description}
+  canonicalPath={canonicalPath}
+  breadcrumbs={breadcrumbs}
+  heroTitle={'Sweepstakes Casino <span class="accent">Guides</span>'}
+  heroSubtitle={'Plain-English, regularly-updated guides to how sweepstakes casinos work, what the coins are worth, how to cash out, and where the model is legal.'}
+  ogImage="/images/guides/guides-hub.png"
+  jsonLd={jsonLd}
+>
+  <figure class="hub-hero">
+    <img
+      src="/images/guides/guides-hub.png"
+      alt="Sweepstakes Casino Guides hub: a central book links to five topics — basics, coin currencies, safety and legitimacy, redeeming for cash, and state legality."
+      width="1376"
+      height="768"
+      loading="eager"
+    />
+    <figcaption>Your map to the sweepstakes casino guides (AI-generated illustration).</figcaption>
+  </figure>
+
+  <p>
+    New to sweepstakes casinos? These guides explain the whole model in plain English —
+    no jargon, no hype. They&rsquo;re editorial explainers built from operators&rsquo; published
+    terms, cited sources, and moderated reader reports, and every one shows when it was
+    last updated. Work through <strong>The Basics</strong> first, then dip into the how-to
+    and safety guides as you need them.
+  </p>
+
+  {featured && (
+    <a class="start-here" href={`/guides/${featured.slug}/`}>
+      <span class="start-here-tag">Start here</span>
+      <span class="start-here-title">{featured.title}</span>
+      <span class="start-here-sum">{featured.summary}</span>
+      <span class="start-here-cta">Read the guide &#8594;</span>
+    </a>
+  )}
+
+  {groups.map((group) => (
+    <section class="guide-cat" aria-label={group.name}>
+      <h2>{group.name}</h2>
+      <div class="guide-grid">
+        {group.items.map((c) => (
+          <a class="guide-card" href={`/guides/${c.slug}/`}>
+            <span class="guide-card-title">{c.title}</span>
+            <span class="guide-card-sum">{c.summary}</span>
+            <span class="guide-card-cta">Read guide &#8594;</span>
+          </a>
+        ))}
+      </div>
+    </section>
+  ))}
+
+  <section class="guide-next" aria-label="Where to go next">
+    <h2>Ready to play? Where to go next</h2>
+    <p>
+      Once the model makes sense, put it to use — but always confirm your state and each
+      operator\u2019s official rules first.
+    </p>
+    <ul class="next-links">
+      <li><a href="/best/sweepstakes-casinos/">Compare the best sweepstakes casinos</a> — our ranked picks by redemption, bonus value, and trust.</li>
+      <li><a href="/state-legality/">Check sweepstakes casino legality by state</a> — the model is banned or restricted in a growing list of states.</li>
+      <li><a href="/how-we-rate/">How we rate</a> — the four-criteria methodology behind every ranking.</li>
+    </ul>
+  </section>
+
+  <section aria-label="Frequently asked questions">
+    <h2>Frequently asked questions</h2>
+    {hubFaq.map((f) => (
+      <>
+        <h3>{f.q}</h3>
+        <p>{f.a}</p>
+      </>
+    ))}
+  </section>
+
+  <p class="hub-byline">
+    Guides written and maintained by
+    <a href="/author/ilija-milosevic/">Ilija Milosevic</a>, iGaming Writer &amp; Analyst.
+    Sweepstakes play only &mdash; no real-money gambling. 21+. Not available in all US states.
+  </p>
+
+  <style>
+    .hub-hero { margin: 4px 0 26px; }
+    .hub-hero img {
+      display: block; width: 100%; height: auto;
+      border: 1px solid #e2e8f0; border-radius: 14px;
+    }
+    .hub-hero figcaption {
+      font-size: 0.8rem; color: #64748b; margin-top: 8px; text-align: center;
+    }
+
+    .start-here {
+      display: block; text-decoration: none;
+      background: linear-gradient(135deg, #0a1628 0%, #152238 100%);
+      border: 1px solid #1e2c47; border-radius: 14px;
+      padding: 22px 24px; margin: 0 0 30px;
+      transition: transform .15s ease, box-shadow .15s ease;
+    }
+    .start-here:hover { transform: translateY(-2px); box-shadow: 0 12px 30px rgba(10,22,40,.25); }
+    .start-here-tag {
+      display: inline-block; font-family: 'Sora', sans-serif; font-size: 0.7rem;
+      font-weight: 700; letter-spacing: .1em; text-transform: uppercase;
+      color: #0a1628; background: #fbbf24; padding: 3px 10px; border-radius: 999px; margin-bottom: 12px;
+    }
+    .start-here-title {
+      display: block; font-family: 'Sora', sans-serif; font-weight: 700;
+      font-size: 1.35rem; color: #fff; margin-bottom: 6px;
+    }
+    .start-here-sum { display: block; color: #cbd5e1; line-height: 1.55; margin-bottom: 12px; }
+    .start-here-cta { display: inline-block; color: #fbbf24; font-weight: 600; }
+
+    .guide-cat { margin: 0 0 30px; }
+    .guide-cat > h2 { margin-bottom: 14px; }
+    .guide-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px;
+    }
+    .guide-card {
+      display: flex; flex-direction: column; text-decoration: none;
+      background: #fff; border: 1px solid #e2e8f0; border-radius: 12px;
+      padding: 18px 18px 16px; transition: transform .15s ease, box-shadow .15s ease, border-color .15s ease;
+    }
+    .guide-card:hover { transform: translateY(-2px); box-shadow: 0 10px 24px rgba(10,22,40,.10); border-color: #fbbf24; }
+    .guide-card-title {
+      font-family: 'Sora', sans-serif; font-weight: 700; font-size: 1.05rem;
+      color: #0a1628; margin-bottom: 8px; line-height: 1.3;
+    }
+    .guide-card-sum { color: #475569; font-size: 0.92rem; line-height: 1.55; flex: 1 1 auto; margin-bottom: 12px; }
+    .guide-card-cta { color: #b45309; font-weight: 600; font-size: 0.9rem; }
+
+    .guide-next { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 20px 22px; margin: 6px 0 26px; }
+    .guide-next > h2 { margin-top: 0; }
+    .next-links { margin: 10px 0 0; padding-left: 20px; }
+    .next-links li { margin: 8px 0; line-height: 1.55; }
+
+    .hub-byline { font-size: 0.85rem; color: #64748b; border-top: 1px solid #e2e8f0; padding-top: 16px; margin-top: 26px; }
+    .hub-byline a { color: #b45309; font-weight: 600; }
+  </style>
+</ContentLayout>

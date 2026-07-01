@@ -221,6 +221,9 @@ function writeSitemapAndRobots() {
   // Reader-reports submission page (authored under src/routes/report.astro).
   if (existsSync(join(root, 'src', 'routes', 'report.astro'))) urls.push('/report/');
 
+  // Guides hub / index (authored under src/routes/guides/index.astro).
+  if (existsSync(join(root, 'src', 'routes', 'guides', 'index.astro'))) urls.push('/guides/');
+
   // MDX content collections (skip drafts). comparisons render under /best/.
   const collectionUrlPrefix = { guides: '/guides', comparisons: '/best', states: '/states' };
   for (const [name, prefix] of Object.entries(collectionUrlPrefix)) {

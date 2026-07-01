@@ -22,6 +22,8 @@ interface Props {
   heroTitle?: string;
   heroSubtitle?: string;
   robots?: string;
+  /** Absolute-from-root path to a social preview image (og:image / twitter). */
+  ogImage?: string;
   jsonLd?: Record<string, unknown> | Array<Record<string, unknown>>;
 }
 
@@ -33,10 +35,12 @@ const {
   heroTitle,
   heroSubtitle,
   robots = 'index, follow',
+  ogImage,
   jsonLd,
 } = Astro.props;
 
 const canonical = `${ORIGIN}${canonicalPath}`;
+const ogImageUrl = ogImage ? `${ORIGIN}${ogImage}` : undefined;
 const ribbon = stampUpdatedDate(complianceRibbonMarkup());
 const orgScript = orgSchemaMarkup();
 
@@ -70,6 +74,13 @@ const extraLd = jsonLd ? (Array.isArray(jsonLd) ? jsonLd : [jsonLd]) : [];
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
     <meta property="og:url" content={canonical} />
+    {ogImageUrl && (
+      <>
+        <meta property="og:image" content={ogImageUrl} />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:image" content={ogImageUrl} />
+      </>
+    )}
     <script src="/partials/include.js" defer></script>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link href="/_external/fonts.googleapis.com/css2__qba979b498c" rel="stylesheet" />
