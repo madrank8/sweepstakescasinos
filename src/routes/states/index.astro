@@ -1,0 +1,23 @@
+---
+/**
+ * /states/ section root. The canonical state hub is the hand-authored
+ * /state-legality/ page (50-state table, legislative tracker, and links to
+ * every individual /states/<code>/ guide). Redirect the bare section root
+ * there instead of duplicating it.
+ */
+export const prerender = false;
+
+return Astro.redirect('/state-legality/', 301);
+---
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="refresh" content="0; url=/state-legality/" />
+    <link rel="canonical" href="https://sweepstakeswiz.com/state-legality/" />
+    <title>Sweepstakes casino legality by state</title>
+  </head>
+  <body>
+    <p><a href="/state-legality/">Sweepstakes casino legality by state &#8594;</a></p>
+  </body>
+</html>

@@ -1,0 +1,23 @@
+---
+/**
+ * /best/ section root. There is a single flagship comparison
+ * (/best/sweepstakes-casinos/), which IS the canonical "best sweepstakes
+ * casinos" money page. Rather than ship a thin, duplicate index that would
+ * cannibalize it, permanently redirect the bare section root onto it.
+ */
+export const prerender = false;
+
+return Astro.redirect('/best/sweepstakes-casinos/', 301);
+---
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="refresh" content="0; url=/best/sweepstakes-casinos/" />
+    <link rel="canonical" href="https://sweepstakeswiz.com/best/sweepstakes-casinos/" />
+    <title>Best sweepstakes casinos</title>
+  </head>
+  <body>
+    <p><a href="/best/sweepstakes-casinos/">Best sweepstakes casinos &#8594;</a></p>
+  </body>
+</html>
