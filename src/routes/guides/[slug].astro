@@ -37,6 +37,31 @@ const faqLd =
         })),
       }
     : undefined;
+
+const ORIGIN = 'https://sweepstakeswiz.com';
+const updatedIso =
+  entry.data.updated instanceof Date ? entry.data.updated.toISOString().slice(0, 10) : undefined;
+
+// Article + named author (Person) for E-E-A-T — the human accountable for the page.
+const articleLd = {
+  '@context': 'https://schema.org',
+  '@type': 'Article',
+  headline: entry.data.title,
+  description: entry.data.description,
+  mainEntityOfPage: `${ORIGIN}${canonicalPath}`,
+  author: {
+    '@type': 'Person',
+    '@id': `${ORIGIN}/author/ilija-milosevic/#person`,
+    name: 'Ilija Milosevic',
+    url: `${ORIGIN}/author/ilija-milosevic/`,
+    jobTitle: 'iGaming Writer & Analyst',
+    sameAs: ['https://www.linkedin.com/in/ilija-milosevic-hiperion'],
+  },
+  publisher: { '@type': 'Organization', name: 'Sweepstakes Wiz', url: `${ORIGIN}/` },
+  ...(updatedIso ? { dateModified: updatedIso } : {}),
+};
+
+const jsonLd = [articleLd, ...(faqLd ? [faqLd] : [])];
 ---
 <ContentLayout
   title={entry.data.title}
@@ -45,7 +70,7 @@ const faqLd =
   breadcrumbs={breadcrumbs}
   heroTitle={entry.data.heroTitle}
   heroSubtitle={entry.data.description}
-  jsonLd={faqLd}
+  jsonLd={jsonLd}
 >
   <Content />
 
