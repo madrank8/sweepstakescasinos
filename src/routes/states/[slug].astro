@@ -24,6 +24,8 @@ export async function getStaticPaths() {
 const { entry } = Astro.props;
 const { Content } = await render(entry);
 
+const ORIGIN = 'https://sweepstakeswiz.com';
+
 const code = entry.data.stateCode as UsStateCode;
 const name = stateName(code);
 const banned = isStateBannedSitewide(code);
@@ -51,6 +53,44 @@ const faqLd =
         })),
       }
     : undefined;
+
+// E-E-A-T: named author + visible "last updated" + WebPage dateModified schema.
+const updatedDate = entry.data.updated instanceof Date ? entry.data.updated : undefined;
+const updatedIso = updatedDate ? updatedDate.toISOString().slice(0, 10) : undefined;
+const updatedHuman = updatedDate
+  ? updatedDate.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric', timeZone: 'UTC' })
+  : undefined;
+
+const webPageLd = {
+  '@context': 'https://schema.org',
+  '@type': 'WebPage',
+  name: entry.data.title,
+  description: entry.data.description,
+  url: `${ORIGIN}${canonicalPath}`,
+  ...(updatedIso ? { datePublished: updatedIso, dateModified: updatedIso } : {}),
+  isPartOf: { '@type': 'WebSite', name: 'Sweepstakes Wiz', url: `${ORIGIN}/` },
+  about: { '@type': 'Thing', name: `Sweepstakes casino legality in ${name}` },
+  author: {
+    '@type': 'Person',
+    '@id': `${ORIGIN}/author/ilija-milosevic/#person`,
+    name: 'Ilija Milosevic',
+    url: `${ORIGIN}/author/ilija-milosevic/`,
+    jobTitle: 'iGaming Writer & Analyst',
+  },
+  publisher: { '@type': 'Organization', name: 'Sweepstakes Wiz', url: `${ORIGIN}/` },
+};
+const jsonLd = faqLd ? [webPageLd, faqLd] : [webPageLd];
+
+// Auto sibling cross-links so every state page interlinks the state cluster.
+const allStates = await getCollection('states', (e) => !e.data.draft);
+const siblings = allStates
+  .filter((e) => e.id !== entry.id)
+  .map((e) => ({
+    slug: e.id,
+    name: stateName(e.data.stateCode as UsStateCode),
+    status: e.data.legalStatus as string,
+  }))
+  .sort((a, b) => a.name.localeCompare(b.name));
 ---
 <ContentLayout
   title={entry.data.title}
@@ -58,7 +98,7 @@ const faqLd =
   canonicalPath={canonicalPath}
   breadcrumbs={breadcrumbs}
   heroSubtitle={entry.data.description}
-  jsonLd={faqLd}
+  jsonLd={jsonLd}
 >
   <Content />
 
@@ -97,6 +137,27 @@ const faqLd =
     </section>
   )}
 
+  {siblings.length > 0 && (
+    <section class="state-siblings" aria-label="Other state guides">
+      <h2>Sweepstakes casino legality in other states</h2>
+      <ul>
+        {siblings.map((s) => (
+          <li>
+            <a href={`/states/${s.slug}/`}>Are sweepstakes casinos legal in {s.name}?</a>
+            {' '}&mdash; {s.status === 'available' ? 'offers shown' : 'info-only'}
+          </li>
+        ))}
+      </ul>
+      <p>See every US state on the <a href="/state-legality/">state legality hub</a>.</p>
+    </section>
+  )}
+
+  <p class="state-byline">
+    Researched and written by <a href="/author/ilija-milosevic/">Ilija Milosevic</a>,
+    iGaming Writer &amp; Analyst.{updatedHuman ? ` Last updated ${updatedHuman}.` : ''} This page
+    is editorial analysis of public law and operator terms &mdash; not legal advice.
+  </p>
+
   <div class="info-box">
     <p>
       Play responsibly &middot; 21+. Free, confidential help is available 24/7 at
@@ -105,4 +166,12 @@ const faqLd =
       informational and not legal advice.
     </p>
   </div>
+
+  <style>
+    .state-siblings{margin:8px 0 22px;}
+    .state-siblings ul{margin:8px 0 0;padding-left:20px;}
+    .state-siblings li{margin:6px 0;line-height:1.55;}
+    .state-byline{font-size:0.85rem;color:#64748b;border-top:1px solid #e2e8f0;padding-top:14px;margin:22px 0 18px;}
+    .state-byline a{color:#b45309;font-weight:600;}
+  </style>
 </ContentLayout>
