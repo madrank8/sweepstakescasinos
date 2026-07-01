@@ -22,6 +22,10 @@
     "content:lint": "tsx scripts/lint-experience-claims.ts",
     "methodology:check": "tsx scripts/verify-methodology-consistency.ts",
     "reader-reports:aggregate": "tsx scripts/aggregate-reader-reports.ts",
+    "seo:extract": "python3 scripts/seo/extract_guides.py",
+    "seo:fingerprint": "python3 scripts/seo/corpus_fingerprint.py --in .seo/pages.json --min-cluster 2",
+    "seo:provenance": "python3 scripts/seo/r45_provenance.py --in .seo/pages.json",
+    "seo:score": "npm run build && npm run seo:extract && npm run seo:fingerprint && npm run seo:provenance",
     "ci": "npm run verify:availability && npm run content:lint && npm run methodology:check && npm run testing:verify && npm run build"
   },
   "devDependencies": {
