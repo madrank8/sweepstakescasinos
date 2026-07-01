@@ -195,6 +195,9 @@ function writeSitemapAndRobots() {
     if (existsSync(join(root, rel))) urls.push(`/${rel.replace(/\.html$/, '')}/`);
   }
 
+  // Reader-reports submission page (authored under src/routes/report.astro).
+  if (existsSync(join(root, 'src', 'routes', 'report.astro'))) urls.push('/report/');
+
   // MDX content collections (skip drafts). comparisons render under /best/.
   const collectionUrlPrefix = { guides: '/guides', comparisons: '/best', states: '/states' };
   for (const [name, prefix] of Object.entries(collectionUrlPrefix)) {

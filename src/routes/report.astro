@@ -1,0 +1,22 @@
+---
+export const prerender = true;
+import ContentLayout from '../layouts/ContentLayout.astro';
+import { renderReaderReportForm } from '../lib/readerReportForm';
+
+const formHtml = renderReaderReportForm();
+---
+<ContentLayout
+  title="Report Your Sweepstakes Casino Experience | Sweepstakes Wiz"
+  description="Share your real, first-hand redemption and payout experience at any sweepstakes casino. We moderate and aggregate reader reports into the payout data on our reviews."
+  canonicalPath="/report/"
+  heroTitle="Report Your Experience"
+  heroSubtitle="Real player reports power the payout-speed data on our reviews. Tell us what actually happened."
+  robots="index, follow"
+  breadcrumbs={[{ name: 'Home', path: '/' }, { name: 'Report Your Experience', path: '/report/' }]}
+>
+  <p>We rate sweepstakes casinos on published terms and aggregated data — and the single most valuable input is what real players actually experience. If you have registered, played, or cashed out at any brand on this site, tell us how it went. We moderate every submission and aggregate approved reports (never your personal details) into the <a href="/how-we-rate/">payout-speed and trust data</a> shown on each review.</p>
+
+  <p><strong>Please do not include any personal details</strong> — no email, phone, card or account numbers. We only need timings, amounts in broad bands, and your honest impression.</p>
+
+  <Fragment set:html={formHtml} />
+</ContentLayout>

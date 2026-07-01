@@ -8,6 +8,9 @@ public/
 src/pages/
 .context-brain.db
 output/
+.env
+.env.*
+!.env.example
 evidence/*
 !evidence/README.md
 !evidence/testing-results.template.csv
