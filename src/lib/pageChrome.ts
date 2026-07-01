@@ -75,6 +75,7 @@ const ORG_GRAPH = {
       description:
         'Independent review site comparing US sweepstakes (social) casinos, bonuses, and redemption policies.',
       founder: { '@id': `${ORIGIN}/author/${SITE.authorSlug}/#person` },
+      sameAs: ['https://www.youtube.com/@SweepstakesWiz'],
       knowsAbout: [
         'Sweepstakes casinos',
         'Social casinos',
