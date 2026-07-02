@@ -111,14 +111,17 @@ const GOOGLE_ANALYTICS = `${GA_MARKER}
 
   gtag('config', 'G-YS24XQPM4Y');
 </script>`;
+const LEGACY_GOOGLE_TAG =
+  /\s*(?:<!--\s*Google tag \(gtag\.js\)\s*-->\s*)?<script\s+async\s+src=(["'])(?:https:\/\/www\.googletagmanager\.com\/gtag\/js\?id=G-[A-Z0-9]+|\/_external\/www\.googletagmanager\.com\/gtag\/js__[^"']+)\1><\/script>\s*<script\b[^>]*>[\s\S]*?gtag\s*\(\s*['"]config['"]\s*,\s*['"]G-[A-Z0-9]+['"][\s\S]*?<\/script>\s*/gi;
 
 /**
- * Inject Google Analytics 4 tracking before </head>.
+ * Replace mirrored legacy gtag snippets with the canonical GA4 tracking tag.
  * Idempotent; no-op for documents without a </head>.
  */
 export function injectGoogleAnalytics(html: string): string {
-  if (html.includes(GA_MARKER)) return html;
-  return html.replace(HEAD_CLOSE, (match) => `${GOOGLE_ANALYTICS}\n${match}`);
+  const withoutLegacyTags = html.replace(LEGACY_GOOGLE_TAG, '\n');
+  if (withoutLegacyTags.includes(GA_MARKER)) return withoutLegacyTags;
+  return withoutLegacyTags.replace(HEAD_CLOSE, (match) => `${GOOGLE_ANALYTICS}\n${match}`);
 }
 
 /**
