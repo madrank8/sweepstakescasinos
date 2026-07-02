@@ -101,6 +101,26 @@ const ORG_SCRIPT = `${ORG_MARKER}\n<script type="application/ld+json">${JSON.str
 
 const HEAD_CLOSE = /<\/head>/i;
 
+const GA_MARKER = '<!--sc-google-analytics-->';
+const GOOGLE_ANALYTICS = `${GA_MARKER}
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-YS24XQPM4Y"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-YS24XQPM4Y');
+</script>`;
+
+/**
+ * Inject Google Analytics 4 tracking before </head>.
+ * Idempotent; no-op for documents without a </head>.
+ */
+export function injectGoogleAnalytics(html: string): string {
+  if (html.includes(GA_MARKER)) return html;
+  return html.replace(HEAD_CLOSE, (match) => `${GOOGLE_ANALYTICS}\n${match}`);
+}
+
 /**
  * Inject the publisher Organization + WebSite JSON-LD before </head>.
  * Idempotent; no-op for documents without a </head>.
@@ -126,9 +146,9 @@ export function injectFavicon(html: string): string {
   return html.replace(HEAD_CLOSE, (match) => `${FAVICONS}\n${match}`);
 }
 
-/** Apply all global page chrome (favicons + compliance ribbon + publisher schema). */
+/** Apply all global page chrome (favicons + compliance ribbon + publisher schema + GA4). */
 export function decorateChrome(html: string): string {
-  return injectFavicon(injectOrgSchema(injectComplianceRibbon(html)));
+  return injectGoogleAnalytics(injectFavicon(injectOrgSchema(injectComplianceRibbon(html))));
 }
 
 /**
@@ -146,4 +166,8 @@ export function orgSchemaMarkup(): string {
 
 export function faviconMarkup(): string {
   return FAVICONS;
+}
+
+export function googleAnalyticsMarkup(): string {
+  return GOOGLE_ANALYTICS;
 }

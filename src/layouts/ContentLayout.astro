@@ -6,7 +6,12 @@
  * plus a per-page BreadcrumbList and optional extra JSON-LD.
  */
 import { stampUpdatedDate } from '../lib/htmlStamp';
-import { complianceRibbonMarkup, orgSchemaMarkup, faviconMarkup } from '../lib/pageChrome';
+import {
+  complianceRibbonMarkup,
+  orgSchemaMarkup,
+  faviconMarkup,
+  googleAnalyticsMarkup,
+} from '../lib/pageChrome';
 
 const ORIGIN = 'https://sweepstakeswiz.com';
 
@@ -43,6 +48,7 @@ const canonical = `${ORIGIN}${canonicalPath}`;
 const ogImageUrl = ogImage ? `${ORIGIN}${ogImage}` : undefined;
 const ribbon = stampUpdatedDate(complianceRibbonMarkup());
 const orgScript = orgSchemaMarkup();
+const googleAnalytics = googleAnalyticsMarkup();
 
 const breadcrumbLd =
   breadcrumbs.length > 0
@@ -70,6 +76,7 @@ const extraLd = jsonLd ? (Array.isArray(jsonLd) ? jsonLd : [jsonLd]) : [];
     <meta name="robots" content={robots} />
     <link rel="canonical" href={canonical} />
     <Fragment set:html={faviconMarkup()} />
+    <Fragment set:html={googleAnalytics} />
     <meta property="og:type" content="article" />
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
