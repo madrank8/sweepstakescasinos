@@ -60,23 +60,19 @@ const breadcrumbs = [
   { name: 'Guides', path: canonicalPath },
 ];
 
-// ── Schema: CollectionPage + ItemList of the guides ──────────────────────────
-const collectionLd = {
-  '@context': 'https://schema.org',
-  '@type': 'CollectionPage',
+// ── Schema: ItemList of the guides (CollectionPage node comes from the layout) ──
+const canonical = `${ORIGIN}${canonicalPath}`;
+const itemListLd = {
+  '@type': 'ItemList',
+  '@id': `${canonical}#itemlist`,
   name: title,
-  description,
-  url: `${ORIGIN}${canonicalPath}`,
-  isPartOf: { '@type': 'WebSite', name: 'Sweepstakes Wiz', url: `${ORIGIN}/` },
-  mainEntity: {
-    '@type': 'ItemList',
-    itemListElement: cards.map((c, i) => ({
-      '@type': 'ListItem',
-      position: i + 1,
-      url: `${ORIGIN}/guides/${c.slug}/`,
-      name: c.title,
-    })),
-  },
+  numberOfItems: cards.length,
+  itemListElement: cards.map((c, i) => ({
+    '@type': 'ListItem',
+    position: i + 1,
+    url: `${ORIGIN}/guides/${c.slug}/`,
+    name: c.title,
+  })),
 };
 
 const hubFaq = [
@@ -99,8 +95,8 @@ const hubFaq = [
 ];
 
 const faqLd = {
-  '@context': 'https://schema.org',
   '@type': 'FAQPage',
+  '@id': `${canonical}#faq`,
   mainEntity: hubFaq.map((f) => ({
     '@type': 'Question',
     name: f.q,
@@ -108,7 +104,7 @@ const faqLd = {
   })),
 };
 
-const jsonLd = [collectionLd, faqLd];
+const jsonLd = [itemListLd, faqLd];
 ---
 <ContentLayout
   title={title}
@@ -118,6 +114,8 @@ const jsonLd = [collectionLd, faqLd];
   heroTitle={'Sweepstakes Casino <span class="accent">Guides</span>'}
   heroSubtitle={'Plain-English, regularly-updated guides to how sweepstakes casinos work, what the coins are worth, how to cash out, and where the model is legal.'}
   ogImage="/images/guides/guides-hub.png"
+  pageType="CollectionPage"
+  mainEntityId={`${canonical}#itemlist`}
   jsonLd={jsonLd}
 >
   <figure class="hub-hero">

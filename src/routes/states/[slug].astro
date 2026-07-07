@@ -13,6 +13,8 @@ import ContentLayout from '../../layouts/ContentLayout.astro';
 import { AFFILIATE_PARTNERS } from '../../data/affiliates';
 import { isPartnerAvailableInState, isStateBannedSitewide } from '../../data/geo';
 import { stateName, type UsStateCode } from '../../data/usStates';
+import { ORG_ID, AUTHOR_ID } from '../../lib/schema';
+import { brandEntityId, getBrandEntity } from '../../data/brandEntities';
 
 export const prerender = true;
 
@@ -44,7 +46,6 @@ const faq = entry.data.faq ?? [];
 const faqLd =
   faq.length > 0
     ? {
-        '@context': 'https://schema.org',
         '@type': 'FAQPage',
         mainEntity: faq.map((f) => ({
           '@type': 'Question',
@@ -54,35 +55,48 @@ const faqLd =
       }
     : undefined;
 
-// E-E-A-T: named author + visible "last updated" + WebPage dateModified schema.
+// E-E-A-T: named author + visible "last updated" + Article dateModified schema.
 const updatedDate = entry.data.updated instanceof Date ? entry.data.updated : undefined;
-const updatedIso = updatedDate ? updatedDate.toISOString().slice(0, 10) : undefined;
+const updatedIso = updatedDate ? updatedDate.toISOString() : undefined;
 const updatedHuman = updatedDate
   ? updatedDate.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric', timeZone: 'UTC' })
   : undefined;
 
-const webPageLd = {
-  '@context': 'https://schema.org',
-  '@type': 'WebPage',
-  name: entry.data.title,
+const canonical = `${ORIGIN}${canonicalPath}`;
+
+// Content entity: an Article about the state's legality posture. Compliance
+// guardrail (plan §4.3): on banned states the Article carries NO brand
+// mentions — schema must never leak monetization the page geo-suppresses.
+// Wikidata Q-ids deferred until verified (plan §6 open item 1).
+const brandMentions = availablePartners
+  .filter((p) => getBrandEntity(p.slug))
+  .map((p) => ({ '@id': brandEntityId(p.slug) }));
+
+const articleLd = {
+  '@type': 'Article',
+  '@id': `${canonical}#article`,
+  headline: entry.data.title,
   description: entry.data.description,
-  url: `${ORIGIN}${canonicalPath}`,
+  mainEntityOfPage: { '@id': `${canonical}#webpage` },
+  url: canonical,
+  inLanguage: 'en-US',
+  image: `${ORIGIN}/images/states/${code.toLowerCase()}.png`,
   ...(updatedIso ? { datePublished: updatedIso, dateModified: updatedIso } : {}),
-  isPartOf: { '@type': 'WebSite', name: 'Sweepstakes Wiz', url: `${ORIGIN}/` },
   about: [
     { '@type': 'Thing', name: `Sweepstakes casino legality in ${name}` },
-    { '@type': 'Thing', name: 'Sweepstakes', sameAs: 'https://en.wikipedia.org/wiki/Sweepstake' },
+    {
+      '@type': 'Thing',
+      name: 'Sweepstake',
+      sameAs: 'https://en.wikipedia.org/wiki/Sweepstake',
+    },
   ],
-  author: {
-    '@type': 'Person',
-    '@id': `${ORIGIN}/author/ilija-milosevic/#person`,
-    name: 'Ilija Milosevic',
-    url: `${ORIGIN}/author/ilija-milosevic/`,
-    jobTitle: 'iGaming Writer & Analyst',
-  },
-  publisher: { '@type': 'Organization', name: 'Sweepstakes Wiz', url: `${ORIGIN}/` },
+  spatialCoverage: { '@type': 'State', name, addressCountry: 'US' },
+  ...(brandMentions.length > 0 ? { mentions: brandMentions } : {}),
+  author: { '@id': AUTHOR_ID },
+  publisher: { '@id': ORG_ID },
 };
-const jsonLd = faqLd ? [webPageLd, faqLd] : [webPageLd];
+const faqNode = faqLd ? { ...faqLd, '@id': `${canonical}#faq` } : undefined;
+const jsonLd = faqNode ? [articleLd, faqNode] : [articleLd];
 
 // Auto sibling cross-links so every state page interlinks the state cluster.
 const allStates = await getCollection('states', (e) => !e.data.draft);
@@ -101,6 +115,9 @@ const siblings = allStates
   canonicalPath={canonicalPath}
   breadcrumbs={breadcrumbs}
   heroSubtitle={entry.data.description}
+  datePublished={updatedIso}
+  dateModified={updatedIso}
+  mainEntityId={`${canonical}#article`}
   jsonLd={jsonLd}
 >
   <div class="state-flag-bar">

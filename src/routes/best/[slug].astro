@@ -12,6 +12,7 @@ import ContentLayout from '../../layouts/ContentLayout.astro';
 import AffiliateLink from '../../components/AffiliateLink.astro';
 import { getPartner, AFFILIATE_PARTNERS } from '../../data/affiliates';
 import { shouldRenderAffiliateCta } from '../../data/geo';
+import { brandEntityId, getBrandEntity } from '../../data/brandEntities';
 
 const ORIGIN = 'https://sweepstakeswiz.com';
 
@@ -32,27 +33,40 @@ const partners = orderedSlugs
   .filter((p): p is NonNullable<typeof p> => Boolean(p));
 
 const canonicalPath = `/best/${entry.id}/`;
+const canonical = `${ORIGIN}${canonicalPath}`;
 const breadcrumbs = [
   { name: 'Home', path: '/' },
   { name: 'Best Casinos', path: canonicalPath },
 ];
 
+const toIso = (d: unknown) => (d instanceof Date ? d.toISOString() : undefined);
+const publishedIso = toIso(entry.data.published);
+const updatedIso = toIso(entry.data.updated) ?? publishedIso;
+
+// CollectionPage (layout foundation) + ranked ItemList whose items are brand
+// @id refs — the canonical brand Organization nodes are auto-appended to the
+// on-page graph by buildPageGraph. Schema-content parity (plan §4.4): the hub
+// visibly shows rank + name + review link only, so no ratings/pros-cons here.
 const itemListLd = {
-  '@context': 'https://schema.org',
   '@type': 'ItemList',
+  '@id': `${canonical}#itemlist`,
+  name: entry.data.title,
+  itemListOrder: 'https://schema.org/ItemListOrderDescending',
+  numberOfItems: partners.length,
   itemListElement: partners.map((p, i) => ({
     '@type': 'ListItem',
     position: i + 1,
     name: p.name,
     url: `${ORIGIN}/reviews/${p.slug}/`,
+    ...(getBrandEntity(p.slug) ? { item: { '@id': brandEntityId(p.slug) } } : {}),
   })),
 };
 const faq = entry.data.faq ?? [];
 const faqLd =
   faq.length > 0
     ? {
-        '@context': 'https://schema.org',
         '@type': 'FAQPage',
+        '@id': `${canonical}#faq`,
         mainEntity: faq.map((f) => ({
           '@type': 'Question',
           name: f.q,
@@ -69,6 +83,10 @@ const jsonLd = faqLd ? [itemListLd, faqLd] : [itemListLd];
   breadcrumbs={breadcrumbs}
   heroTitle={entry.data.heroTitle}
   heroSubtitle={entry.data.description}
+  pageType="CollectionPage"
+  datePublished={publishedIso}
+  dateModified={updatedIso}
+  mainEntityId={`${canonical}#itemlist`}
   jsonLd={jsonLd}
 >
   <Content />

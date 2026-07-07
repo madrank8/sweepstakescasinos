@@ -47,52 +47,21 @@ export function injectComplianceRibbon(html: string): string {
 }
 
 import { SITE } from '../data/site';
+import { organizationNode, webSiteNode, authorPersonNode } from './schema';
 
-const ORIGIN = SITE.origin;
 const ORG_MARKER = '<!--sc-org-graph-->';
 
 /**
- * Canonical publisher entity graph (one Organization + one WebSite with stable
- * @id), referenced by other page schema. Founder links to the author Person
- * node (@id on /author/ilija-milosevic/). No SearchAction (no site search).
+ * Canonical publisher entity graph (Organization + WebSite + author Person,
+ * all with stable @id), referenced by other page schema. The Person ships
+ * site-wide because the compliance ribbon credits the author on every page
+ * and Organization.founder references his @id. Node definitions live in
+ * src/lib/schema.ts (single source of truth for the entity graph).
+ * No SearchAction (no site search).
  */
 const ORG_GRAPH = {
   '@context': 'https://schema.org',
-  '@graph': [
-    {
-      '@type': 'Organization',
-      '@id': `${ORIGIN}/#organization`,
-      name: SITE.name,
-      alternateName: SITE.altName,
-      url: `${ORIGIN}/`,
-      logo: {
-        '@type': 'ImageObject',
-        '@id': `${ORIGIN}/#logo`,
-        url: `${ORIGIN}${SITE.logo}`,
-        caption: SITE.name,
-      },
-      image: { '@id': `${ORIGIN}/#logo` },
-      description:
-        'Independent review site comparing US sweepstakes (social) casinos, bonuses, and redemption policies.',
-      founder: { '@id': `${ORIGIN}/author/${SITE.authorSlug}/#person` },
-      sameAs: ['https://www.youtube.com/@SweepstakesWiz'],
-      knowsAbout: [
-        'Sweepstakes casinos',
-        'Social casinos',
-        'Casino bonuses',
-        'Responsible gaming',
-        'US gaming law',
-      ],
-    },
-    {
-      '@type': 'WebSite',
-      '@id': `${ORIGIN}/#website`,
-      url: `${ORIGIN}/`,
-      name: SITE.name,
-      publisher: { '@id': `${ORIGIN}/#organization` },
-      inLanguage: 'en-US',
-    },
-  ],
+  '@graph': [organizationNode(), webSiteNode(), authorPersonNode()],
 };
 
 const ORG_SCRIPT = `${ORG_MARKER}\n<script type="application/ld+json">${JSON.stringify(
@@ -133,6 +102,34 @@ export function injectOrgSchema(html: string): string {
   return html.replace(HEAD_CLOSE, (match) => `${ORG_SCRIPT}\n${match}`);
 }
 
+const WEBPAGE_MARKER = '<!--sc-webpage-node-->';
+
+/**
+ * Inject a per-page WebPage node for static HTML pages, derived from the
+ * page's own canonical URL, <title> and meta description. Completes the
+ * entity chain Organization -> WebSite -> WebPage on every page
+ * (docs/schema-markup-plan.md gap #1). Idempotent; no-op without a canonical.
+ */
+export function injectWebPageSchema(html: string): string {
+  if (html.includes(WEBPAGE_MARKER)) return html;
+  const canonical = html.match(/<link rel="canonical" href="([^"]+)"/i)?.[1];
+  if (!canonical || !canonical.startsWith(SITE.origin)) return html;
+  const title = html.match(/<title>([^<]*)<\/title>/i)?.[1]?.trim();
+  const description = html.match(/<meta name="description" content="([^"]*)"/i)?.[1];
+  const node = {
+    '@context': 'https://schema.org',
+    '@type': 'WebPage',
+    '@id': `${canonical}#webpage`,
+    url: canonical,
+    ...(title ? { name: title } : {}),
+    ...(description ? { description } : {}),
+    isPartOf: { '@id': `${SITE.origin}/#website` },
+    inLanguage: 'en-US',
+  };
+  const script = `${WEBPAGE_MARKER}\n<script type="application/ld+json">${JSON.stringify(node)}</script>`;
+  return html.replace(HEAD_CLOSE, (match) => `${script}\n${match}`);
+}
+
 const FAVICON_MARKER = '<!--sc-favicons-->';
 
 const FAVICONS = `${FAVICON_MARKER}
@@ -149,9 +146,11 @@ export function injectFavicon(html: string): string {
   return html.replace(HEAD_CLOSE, (match) => `${FAVICONS}\n${match}`);
 }
 
-/** Apply all global page chrome (favicons + compliance ribbon + publisher schema + GA4). */
+/** Apply all global page chrome (favicons + compliance ribbon + publisher/WebPage schema + GA4). */
 export function decorateChrome(html: string): string {
-  return injectGoogleAnalytics(injectFavicon(injectOrgSchema(injectComplianceRibbon(html))));
+  return injectGoogleAnalytics(
+    injectFavicon(injectWebPageSchema(injectOrgSchema(injectComplianceRibbon(html)))),
+  );
 }
 
 /**
@@ -161,10 +160,6 @@ export function decorateChrome(html: string): string {
  */
 export function complianceRibbonMarkup(): string {
   return RIBBON;
-}
-
-export function orgSchemaMarkup(): string {
-  return ORG_SCRIPT;
 }
 
 export function faviconMarkup(): string {

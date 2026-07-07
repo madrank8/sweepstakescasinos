@@ -24,6 +24,7 @@ const guides = defineCollection({
     heroTitle: z.string().optional(),
     /** Optional FAQ rendered as a visible section + FAQPage JSON-LD. */
     faq: z.array(faqItem).default([]),
+    published: isoDate.optional(),
     updated: isoDate.optional(),
     draft: z.boolean().default(false),
     /** Hub grouping + sort for the /guides/ index page. */
@@ -31,6 +32,20 @@ const guides = defineCollection({
     order: z.number().optional(),
     /** Short card label for the hub grid (falls back to description). */
     cardSummary: z.string().optional(),
+    /** Hero/inline image path for Article.image (must exist under public/). */
+    image: z.string().optional(),
+    /** Primary-source URLs cited in the visible text (Article.citation). */
+    citations: z.array(z.string().url()).default([]),
+    /**
+     * Optional HowTo JSON-LD for procedural guides (LLM-extraction surface;
+     * desktop rich results are deprecated). Steps MUST mirror visible content.
+     */
+    howTo: z
+      .object({
+        name: z.string(),
+        steps: z.array(z.object({ name: z.string(), text: z.string() })),
+      })
+      .optional(),
   }),
 });
 

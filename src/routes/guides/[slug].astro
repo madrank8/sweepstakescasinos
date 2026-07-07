@@ -1,11 +1,14 @@
 ---
 /**
  * Educational guide / pillar pages (MDX `guides` collection -> /guides/<slug>/).
- * Prerendered. Optional FAQ renders as a visible section + FAQPage JSON-LD.
+ * Prerendered. Emits an Article content layer (image, ISO dates, wordCount,
+ * about/mentions, citation, author/publisher as @id refs) + optional FAQPage
+ * and HowTo nodes, all merged into the layout's consolidated @graph.
  * Authored in src/routes; copied into src/pages by the generator.
  */
 import { getCollection, render } from 'astro:content';
 import ContentLayout from '../../layouts/ContentLayout.astro';
+import { ORG_ID, AUTHOR_ID } from '../../lib/schema';
 
 export const prerender = true;
 
@@ -17,7 +20,9 @@ export async function getStaticPaths() {
 const { entry } = Astro.props;
 const { Content } = await render(entry);
 
+const ORIGIN = 'https://sweepstakeswiz.com';
 const canonicalPath = `/guides/${entry.id}/`;
+const canonical = `${ORIGIN}${canonicalPath}`;
 const breadcrumbs = [
   { name: 'Home', path: '/' },
   { name: 'Guides', path: '/guides/' },
@@ -28,8 +33,8 @@ const faq = entry.data.faq ?? [];
 const faqLd =
   faq.length > 0
     ? {
-        '@context': 'https://schema.org',
         '@type': 'FAQPage',
+        '@id': `${canonical}#faq`,
         mainEntity: faq.map((f) => ({
           '@type': 'Question',
           name: f.q,
@@ -38,30 +43,72 @@ const faqLd =
       }
     : undefined;
 
-const ORIGIN = 'https://sweepstakeswiz.com';
-const updatedIso =
-  entry.data.updated instanceof Date ? entry.data.updated.toISOString().slice(0, 10) : undefined;
+const toIso = (d: unknown) => (d instanceof Date ? d.toISOString() : undefined);
+const publishedIso = toIso(entry.data.published) ?? toIso(entry.data.updated);
+const updatedIso = toIso(entry.data.updated) ?? publishedIso;
 
-// Article + named author (Person) for E-E-A-T — the human accountable for the page.
+// wordCount from the raw MDX body (strip frontmatter already removed; strip
+// markup/code so the count approximates the rendered prose).
+const wordCount = entry.body
+  ? entry.body
+      .replace(/<[^>]+>/g, ' ')
+      .replace(/[#*_`>|-]+/g, ' ')
+      .split(/\s+/)
+      .filter(Boolean).length
+  : undefined;
+
+const image = entry.data.image ? `${ORIGIN}${entry.data.image}` : undefined;
+const citations = entry.data.citations ?? [];
+
+// Article: the page's content entity. Author/publisher are @id refs — the
+// full Person node is auto-appended to the on-page graph by buildPageGraph.
+// `about` = macro-context entity; Wikidata Q-ids intentionally deferred until
+// verified (plan §6 open item 1) — never guess Q-ids.
 const articleLd = {
-  '@context': 'https://schema.org',
   '@type': 'Article',
+  '@id': `${canonical}#article`,
   headline: entry.data.title,
   description: entry.data.description,
-  mainEntityOfPage: `${ORIGIN}${canonicalPath}`,
-  author: {
-    '@type': 'Person',
-    '@id': `${ORIGIN}/author/ilija-milosevic/#person`,
-    name: 'Ilija Milosevic',
-    url: `${ORIGIN}/author/ilija-milosevic/`,
-    jobTitle: 'iGaming Writer & Analyst',
-    sameAs: ['https://www.linkedin.com/in/ilija-milosevic-hiperion'],
-  },
-  publisher: { '@type': 'Organization', name: 'Sweepstakes Wiz', url: `${ORIGIN}/` },
+  mainEntityOfPage: { '@id': `${canonical}#webpage` },
+  url: canonical,
+  inLanguage: 'en-US',
+  ...(image ? { image } : {}),
+  ...(publishedIso ? { datePublished: publishedIso } : {}),
   ...(updatedIso ? { dateModified: updatedIso } : {}),
+  ...(wordCount ? { wordCount } : {}),
+  about: {
+    '@type': 'Thing',
+    name: 'Sweepstakes casino',
+    description:
+      'Online social casino model where players use Gold Coins for entertainment and promotional Sweeps Coins redeemable for prizes under US sweepstakes law.',
+  },
+  mentions: [
+    { '@type': 'Thing', name: 'Sweepstake', sameAs: 'https://en.wikipedia.org/wiki/Sweepstake' },
+  ],
+  ...(citations.length > 0
+    ? { citation: citations.map((url) => ({ '@type': 'CreativeWork', url })) }
+    : {}),
+  author: { '@id': AUTHOR_ID },
+  publisher: { '@id': ORG_ID },
 };
 
-const jsonLd = [articleLd, ...(faqLd ? [faqLd] : [])];
+// HowTo for procedural guides — steps must mirror the visible step list.
+const howTo = entry.data.howTo;
+const howToLd = howTo
+  ? {
+      '@type': 'HowTo',
+      '@id': `${canonical}#howto`,
+      name: howTo.name,
+      step: howTo.steps.map((s, i) => ({
+        '@type': 'HowToStep',
+        position: i + 1,
+        name: s.name,
+        text: s.text,
+      })),
+    }
+  : undefined;
+
+const jsonLd = [articleLd, ...(faqLd ? [faqLd] : []), ...(howToLd ? [howToLd] : [])];
 ---
 <ContentLayout
   title={entry.data.title}
@@ -70,6 +117,10 @@ const jsonLd = [articleLd, ...(faqLd ? [faqLd] : [])];
   breadcrumbs={breadcrumbs}
   heroTitle={entry.data.heroTitle}
   heroSubtitle={entry.data.description}
+  ogImage={entry.data.image}
+  datePublished={publishedIso}
+  dateModified={updatedIso}
+  mainEntityId={`${canonical}#article`}
   jsonLd={jsonLd}
 >
   <Content />

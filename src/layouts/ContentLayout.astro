@@ -2,16 +2,18 @@
 /**
  * Shared layout for native MDX content pages (state pages, new reviews,
  * comparisons). Renders the SAME global chrome as the rest of the site
- * (nav/footer via partial includes, compliance ribbon, publisher Org schema)
- * plus a per-page BreadcrumbList and optional extra JSON-LD.
+ * (nav/footer via partial includes, compliance ribbon) plus ONE consolidated
+ * JSON-LD @graph per page: publisher Organization + WebSite + typed WebPage +
+ * BreadcrumbList (foundation) + any content-layer nodes passed via `jsonLd`.
+ * See docs/schema-markup-plan.md §3.2 and src/lib/schema.ts.
  */
 import { stampUpdatedDate } from '../lib/htmlStamp';
 import {
   complianceRibbonMarkup,
-  orgSchemaMarkup,
   faviconMarkup,
   googleAnalyticsMarkup,
 } from '../lib/pageChrome';
+import { buildPageGraph, type WebPageType } from '../lib/schema';
 
 const ORIGIN = 'https://sweepstakeswiz.com';
 
@@ -29,6 +31,14 @@ interface Props {
   robots?: string;
   /** Absolute-from-root path to a social preview image (og:image / twitter). */
   ogImage?: string;
+  /** schema.org WebPage subtype for this page's foundation node. */
+  pageType?: WebPageType;
+  /** ISO 8601 dates for the WebPage node. */
+  datePublished?: string;
+  dateModified?: string;
+  /** @id of the page's primary content entity (WebPage.mainEntity ref). */
+  mainEntityId?: string;
+  /** Content-layer JSON-LD nodes, merged into the consolidated @graph. */
   jsonLd?: Record<string, unknown> | Array<Record<string, unknown>>;
 }
 
@@ -41,30 +51,30 @@ const {
   heroSubtitle,
   robots = 'index, follow',
   ogImage,
+  pageType = 'WebPage',
+  datePublished,
+  dateModified,
+  mainEntityId,
   jsonLd,
 } = Astro.props;
 
 const canonical = `${ORIGIN}${canonicalPath}`;
 const ogImageUrl = ogImage ? `${ORIGIN}${ogImage}` : undefined;
 const ribbon = stampUpdatedDate(complianceRibbonMarkup());
-const orgScript = orgSchemaMarkup();
 const googleAnalytics = googleAnalyticsMarkup();
 
-const breadcrumbLd =
-  breadcrumbs.length > 0
-    ? {
-        '@context': 'https://schema.org',
-        '@type': 'BreadcrumbList',
-        itemListElement: breadcrumbs.map((c, i) => ({
-          '@type': 'ListItem',
-          position: i + 1,
-          name: c.name,
-          item: `${ORIGIN}${c.path}`,
-        })),
-      }
-    : null;
-
-const extraLd = jsonLd ? (Array.isArray(jsonLd) ? jsonLd : [jsonLd]) : [];
+const contentNodes = jsonLd ? (Array.isArray(jsonLd) ? jsonLd : [jsonLd]) : [];
+const pageGraph = buildPageGraph({
+  url: canonical,
+  pageType,
+  title,
+  description,
+  breadcrumbs,
+  datePublished,
+  dateModified,
+  mainEntityId,
+  nodes: contentNodes,
+});
 ---
 <!doctype html>
 <html lang="en">
@@ -92,13 +102,7 @@ const extraLd = jsonLd ? (Array.isArray(jsonLd) ? jsonLd : [jsonLd]) : [];
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link href="/_external/fonts.googleapis.com/css2__qba979b498c" rel="stylesheet" />
     <link rel="stylesheet" href="/partials/trust.css" />
-    <Fragment set:html={orgScript} />
-    {breadcrumbLd && (
-      <script type="application/ld+json" set:html={JSON.stringify(breadcrumbLd)} />
-    )}
-    {extraLd.map((node) => (
-      <script type="application/ld+json" set:html={JSON.stringify(node)} />
-    ))}
+    <script type="application/ld+json" set:html={JSON.stringify(pageGraph)} />
   </head>
   <body>
     <Fragment set:html={ribbon} />
