@@ -15,6 +15,16 @@ export interface TestingBrand {
 
 export const TESTING_BRANDS: TestingBrand[] = [
   {
+    slug: 'american-luck',
+    name: 'American Luck',
+    batch: 3,
+    isPartner: false,
+    overclaimFlag: false,
+    claimsToVerify:
+      'Per published terms: operated by SGSE LLC (Wilmington, DE); excluded states ID/MI/WA; min 50 SC cash redemption via ACH; 1x playthrough on gameplay-won SC; KYC (photo ID + household bill + bank statement) 24h–5 days; cash arrives up to 7 business days; 1,500+ games; advertised 70,000 GC + 6 SC no-purchase welcome package.',
+    reviewPath: 'reviews/american-luck.html',
+  },
+  {
     slug: 'rolla',
     name: 'Rolla',
     batch: 2,

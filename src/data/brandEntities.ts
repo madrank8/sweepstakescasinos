@@ -38,6 +38,19 @@ export interface BrandEntity {
 }
 
 export const BRAND_ENTITIES: Record<string, BrandEntity> = {
+  'american-luck': {
+    slug: 'american-luck',
+    name: 'American Luck',
+    officialUrl: 'https://americanluck.com/',
+    operatorName: 'SGSE LLC',
+    operatorAddress: {
+      streetAddress: '251 Little Falls Drive',
+      addressLocality: 'Wilmington',
+      addressRegion: 'DE',
+      postalCode: '19808',
+      addressCountry: 'US',
+    },
+  },
   mcluck: {
     slug: 'mcluck',
     name: 'McLuck Sweepstakes Casino',
