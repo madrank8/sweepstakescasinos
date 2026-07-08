@@ -224,6 +224,9 @@ function writeSitemapAndRobots() {
   // Guides hub / index (authored under src/routes/guides/index.astro).
   if (existsSync(join(root, 'src', 'routes', 'guides', 'index.astro'))) urls.push('/guides/');
 
+  // New-sweepstakes-casinos freshness hub (authored under src/routes/new/index.astro).
+  if (existsSync(join(root, 'src', 'routes', 'new', 'index.astro'))) urls.push('/new/');
+
   // MDX content collections (skip drafts). comparisons render under /best/.
   const collectionUrlPrefix = { guides: '/guides', comparisons: '/best', states: '/states' };
   for (const [name, prefix] of Object.entries(collectionUrlPrefix)) {
@@ -286,6 +289,7 @@ function writeSitemapAndRobots() {
     `> Sweepstakes Wiz (sweepstakeswiz.com) is an independent US guide that tests and ranks sweepstakes (social) casinos — focused on redemption speed, bonus value, and state eligibility. Sweepstakes play only; no real-money gambling. 21+.\n\n` +
     `## Start here\n` +
     `- [Best sweepstakes casinos](${ORIGIN}/best/sweepstakes-casinos/)\n` +
+    `- [New sweepstakes casinos](${ORIGIN}/new/)\n` +
     `- [What are sweepstakes casinos?](${ORIGIN}/guides/what-are-sweepstakes-casinos/)\n` +
     `- [Sweepstakes casino legality by US state](${ORIGIN}/state-legality/)\n\n` +
     (stateGuideLines ? `## State guides\n${stateGuideLines}\n\n` : '') +

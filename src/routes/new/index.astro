@@ -1,0 +1,368 @@
+---
+/**
+ * "New Sweepstakes Casinos" hub (/new/). A dated, honest, geo-aware freshness
+ * hub targeting the "new sweepstakes casinos" cluster. Unlike thin competitor
+ * new-casino lists, this pairs a curated recency list of operators from our
+ * OWN reviewed roster with genuine information-gain: a "new != trustworthy"
+ * vetting checklist, eligibility/geo context, and our reader-reports framing.
+ *
+ * Emits CollectionPage (layout) + ItemList + FAQPage (+ BreadcrumbList from
+ * ContentLayout), connected via @id like the guides hub.
+ */
+import ContentLayout from '../../layouts/ContentLayout.astro';
+
+export const prerender = true;
+
+const ORIGIN = 'https://sweepstakeswiz.com';
+const canonicalPath = '/new/';
+const canonical = `${ORIGIN}${canonicalPath}`;
+
+// Human-readable "updated" label (kept in sync with dateModified below).
+const UPDATED_LABEL = 'July 2026';
+const DATE_PUBLISHED = '2026-07-08';
+const DATE_MODIFIED = '2026-07-08';
+
+/**
+ * Curated list of newer-generation / recently-added operators we have reviewed.
+ * `note` facts are drawn from each brand's own reviewed, published-terms
+ * summary — no invented launch dates. `tier` is our editorial recency signal.
+ */
+type NewOp = {
+  slug: string;
+  name: string;
+  tier: 'newest' | 'recent';
+  added: string;
+  note: string;
+};
+
+const operators: NewOp[] = [
+  {
+    slug: 'american-luck',
+    name: 'American Luck',
+    tier: 'newest',
+    added: 'Added July 2026',
+    note: 'New US operator (SGSE LLC, Delaware). No-purchase model, 1,500+ games, cash prizes via ACH from a low 50 SC minimum. Cash-out is ACH-only and the track record is short.',
+  },
+  {
+    slug: 'roxymoxy',
+    name: 'RoxyMoxy',
+    tier: 'recent',
+    added: 'In roster since 2026',
+    note: 'US operator (Rainforest LTD, Delaware). No-code 50,000 GC + 2.5 SC welcome; bank-transfer redemptions from 100 SC; 40+ slots, browser-only.',
+  },
+  {
+    slug: 'card-crush',
+    name: 'Card Crush',
+    tier: 'recent',
+    added: 'In roster since 2026',
+    note: 'Card-battle RPG twist on the sweeps model using Mystery Coins (1 MC = $1). Cash from 75 MC, gift cards from 10 MC. Available only in CA & NY; 21+.',
+  },
+  {
+    slug: 'spree',
+    name: 'Spree',
+    tier: 'recent',
+    added: 'In roster since 2026',
+    note: 'Play Spree Ltd. 10 SC gift-card redemptions, SpreePotz jackpots and Sit-and-Spin, 800+ games.',
+  },
+  {
+    slug: 'playfame',
+    name: 'PlayFame',
+    tier: 'recent',
+    added: 'In roster since 2026',
+    note: 'PlayFame Operations Ltd. 7,500 GC + 2.5 SC welcome, 10 SC gift cards and bank-transfer cash, plus a dedicated iOS app.',
+  },
+  {
+    slug: 'legendz',
+    name: 'Legendz',
+    tier: 'recent',
+    added: 'In roster since 2026',
+    note: 'Social sportsbook + casino. No-code 500 GC + 3 SC; Prizeout gift cards from 50 SC, Skrill/bank cash from 100 SC.',
+  },
+  {
+    slug: 'thrillzz',
+    name: 'Thrillzz',
+    tier: 'recent',
+    added: 'In roster since 2026',
+    note: 'Social sportsbook (Thrillzz Inc., TN). 50 SC redemptions via bank/PayPal/Skrill in 1–3 days, with native iOS/Android apps.',
+  },
+  {
+    slug: 'big-pirate',
+    name: 'Big Pirate',
+    tier: 'recent',
+    added: 'In roster since 2026',
+    note: 'Newer non-partner brand with a three-currency system, a Claw Machine feature and 1,500+ games (editorial, info-only review).',
+  },
+  {
+    slug: 'jackpota',
+    name: 'Jackpota',
+    tier: 'recent',
+    added: 'In roster since 2026',
+    note: 'Gift cards reported in ~2 days from 10 SC; 80,000 GC + 40 SC first-purchase pack; 1,600+ games incl. live dealer (info-only review).',
+  },
+  {
+    slug: 'spinfinite',
+    name: 'Spinfinite',
+    tier: 'recent',
+    added: 'In roster since 2026',
+    note: 'Subscription-style Power Pass and instant gift cards from 10 SC, with a 3 SC mail-in AMOE and an Android app (info-only review).',
+  },
+];
+
+const newest = operators.filter((o) => o.tier === 'newest');
+const recent = operators.filter((o) => o.tier === 'recent');
+
+const title = 'New Sweepstakes Casinos (2026): Newly Launched & Recently Added, Honestly Vetted';
+const description =
+  'A dated, honest list of new and recently-added sweepstakes casinos we review — with a "new does not mean trustworthy" vetting checklist, eligibility/geo notes, and reader reports. Updated ' +
+  UPDATED_LABEL + '.';
+
+const breadcrumbs = [
+  { name: 'Home', path: '/' },
+  { name: 'New Sweepstakes Casinos', path: canonicalPath },
+];
+
+const checklist = [
+  {
+    h: 'A named operator with a real address',
+    p: 'Look for a company name and a registered business address in the Terms — e.g. American Luck lists SGSE LLC in Wilmington, Delaware. An anonymous operator is a red flag.',
+  },
+  {
+    h: 'Published sweepstakes rules + a genuine free (AMOE) route',
+    p: 'A compliant sweepstakes casino always offers a no-purchase way to obtain Sweeps Coins. If the only way to get redeemable coins is to buy, walk away.',
+  },
+  {
+    h: 'Clear redemption terms — minimum, playthrough, and rails',
+    p: 'Check the minimum SC to cash out, the playthrough on bonus/gameplay SC, and which payout methods exist. ACH-only with high minimums is slower and less flexible than gift-card or e-wallet options.',
+  },
+  {
+    h: 'Transparent KYC',
+    p: 'Legit operators verify identity before paying. Expect to submit a photo ID, a recent utility/household bill and sometimes a bank statement. That friction is a feature, not a scam.',
+  },
+  {
+    h: 'Honest restricted-state list',
+    p: 'Every real US sweeps operator excludes some states. A site that claims to be available everywhere is not being straight with you.',
+  },
+  {
+    h: 'A realistic bonus, not a fantasy number',
+    p: 'Huge Gold Coin figures are cheap to give away — what matters is the redeemable Sweeps Coins and the steps to claim them. Be skeptical of headline numbers with no rules attached.',
+  },
+  {
+    h: 'Independent reputation — and give it time',
+    p: 'New brands have little track record. Read across multiple sources (and our moderated reader reports), start small, and complete one small redemption before trusting a new site with more.',
+  },
+];
+
+const hubFaq = [
+  {
+    q: 'What counts as a "new" sweepstakes casino?',
+    a: 'We treat a sweepstakes casino as "new" when it is a recent entrant to the US market and/or one of the most recent additions to our reviewed roster. This page is curated editorially rather than auto-generated, and every operator here links to a full review so you can judge it on its published terms — not just its launch date.',
+  },
+  {
+    q: 'Are new sweepstakes casinos safe and trustworthy?',
+    a: 'Not automatically. "New" is not the same as "trustworthy." A brand-new site can be perfectly legitimate or completely unproven. Use the vetting checklist above — named operator, published free-entry rules, clear redemption terms, real KYC, honest state restrictions — and start small until a new operator has earned your trust.',
+  },
+  {
+    q: 'How do you decide which new operators to list?',
+    a: 'We only list operators we have actually reviewed against our published methodology, using their own terms and cited third-party information. We do not invent brands, launch dates, or bonus amounts, and we clearly label non-partner, information-only reviews. If a fact cannot be verified, we omit it or flag it.',
+  },
+  {
+    q: 'Which states can I use new sweepstakes casinos in?',
+    a: 'It depends on both the operator and your state. Individual operators exclude certain states (American Luck, for example, excludes Idaho, Michigan and Washington), and Sweepstakes Wiz separately shows information only — no promotion — in states with affiliate-marketing legal exposure such as California and New York. Always check our state legality hub and the operator\u2019s own rules.',
+  },
+  {
+    q: 'How often is this page updated?',
+    a: 'We refresh this hub as we add reviews and as operators change their terms. It shows an "Updated" date, and each linked review carries its own last-updated date. Given how fast state legislation and operator terms move in this space, verify anything time-sensitive on the official site before you sign up.',
+  },
+];
+
+// ── Schema: ItemList of the listed operators (CollectionPage from layout) ──
+const itemListLd = {
+  '@type': 'ItemList',
+  '@id': `${canonical}#itemlist`,
+  name: title,
+  numberOfItems: operators.length,
+  itemListOrder: 'https://schema.org/ItemListOrderDescending',
+  itemListElement: operators.map((o, i) => ({
+    '@type': 'ListItem',
+    position: i + 1,
+    url: `${ORIGIN}/reviews/${o.slug}/`,
+    name: o.name,
+  })),
+};
+
+const faqLd = {
+  '@type': 'FAQPage',
+  '@id': `${canonical}#faq`,
+  mainEntity: hubFaq.map((f) => ({
+    '@type': 'Question',
+    name: f.q,
+    acceptedAnswer: { '@type': 'Answer', text: f.a },
+  })),
+};
+
+const jsonLd = [itemListLd, faqLd];
+---
+<ContentLayout
+  title={title}
+  description={description}
+  canonicalPath={canonicalPath}
+  breadcrumbs={breadcrumbs}
+  heroTitle={'New <span class="accent">Sweepstakes Casinos</span>'}
+  heroSubtitle={'Newly launched and recently-added operators we review — vetted honestly against their published terms. New does not mean trustworthy, so we show you how to check.'}
+  pageType="CollectionPage"
+  mainEntityId={`${canonical}#itemlist`}
+  datePublished={DATE_PUBLISHED}
+  dateModified={DATE_MODIFIED}
+  jsonLd={jsonLd}
+>
+  <p class="updated-line"><strong>Updated {UPDATED_LABEL}.</strong> This is an editorial, dated hub — not an auto-generated list. Every operator below links to a full review based on published terms and cited sources. We do not invent brands, launch dates, or bonus amounts.</p>
+
+  <p>
+    &ldquo;New sweepstakes casinos&rdquo; is one of the most-searched terms in this space — and one of the
+    riskiest to search blindly, because a brand being new tells you nothing about whether it pays.
+    Below are the newest and most recently-added operators in our review roster, followed by the
+    checklist we use to separate a promising newcomer from an unproven one, and the eligibility rules
+    that decide whether you can play at all.
+  </p>
+
+  <section aria-label="Newest addition">
+    <h2>Newest addition</h2>
+    {newest.map((o) => (
+      <a class="new-card new-card--feature" href={`/reviews/${o.slug}/`}>
+        <span class="new-tag new-tag--new">{o.added}</span>
+        <span class="new-card-title">{o.name}</span>
+        <span class="new-card-note">{o.note}</span>
+        <span class="new-card-cta">Read the full review &#8594;</span>
+      </a>
+    ))}
+  </section>
+
+  <section aria-label="Recently added and newer-generation operators">
+    <h2>Recently added &amp; newer-generation operators</h2>
+    <div class="new-grid">
+      {recent.map((o) => (
+        <a class="new-card" href={`/reviews/${o.slug}/`}>
+          <span class="new-tag">{o.added}</span>
+          <span class="new-card-title">{o.name}</span>
+          <span class="new-card-note">{o.note}</span>
+          <span class="new-card-cta">Read review &#8594;</span>
+        </a>
+      ))}
+    </div>
+  </section>
+
+  <section class="checklist-sec" aria-label="How to vet a new sweepstakes casino">
+    <h2>New &ne; trustworthy: how to vet a new sweepstakes casino</h2>
+    <p>
+      Newly launched operators have the least track record, so they deserve the most scrutiny. Before
+      you deposit time (or money) at any new sweepstakes casino, run it through these seven checks —
+      the same ones behind every review we publish.
+    </p>
+    <ol class="checklist">
+      {checklist.map((c) => (
+        <li>
+          <span class="chk-h">{c.h}</span>
+          <span class="chk-p">{c.p}</span>
+        </li>
+      ))}
+    </ol>
+  </section>
+
+  <section class="geo-sec" aria-label="Eligibility and state availability">
+    <h2>Eligibility &amp; where you can play</h2>
+    <p>
+      Two separate rules decide whether a new operator is available to you:
+    </p>
+    <ul class="geo-list">
+      <li><strong>The operator&rsquo;s own excluded states.</strong> Every legitimate US sweeps casino restricts some states — for example, American Luck excludes Idaho, Michigan and Washington. New operators change these lists as legislation moves, so confirm on the official site.</li>
+      <li><strong>Our affiliate-liability suppression.</strong> Separately, Sweepstakes Wiz shows information only — no promotion or offers — for residents of states with direct affiliate-marketing exposure: California, New York, Montana, Connecticut, Nevada, New Jersey, Louisiana, Michigan, Idaho and Washington.</li>
+    </ul>
+    <p>Check your state first on our <a href="/state-legality/">sweepstakes casino legality by state</a> hub, and read <a href="/guides/are-sweepstakes-casinos-legit/">are sweepstakes casinos legit?</a> for how the model stays legal.</p>
+  </section>
+
+  <section class="reports-sec" aria-label="Reader reports">
+    <h2>Real experiences: reader reports</h2>
+    <p>
+      New operators are exactly where independent, real-player evidence matters most. We collect
+      <strong>moderated reader reports</strong> — payout speed, redemption method, KYC experience — and
+      surface them on each review. This is aggregated player-reported data, not first-hand testing by us.
+      Played a new sweepstakes casino? <a href="/report/">Share your experience</a> to help the next reader.
+    </p>
+  </section>
+
+  <section class="new-next" aria-label="Where to go next">
+    <h2>Where to go next</h2>
+    <ul class="next-links">
+      <li><a href="/best/sweepstakes-casinos/">Best sweepstakes casinos</a> — our ranked, methodology-scored picks (proven operators).</li>
+      <li><a href="/guides/">All guides</a> — how the model works, coin currencies, and cashing out.</li>
+      <li><a href="/how-we-rate/">How we rate</a> — the four-criteria methodology behind every review.</li>
+    </ul>
+  </section>
+
+  <section aria-label="Frequently asked questions">
+    <h2>Frequently asked questions</h2>
+    {hubFaq.map((f) => (
+      <>
+        <h3>{f.q}</h3>
+        <p>{f.a}</p>
+      </>
+    ))}
+  </section>
+
+  <p class="hub-byline">
+    Curated and maintained by <a href="/author/ilija-milosevic/">Ilija Milosevic</a>, iGaming Writer &amp;
+    Analyst. Editorial analysis of published operator terms and cited sources — not first-hand testing.
+    Sweepstakes play only — no real-money gambling. 18+ (21+ where required). Not available in all US states.
+  </p>
+
+  <style>
+    .updated-line { background:#f8fafc; border:1px solid #e2e8f0; border-left:4px solid #fbbf24; border-radius:10px; padding:12px 16px; font-size:0.92rem; color:#334155; margin:0 0 22px; }
+
+    .new-grid { display:grid; grid-template-columns:repeat(auto-fit, minmax(260px, 1fr)); gap:16px; }
+    .new-card {
+      display:flex; flex-direction:column; text-decoration:none;
+      background:#fff; border:1px solid #e2e8f0; border-radius:12px;
+      padding:18px 18px 16px; transition:transform .15s ease, box-shadow .15s ease, border-color .15s ease;
+    }
+    .new-card:hover { transform:translateY(-2px); box-shadow:0 10px 24px rgba(10,22,40,.10); border-color:#fbbf24; }
+    .new-card--feature { background:linear-gradient(135deg,#0a1628 0%,#152238 100%); border-color:#1e2c47; margin:0 0 14px; }
+    .new-card--feature .new-card-title { color:#fff; font-size:1.4rem; }
+    .new-card--feature .new-card-note { color:#cbd5e1; }
+    .new-tag {
+      display:inline-block; align-self:flex-start; font-family:'Sora',sans-serif; font-size:0.68rem;
+      font-weight:700; letter-spacing:.06em; text-transform:uppercase; color:#475569;
+      background:#f1f5f9; border:1px solid #e2e8f0; padding:3px 9px; border-radius:999px; margin-bottom:10px;
+    }
+    .new-tag--new { color:#0a1628; background:#fbbf24; border-color:#fbbf24; }
+    .new-card-title { font-family:'Sora',sans-serif; font-weight:800; font-size:1.1rem; color:#0a1628; margin-bottom:8px; }
+    .new-card-note { color:#475569; font-size:0.92rem; line-height:1.55; flex:1 1 auto; margin-bottom:12px; }
+    .new-card-cta { color:#b45309; font-weight:600; font-size:0.9rem; }
+    .new-card--feature .new-card-cta { color:#fbbf24; }
+
+    .checklist-sec, .geo-sec, .reports-sec { margin:28px 0; }
+    .checklist { counter-reset:chk; list-style:none; padding:0; margin:14px 0 0; display:grid; gap:12px; }
+    .checklist li {
+      position:relative; background:#fff; border:1px solid #e2e8f0; border-radius:12px;
+      padding:14px 16px 14px 54px;
+    }
+    .checklist li::before {
+      counter-increment:chk; content:counter(chk);
+      position:absolute; left:14px; top:14px; width:28px; height:28px; border-radius:50%;
+      background:#0a1628; color:#fbbf24; font-family:'Sora',sans-serif; font-weight:800;
+      display:flex; align-items:center; justify-content:center; font-size:0.9rem;
+    }
+    .chk-h { display:block; font-family:'Sora',sans-serif; font-weight:700; color:#0a1628; margin-bottom:3px; }
+    .chk-p { display:block; color:#475569; font-size:0.93rem; line-height:1.55; }
+
+    .geo-list { margin:10px 0 0; padding-left:20px; }
+    .geo-list li { margin:8px 0; line-height:1.55; }
+
+    .new-next { background:#f8fafc; border:1px solid #e2e8f0; border-radius:12px; padding:18px 20px; margin:22px 0; }
+    .new-next > h2 { margin-top:0; }
+    .next-links { margin:8px 0 0; padding-left:20px; }
+    .next-links li { margin:8px 0; line-height:1.55; }
+
+    .hub-byline { font-size:0.85rem; color:#64748b; border-top:1px solid #e2e8f0; padding-top:16px; margin-top:26px; }
+    .hub-byline a { color:#b45309; font-weight:600; }
+  </style>
+</ContentLayout>
