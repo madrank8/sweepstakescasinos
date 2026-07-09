@@ -20,8 +20,27 @@ import { isUsStateCode } from './usStates';
  */
 
 /**
- * The 10 states where affiliate marketing of sweepstakes casinos carries direct
- * legal exposure. CTAs are suppressed site-wide for residents of these states.
+ * States where we suppress ALL affiliate CTAs site-wide and publish info-only
+ * content. Two grounds qualify a state for this list:
+ *
+ *   (a) Marketing-affiliate / promoter legal exposure — the statute reaches
+ *       those who promote, support, or facilitate the games (e.g. CA AB-831,
+ *       NY S5935A, ME LD 2007, TN SB 2136/TCPA). This is the original rationale.
+ *   (b) The dual-currency sweepstakes model is banned outright, so no lawful
+ *       operator offers exist even absent explicit affiliate liability. Indiana
+ *       (HB 1052, eff. Jul 1 2026) is civil + operators-only, but the product
+ *       is prohibited, so we do not promote it.
+ *
+ * Verified 2026 bans folded in (source: state legislatures + industry press,
+ * checked 2026-07-09):
+ *   - IN  HB 1052            eff. 2026-07-01  (civil, operators only)   [ground b]
+ *   - ME  LD 2007            eff. 2026-07-14  (operator + promoter)     [ground a]
+ *   - TN  SB 2136 / HB 1885  eff. immediately (TCPA, facilitators)      [ground a]
+ *
+ * SCHEDULED — not yet active:
+ *   - OK  SB 1589 (veto override)  eff. 2026-11-01  (felony, incl. affiliates).
+ *     Oklahoma offers remain LAWFUL until 2026-11-01. On/after that date, add
+ *     'OK' to this array to switch Oklahoma to info-only site-wide.
  */
 export const SITE_BANNED_STATES: readonly UsStateCode[] = [
   'CA',
@@ -34,6 +53,9 @@ export const SITE_BANNED_STATES: readonly UsStateCode[] = [
   'MI',
   'ID',
   'WA',
+  'IN',
+  'ME',
+  'TN',
 ];
 
 const SITE_BANNED_SET = new Set<UsStateCode>(SITE_BANNED_STATES);

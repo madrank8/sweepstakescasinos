@@ -65,9 +65,9 @@ check('McLuck available in TX', isPartnerAvailableInState(mcluck, 'TX'), true);
 check('McLuck NOT available in CA', isPartnerAvailableInState(mcluck, 'CA'), false);
 check('McLuck dropped non-US "QC"', !(mcluck.restrictedStates as string[]).includes('QC'), true);
 
-console.log('\n=== 3. Site-level legal layer (10 banned states) ===');
-if (SITE_BANNED_STATES.length === 10) ok(`10 banned states: ${SITE_BANNED_STATES.join(', ')}`);
-else fail(`expected 10 banned states, got ${SITE_BANNED_STATES.length}`);
+console.log('\n=== 3. Site-level legal layer (13 banned states) ===');
+if (SITE_BANNED_STATES.length === 13) ok(`13 banned states: ${SITE_BANNED_STATES.join(', ')}`);
+else fail(`expected 13 banned states, got ${SITE_BANNED_STATES.length}`);
 
 // In a banned state, NO partner CTA may render regardless of availability.
 let bannedLeak = 0;
@@ -79,7 +79,7 @@ for (const state of SITE_BANNED_STATES) {
     }
   }
 }
-if (bannedLeak === 0) ok('no CTA renders in any of the 10 banned states');
+if (bannedLeak === 0) ok('no CTA renders in any of the 13 banned states');
 
 console.log('\n=== 4. Per-partner availability matrix (partner-level only) ===');
 console.log('   (count = jurisdictions out of 51 where the PARTNER is available)\n');
