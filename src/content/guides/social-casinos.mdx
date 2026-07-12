@@ -48,6 +48,9 @@ faq:
     a: "Social casinos earn revenue mainly through optional in-app purchases of extra virtual currency, plus advertising, partnerships and sponsorships. Buying coins is never required to play. At sweepstakes casinos, optional Gold Coin purchases come bundled with free Sweeps Coins, but a no-purchase entry route must always exist."
 ---
 
+import CurrencyCompare from '../../components/CurrencyCompare.astro';
+import CurrencyFlow from '../../components/CurrencyFlow.astro';
+
 A **social casino** is a free-to-play online game where you enjoy casino-style titles —
 slots, blackjack, roulette, video poker — purely for entertainment, using a virtual
 currency (usually called **Gold Coins**) that has **no cash value and cannot be redeemed**.
@@ -67,6 +70,54 @@ no), whether they're legal, and gives an **honest, categorized social casinos li
 A sweepstakes casino adds Sweeps Coins, a promotional currency that CAN be redeemed for cash
 or gift cards under each operator's rules. The single dividing line is redemption — social
 casinos have none; sweepstakes casinos do.** Read the row that matters most last.
+
+<CurrencyCompare
+  caption="Social casino vs sweepstakes casino — the dividing line is redemption"
+  columns={[
+    {
+      glyph: 'GC',
+      variant: 'gold',
+      title: 'Social casino (pure)',
+      tag: 'Gold Coins · fun only',
+      tagVariant: 'gold',
+      lead: 'One play-money currency, played purely for entertainment.',
+      bullets: [
+        '<strong>Gold Coins only</strong> — a single currency with no cash value.',
+        '<strong>Play for fun</strong>, then it stops — no prizes, no cash-out.',
+        'Legally an <strong>entertainment app</strong>; available in nearly every US state.',
+      ],
+    },
+    {
+      glyph: 'SC',
+      variant: 'green',
+      title: 'Sweepstakes casino',
+      tag: 'Sweeps Coins redeemable',
+      tagVariant: 'green',
+      lead: 'A dual-currency model that adds a redeemable promotional currency.',
+      bullets: [
+        '<strong>Gold Coins + Sweeps Coins</strong> — two currencies, one redeemable.',
+        'Same free games, <strong>plus a prize path</strong> via Sweeps Coins.',
+        'Legally a <strong>promotional sweepstakes</strong>; restricted in a growing list of states.',
+      ],
+    },
+  ]}
+  rows={[
+    {
+      label: 'Redeemable for prizes?',
+      cells: [
+        { text: 'No — never', variant: 'red' },
+        { text: 'Yes — Sweeps Coins only', variant: 'green' },
+      ],
+    },
+    {
+      label: 'Can you win real money?',
+      cells: [
+        { text: 'No', variant: 'red' },
+        { text: 'Yes, via Sweeps Coins (after playthrough, minimum + KYC)', variant: 'green' },
+      ],
+    },
+  ]}
+/>
 
 | Feature | Social casino (pure) | Sweepstakes casino |
 |---|---|---|
@@ -103,6 +154,8 @@ games in Gold Coin mode. When coins run low, most apps top you up free on a time
 can optionally buy more for extended play. Gold Coins never convert to cash — they only ever
 buy more entertainment, which is the entire model.**
 
+<CurrencyFlow />
+
 Three things define the pure social model:
 
 - **One currency, no cash value.** Gold Coins (or the app's equivalent) are the only currency,
@@ -134,6 +187,32 @@ of. We keep the two straight throughout this site, and our
 have no cash value and are never redeemable, by design. The only way to turn free casino-style
 play into a real prize in the US is at a sweepstakes casino, and only through Sweeps Coins,
 after you clear playthrough, hit the redemption minimum, and pass identity verification.**
+
+<CurrencyCompare
+  caption="Can you win real money? An honest answer by model"
+  columns={[
+    {
+      variant: 'red',
+      title: 'Social casino (Gold Coins)',
+      tag: 'Play-for-fun only',
+      tagVariant: 'red',
+      verdict: {
+        text: 'NO — never',
+        sub: 'Gold Coins have no cash value and are never redeemable, by design.',
+      },
+    },
+    {
+      variant: 'green',
+      title: 'Sweepstakes casino (Sweeps Coins)',
+      tag: 'Redeemable currency',
+      tagVariant: 'green',
+      verdict: {
+        text: 'Yes — but conditional',
+        sub: 'Only via Sweeps Coins, after playthrough, the redemption minimum, and KYC. Winning is never guaranteed.',
+      },
+    },
+  ]}
+/>
 
 If real prizes are your goal, you want the sweepstakes model, not a pure social app. Even then,
 winning is never guaranteed, redemption minimums vary (commonly 10–100 SC), and every

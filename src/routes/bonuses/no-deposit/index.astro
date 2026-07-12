@@ -16,6 +16,7 @@ export const prerender = false;
 
 import ContentLayout from '../../../layouts/ContentLayout.astro';
 import AffiliateLink from '../../../components/AffiliateLink.astro';
+import CurrencyCompare from '../../../components/CurrencyCompare.astro';
 import { getPartner } from '../../../data/affiliates';
 import { shouldRenderAffiliateCta, SITE_BANNED_STATES } from '../../../data/geo';
 import { stateName } from '../../../data/usStates';
@@ -185,40 +186,36 @@ const jsonLd = [itemListLd, faqLd];
     number that matters.
   </p>
 
-  <section class="nd-cc" aria-label="Gold Coins compared with Sweeps Coins">
-    <article class="nd-cc-card nd-cc-gc">
-      <div class="nd-cc-head">
-        <span class="nd-cc-coin" aria-hidden="true">GC</span>
-        <div>
-          <h3 class="nd-cc-title">Gold Coins</h3>
-          <span class="nd-cc-tag nd-cc-tag-gc">Fun play only</span>
-        </div>
-      </div>
-      <p class="nd-cc-lead">The play-money currency. Great for trying games — but that's where it ends.</p>
-      <ul class="nd-cc-list">
-        <li><strong>No cash value.</strong> Gold Coins can never be redeemed for money, gift cards, or prizes.</li>
-        <li><strong>Not withdrawable.</strong> They only unlock the standard (non-prize) version of each game.</li>
-        <li><strong>Freely topped up.</strong> Signup grants and daily bundles are generous precisely because they're purely for entertainment.</li>
-      </ul>
-    </article>
-
-    <article class="nd-cc-card nd-cc-sc">
-      <div class="nd-cc-head">
-        <span class="nd-cc-coin" aria-hidden="true">SC</span>
-        <div>
-          <h3 class="nd-cc-title">Sweeps Coins</h3>
-          <span class="nd-cc-tag nd-cc-tag-sc">Redeemable currency</span>
-        </div>
-      </div>
-      <p class="nd-cc-lead">The currency that can turn into a real prize — under clear, published conditions.</p>
-      <ul class="nd-cc-list">
-        <li><strong>Redeemable for prizes</strong> (cash or gift cards) <em>after</em> you clear the brand's playthrough requirement.</li>
-        <li><strong>Identity verification (KYC) required</strong> before any redemption is paid out.</li>
-        <li><strong>Minimum threshold applies</strong> — redemptions start at 10&nbsp;SC to 100&nbsp;SC depending on the brand.</li>
-        <li><strong>Winning is never guaranteed.</strong> SC lets you play prize-eligible games; it is not a payout.</li>
-      </ul>
-    </article>
-  </section>
+  <CurrencyCompare
+    ariaLabel="Gold Coins compared with Sweeps Coins"
+    columns={[
+      {
+        glyph: 'GC',
+        variant: 'gold',
+        title: 'Gold Coins',
+        tag: 'Fun play only',
+        lead: "The play-money currency. Great for trying games — but that's where it ends.",
+        bullets: [
+          '<strong>No cash value.</strong> Gold Coins can never be redeemed for money, gift cards, or prizes.',
+          '<strong>Not withdrawable.</strong> They only unlock the standard (non-prize) version of each game.',
+          "<strong>Freely topped up.</strong> Signup grants and daily bundles are generous precisely because they're purely for entertainment.",
+        ],
+      },
+      {
+        glyph: 'SC',
+        variant: 'green',
+        title: 'Sweeps Coins',
+        tag: 'Redeemable currency',
+        lead: 'The currency that can turn into a real prize — under clear, published conditions.',
+        bullets: [
+          "<strong>Redeemable for prizes</strong> (cash or gift cards) <em>after</em> you clear the brand's playthrough requirement.",
+          '<strong>Identity verification (KYC) required</strong> before any redemption is paid out.',
+          '<strong>Minimum threshold applies</strong> — redemptions start at 10&nbsp;SC to 100&nbsp;SC depending on the brand.',
+          '<strong>Winning is never guaranteed.</strong> SC lets you play prize-eligible games; it is not a payout.',
+        ],
+      },
+    ]}
+  />
 
   <h2>Verified no-deposit bonuses — July 2026</h2>
 
@@ -410,22 +407,8 @@ const jsonLd = [itemListLd, faqLd];
     .hub-byline { font-size:0.85rem; color:#64748b; border-top:1px solid #e2e8f0; padding-top:16px; margin-top:26px; }
     .hub-byline a { color:#b45309; font-weight:600; }
 
-    /* Visual 1 — Sweeps Coins vs Gold Coins explainer (GC = gold/fun, SC = green/redeemable) */
-    .nd-cc { display:grid; grid-template-columns:1fr 1fr; gap:16px; margin:18px 0 30px; }
-    .nd-cc-card { border:1px solid #e2e8f0; border-radius:14px; padding:20px 22px; background:#fff; }
-    .nd-cc-gc { border-top:4px solid #fbbf24; background:linear-gradient(180deg,#fffdf5 0%,#fff 55%); }
-    .nd-cc-sc { border-top:4px solid #10b981; background:linear-gradient(180deg,#f0fdf9 0%,#fff 55%); }
-    .nd-cc-head { display:flex; align-items:center; gap:12px; margin-bottom:12px; }
-    .nd-cc-coin { display:inline-flex; align-items:center; justify-content:center; width:44px; height:44px; border-radius:50%; font-family:'Sora',sans-serif; font-weight:900; font-size:0.9rem; flex-shrink:0; }
-    .nd-cc-gc .nd-cc-coin { background:linear-gradient(135deg,#fde68a,#f59e0b); color:#0a1628; box-shadow:0 2px 8px rgba(245,158,11,.35); }
-    .nd-cc-sc .nd-cc-coin { background:linear-gradient(135deg,#6ee7b7,#059669); color:#04241a; box-shadow:0 2px 8px rgba(5,150,105,.35); }
-    .nd-cc .nd-cc-title { font-family:'Sora',sans-serif; font-size:1.1rem; font-weight:800; color:#0a1628; margin:0; }
-    .nd-cc-tag { display:inline-block; margin-top:4px; font-size:0.66rem; font-weight:800; letter-spacing:.05em; text-transform:uppercase; padding:2px 9px; border-radius:100px; }
-    .nd-cc-tag-gc { background:#fef3c7; color:#92400e; }
-    .nd-cc-tag-sc { background:#d1fae5; color:#065f46; }
-    .nd-cc .nd-cc-lead { font-size:0.88rem; color:#475569; margin:0 0 10px; line-height:1.55; }
-    .nd-cc .nd-cc-list { margin:0; padding-left:18px; }
-    .nd-cc .nd-cc-list li { font-size:0.85rem; color:#334155; margin-bottom:7px; line-height:1.5; }
+    /* Visual 1 (GC vs SC explainer) now lives in <CurrencyCompare>; its styles
+       moved into that component. Chart + suppression styles below are unchanged. */
 
     /* Visual 2 — signup Sweeps-Coins bar chart (derived from OFFERS.signupSc) */
     .nd-chart { margin:22px 0 8px; border:1px solid #e2e8f0; border-radius:14px; padding:18px 20px 16px; background:#fff; }
@@ -457,7 +440,6 @@ const jsonLd = [itemListLd, faqLd];
     .nd-supp .nd-supp-note { font-size:0.8rem; color:#64748b; margin:14px 0 0; line-height:1.5; }
 
     @media(max-width:600px){
-      .nd-cc { grid-template-columns:1fr; }
       .nd-chart .nd-chart-row { grid-template-columns:88px 1fr; gap:8px; }
       .nd-chart-name { font-size:0.76rem; }
     }

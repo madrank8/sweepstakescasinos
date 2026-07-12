@@ -1,0 +1,131 @@
+---
+/**
+ * CurrencyFlow — a light-only inline-SVG diagram contrasting the two currency
+ * models used at social vs sweepstakes casinos.
+ *
+ *   Social panel (gold -> red): Gold Coins -> play for fun -> dead-end, no cash-out.
+ *   Sweepstakes panel (gold + green): Gold Coins -> play for fun, AND Sweeps Coins
+ *     -> playthrough + minimum (10-100 SC) + KYC -> cash / gift cards.
+ *
+ * Colour semantics match the rest of the site (gold = play-for-fun Gold Coins,
+ * green = redeemable Sweeps Coins, red = no redemption). No dollar figures or
+ * prize imagery on the social side — it terminates at an honest dead-end.
+ *
+ * Accessibility: the SVG is role="img" with a <title>/<desc>, and a plain-text
+ * one-sentence summary sits directly beneath it so the meaning never depends on
+ * the graphic. All box labels are real <text>, not colour alone.
+ */
+const titleId = 'cf-title';
+const descId = 'cf-desc';
+---
+<figure class="cf">
+  <svg
+    class="cf-svg"
+    viewBox="0 0 720 380"
+    role="img"
+    aria-labelledby={`${titleId} ${descId}`}
+    preserveAspectRatio="xMidYMid meet"
+  >
+    <title id={titleId}>How the two currency models compare</title>
+    <desc id={descId}>
+      At a social casino, Gold Coins are used for play for fun only and reach a dead-end with no
+      cash-out. At a sweepstakes casino, Gold Coins are still play-for-fun, while a separate
+      currency, Sweeps Coins, can pass playthrough, a minimum of 10 to 100 Sweeps Coins, and identity
+      verification to be redeemed for cash or gift cards.
+    </desc>
+
+    <defs>
+      <marker id="cf-arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+        <path d="M0,0 L10,5 L0,10 z" fill="#94a3b8"></path>
+      </marker>
+    </defs>
+
+    <!-- ===== Social casino panel ===== -->
+    <text x="16" y="26" class="cf-heading cf-heading-gold">SOCIAL CASINO — Gold Coins only</text>
+
+    <!-- Gold Coins -->
+    <rect x="16" y="44" width="150" height="66" rx="9" class="cf-box cf-box-gold"></rect>
+    <text x="91" y="72" class="cf-label">Gold Coins</text>
+    <text x="91" y="92" class="cf-sub">play-money, no value</text>
+
+    <line x1="170" y1="77" x2="204" y2="77" class="cf-flow" marker-end="url(#cf-arrow)"></line>
+
+    <!-- Play for fun -->
+    <rect x="208" y="44" width="150" height="66" rx="9" class="cf-box cf-box-gold"></rect>
+    <text x="283" y="72" class="cf-label">Play for fun</text>
+    <text x="283" y="92" class="cf-sub">slots &amp; table games</text>
+
+    <line x1="362" y1="77" x2="396" y2="77" class="cf-flow" marker-end="url(#cf-arrow)"></line>
+
+    <!-- Dead-end -->
+    <rect x="400" y="44" width="188" height="66" rx="9" class="cf-box cf-box-red"></rect>
+    <text x="494" y="72" class="cf-label cf-label-red">Dead-end</text>
+    <text x="494" y="92" class="cf-sub cf-sub-red">no cash-out, no prizes</text>
+
+    <!-- divider -->
+    <line x1="16" y1="150" x2="704" y2="150" class="cf-divider"></line>
+
+    <!-- ===== Sweepstakes casino panel ===== -->
+    <text x="16" y="188" class="cf-heading cf-heading-green">SWEEPSTAKES CASINO — Gold Coins + Sweeps Coins</text>
+
+    <!-- Track 1: Gold Coins -> play for fun -->
+    <rect x="16" y="206" width="150" height="60" rx="9" class="cf-box cf-box-gold"></rect>
+    <text x="91" y="231" class="cf-label">Gold Coins</text>
+    <text x="91" y="250" class="cf-sub">play for fun</text>
+
+    <line x1="170" y1="236" x2="204" y2="236" class="cf-flow" marker-end="url(#cf-arrow)"></line>
+
+    <rect x="208" y="206" width="150" height="60" rx="9" class="cf-box cf-box-gold"></rect>
+    <text x="283" y="231" class="cf-label">Play for fun</text>
+    <text x="283" y="250" class="cf-sub">no prize path</text>
+
+    <!-- Track 2: Sweeps Coins -> conditions -> redemption -->
+    <rect x="16" y="292" width="150" height="70" rx="9" class="cf-box cf-box-green"></rect>
+    <text x="91" y="322" class="cf-label cf-label-green">Sweeps Coins</text>
+    <text x="91" y="341" class="cf-sub cf-sub-green">redeemable currency</text>
+
+    <line x1="170" y1="327" x2="204" y2="327" class="cf-flow" marker-end="url(#cf-arrow)"></line>
+
+    <rect x="208" y="292" width="238" height="70" rx="9" class="cf-box cf-box-green"></rect>
+    <text x="327" y="316" class="cf-label cf-label-green">Playthrough + minimum</text>
+    <text x="327" y="336" class="cf-sub cf-sub-green">10–100 SC, then KYC check</text>
+
+    <line x1="450" y1="327" x2="484" y2="327" class="cf-flow" marker-end="url(#cf-arrow)"></line>
+
+    <rect x="488" y="292" width="200" height="70" rx="9" class="cf-box cf-box-green"></rect>
+    <text x="588" y="322" class="cf-label cf-label-green">Cash / gift cards</text>
+    <text x="588" y="341" class="cf-sub cf-sub-green">winning never guaranteed</text>
+  </svg>
+
+  <figcaption class="cf-cap">
+    Social casinos stop at play-for-fun Gold Coins with no cash-out; only a sweepstakes casino's
+    Sweeps Coins can be redeemed for cash or gift cards, and only after playthrough, a 10–100 SC
+    minimum, and identity verification.
+  </figcaption>
+</figure>
+
+<style>
+  .cf { margin: 18px 0 26px; }
+  .cf-svg { display: block; width: 100%; height: auto; max-width: 720px; margin: 0 auto; }
+
+  .cf-heading { font-family: 'Sora', sans-serif; font-size: 13px; font-weight: 800; letter-spacing: .03em; }
+  .cf-heading-gold { fill: #b45309; }
+  .cf-heading-green { fill: #047857; }
+
+  .cf-box { stroke-width: 1.5; }
+  .cf-box-gold { fill: #fffdf5; stroke: #fbbf24; }
+  .cf-box-green { fill: #f0fdf9; stroke: #10b981; }
+  .cf-box-red { fill: #fef2f2; stroke: #ef4444; }
+
+  .cf-label { font-family: 'Sora', sans-serif; font-size: 14px; font-weight: 800; fill: #0a1628; text-anchor: middle; }
+  .cf-label-green { fill: #065f46; }
+  .cf-label-red { fill: #b91c1c; }
+  .cf-sub { font-family: 'DM Sans', sans-serif; font-size: 11px; fill: #64748b; text-anchor: middle; }
+  .cf-sub-green { fill: #047857; }
+  .cf-sub-red { fill: #b91c1c; }
+
+  .cf-flow { stroke: #94a3b8; stroke-width: 2; }
+  .cf-divider { stroke: #e2e8f0; stroke-width: 1; }
+
+  .cf-cap { font-size: 0.8rem; color: #64748b; margin-top: 10px; text-align: center; line-height: 1.5; }
+</style>

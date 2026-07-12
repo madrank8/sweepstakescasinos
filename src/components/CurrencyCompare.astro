@@ -1,0 +1,194 @@
+---
+/**
+ * CurrencyCompare — a prop-driven, two-column comparison card used across the
+ * site to contrast a "play-only" currency/model with a "redeemable" one.
+ *
+ * It powers two framings from a single component:
+ *   (a) Gold Coins vs Sweeps Coins  (the /bonuses/no-deposit/ explainer)
+ *   (b) Social casino vs Sweepstakes casino (the /guides/social-casinos/ matrix)
+ *
+ * Colour semantics are shared with the rest of the site and MUST stay stable:
+ *   gold  = Gold Coins / play-for-fun
+ *   green = Sweeps Coins / redeemable, "Yes"
+ *   red   = no redemption / "No — never"
+ *
+ * Light-only, no dark mode. Scoped styles travel with the component. Responsive:
+ * the two columns collapse to one at <=600px.
+ *
+ * Accessibility: coin glyphs are aria-hidden; verdict/cell wording ("No"/"Yes")
+ * is always real text (never colour-only); the whole block is a labelled figure.
+ */
+type Variant = 'gold' | 'green' | 'red' | 'neutral';
+
+interface Column {
+  /** Short coin/label glyph (e.g. "GC", "SC"); decorative, hidden from AT. */
+  glyph?: string;
+  /** Card accent + coin colour. */
+  variant: Variant;
+  title: string;
+  /** Small uppercase pill under the title. */
+  tag?: string;
+  /** Pill colour; defaults to `variant`. */
+  tagVariant?: Variant;
+  /** Intro sentence (plain text). */
+  lead?: string;
+  /** Emphasised bold verdict line (e.g. an honest "NO — never"). */
+  verdict?: { text: string; sub?: string };
+  /** Bullet list; each item may contain trusted inline HTML (e.g. <strong>). */
+  bullets?: string[];
+}
+
+interface Row {
+  label: string;
+  /** One cell per column, in column order. */
+  cells: Array<{ text: string; variant?: Variant }>;
+}
+
+interface Props {
+  columns: Column[];
+  /** Optional emphasised comparison rows rendered beneath the cards. */
+  rows?: Row[];
+  /** Visible caption; when set it also labels the figure for AT. */
+  caption?: string;
+  /** Accessible label used when there is no visible caption. */
+  ariaLabel?: string;
+}
+
+const { columns, rows = [], caption, ariaLabel } = Astro.props as Props;
+
+// Stable-ish id for aria-labelledby wiring when a caption is present.
+const capId = caption
+  ? `cc-cap-${caption.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 32)}`
+  : undefined;
+---
+<figure
+  class="cc"
+  role="group"
+  {...capId ? { 'aria-labelledby': capId } : ariaLabel ? { 'aria-label': ariaLabel } : {}}
+>
+  {caption && <figcaption id={capId} class="cc-cap">{caption}</figcaption>}
+
+  <div class="cc-cards" data-cols={columns.length}>
+    {columns.map((col) => (
+      <article class={`cc-card cc-${col.variant}`}>
+        <div class="cc-head">
+          {col.glyph && <span class="cc-coin" aria-hidden="true">{col.glyph}</span>}
+          <div class="cc-head-txt">
+            <h3 class="cc-title">{col.title}</h3>
+            {col.tag && <span class={`cc-tag cc-tag-${col.tagVariant ?? col.variant}`}>{col.tag}</span>}
+          </div>
+        </div>
+
+        {col.lead && <p class="cc-lead">{col.lead}</p>}
+
+        {col.verdict && (
+          <p class={`cc-verdict cc-verdict-${col.variant}`}>
+            <strong class="cc-verdict-text">{col.verdict.text}</strong>
+            {col.verdict.sub && <span class="cc-verdict-sub">{col.verdict.sub}</span>}
+          </p>
+        )}
+
+        {col.bullets && col.bullets.length > 0 && (
+          <ul class="cc-list">
+            {col.bullets.map((b) => (
+              <li set:html={b} />
+            ))}
+          </ul>
+        )}
+      </article>
+    ))}
+  </div>
+
+  {rows.length > 0 && (
+    <dl class="cc-rows">
+      {rows.map((r) => (
+        <div class="cc-row">
+          <dt class="cc-row-label">{r.label}</dt>
+          <dd class="cc-row-cells" data-cols={r.cells.length}>
+            {r.cells.map((c) => (
+              <span class={`cc-cell cc-cell-${c.variant ?? 'neutral'}`}>{c.text}</span>
+            ))}
+          </dd>
+        </div>
+      ))}
+    </dl>
+  )}
+</figure>
+
+<style>
+  .cc { margin: 18px 0 30px; }
+  .cc-cap {
+    font-family: 'Sora', sans-serif; font-size: 0.8rem; font-weight: 800;
+    letter-spacing: .02em; text-transform: uppercase; color: #0a1628;
+    margin: 0 0 14px; text-align: left;
+  }
+
+  .cc-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+
+  .cc-card { border: 1px solid #e2e8f0; border-radius: 14px; padding: 20px 22px; background: #fff; }
+  .cc-gold { border-top: 4px solid #fbbf24; background: linear-gradient(180deg, #fffdf5 0%, #fff 55%); }
+  .cc-green { border-top: 4px solid #10b981; background: linear-gradient(180deg, #f0fdf9 0%, #fff 55%); }
+  .cc-red { border-top: 4px solid #ef4444; background: linear-gradient(180deg, #fef2f2 0%, #fff 55%); }
+  .cc-neutral { border-top: 4px solid #cbd5e1; }
+
+  .cc-head { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
+  .cc-head-txt { min-width: 0; }
+  .cc-coin {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 44px; height: 44px; border-radius: 50%;
+    font-family: 'Sora', sans-serif; font-weight: 900; font-size: 0.9rem; flex-shrink: 0;
+  }
+  .cc-gold .cc-coin { background: linear-gradient(135deg, #fde68a, #f59e0b); color: #0a1628; box-shadow: 0 2px 8px rgba(245, 158, 11, .35); }
+  .cc-green .cc-coin { background: linear-gradient(135deg, #6ee7b7, #059669); color: #04241a; box-shadow: 0 2px 8px rgba(5, 150, 105, .35); }
+  .cc-red .cc-coin { background: linear-gradient(135deg, #fca5a5, #dc2626); color: #fff; box-shadow: 0 2px 8px rgba(220, 38, 38, .35); }
+  .cc-neutral .cc-coin { background: linear-gradient(135deg, #e2e8f0, #94a3b8); color: #0a1628; }
+
+  .cc-title { font-family: 'Sora', sans-serif; font-size: 1.1rem; font-weight: 800; color: #0a1628; margin: 0; }
+  .cc-tag {
+    display: inline-block; margin-top: 4px; font-size: 0.66rem; font-weight: 800;
+    letter-spacing: .05em; text-transform: uppercase; padding: 2px 9px; border-radius: 100px;
+  }
+  .cc-tag-gold { background: #fef3c7; color: #92400e; }
+  .cc-tag-green { background: #d1fae5; color: #065f46; }
+  .cc-tag-red { background: #fee2e2; color: #b91c1c; }
+  .cc-tag-neutral { background: #f1f5f9; color: #475569; }
+
+  .cc-lead { font-size: 0.88rem; color: #475569; margin: 0 0 10px; line-height: 1.55; }
+
+  .cc-verdict { margin: 0 0 12px; }
+  .cc-verdict-text {
+    display: block; font-family: 'Sora', sans-serif; font-size: 1.55rem;
+    font-weight: 900; line-height: 1.15; letter-spacing: -0.3px;
+  }
+  .cc-verdict-red .cc-verdict-text { color: #b91c1c; }
+  .cc-verdict-green .cc-verdict-text { color: #047857; }
+  .cc-verdict-gold .cc-verdict-text { color: #b45309; }
+  .cc-verdict-neutral .cc-verdict-text { color: #0a1628; }
+  .cc-verdict-sub { display: block; margin-top: 4px; font-size: 0.85rem; color: #475569; line-height: 1.5; }
+
+  .cc-list { margin: 0; padding-left: 18px; }
+  .cc-list li { font-size: 0.85rem; color: #334155; margin-bottom: 7px; line-height: 1.5; }
+
+  /* Emphasised comparison rows (the "matrix"): label spans, cells align to cards. */
+  .cc-rows { margin: 16px 0 0; display: flex; flex-direction: column; gap: 10px; }
+  .cc-row { border: 1px solid #e2e8f0; border-radius: 12px; padding: 12px 14px; background: #f8fafc; }
+  .cc-row-label {
+    font-family: 'Sora', sans-serif; font-size: 0.72rem; font-weight: 800;
+    letter-spacing: .04em; text-transform: uppercase; color: #475569; margin: 0 0 8px;
+  }
+  .cc-row-cells { margin: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .cc-cell {
+    display: block; font-size: 0.88rem; font-weight: 700; line-height: 1.45;
+    padding: 8px 12px; border-radius: 8px; border: 1px solid #e2e8f0;
+    background: #fff; color: #334155;
+  }
+  .cc-cell-red { background: #fef2f2; border-color: #fecaca; color: #b91c1c; }
+  .cc-cell-green { background: #ecfdf5; border-color: #a7f3d0; color: #065f46; }
+  .cc-cell-gold { background: #fffbeb; border-color: #fde68a; color: #92400e; }
+  .cc-cell-neutral { background: #f8fafc; border-color: #e2e8f0; color: #334155; }
+
+  @media (max-width: 600px) {
+    .cc-cards { grid-template-columns: 1fr; }
+    .cc-row-cells { grid-template-columns: 1fr; }
+  }
+</style>
