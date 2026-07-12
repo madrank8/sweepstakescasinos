@@ -17,7 +17,8 @@ export const prerender = false;
 import ContentLayout from '../../../layouts/ContentLayout.astro';
 import AffiliateLink from '../../../components/AffiliateLink.astro';
 import { getPartner } from '../../../data/affiliates';
-import { shouldRenderAffiliateCta } from '../../../data/geo';
+import { shouldRenderAffiliateCta, SITE_BANNED_STATES } from '../../../data/geo';
+import { stateName } from '../../../data/usStates';
 import { brandEntityId, getBrandEntity } from '../../../data/brandEntities';
 
 const ORIGIN = 'https://sweepstakeswiz.com';
@@ -54,23 +55,29 @@ type Offer = {
   name: string;
   reviewLabel: string;
   signup: string;
+  /**
+   * Free Sweeps Coins granted on signup, as a number. Single source of truth for
+   * both the table's `signup` copy and the signup-SC chart, so the two can never
+   * drift apart. When an offer changes, update this and the `signup` string together.
+   */
+  signupSc: number;
   daily: string;
   min: string;
 };
 
 const OFFERS: Offer[] = [
-  { slug: 'zula', name: 'Zula Casino', reviewLabel: 'Zula review', signup: 'Up to 120,000 GC + <strong>10 SC</strong>', daily: 'Daily login rewards', min: '50 SC (cash)' },
-  { slug: 'legendz', name: 'Legendz', reviewLabel: 'Legendz review', signup: '500 GC + <strong>3 SC</strong>', daily: 'Daily rewards', min: 'Prizeout gift cards' },
-  { slug: 'thrillzz', name: 'Thrillzz', reviewLabel: 'Thrillzz review', signup: '3,000 GC + <strong>3 SC</strong>', daily: 'Daily rewards', min: '50 SC (cash)' },
-  { slug: 'mcluck', name: 'McLuck', reviewLabel: 'McLuck review', signup: '7,500 GC + <strong>2.5 SC</strong>', daily: 'Daily login rewards', min: '10 SC (gift cards)' },
-  { slug: 'hello-millions', name: 'HelloMillions', reviewLabel: 'Hello Millions review', signup: '15,000 GC + <strong>2.5 SC</strong>', daily: 'Daily bonuses', min: '10 SC (gift cards)' },
-  { slug: 'playfame', name: 'PlayFame', reviewLabel: 'PlayFame review', signup: '7,500 GC + <strong>2.5 SC</strong>', daily: 'Daily login rewards + daily jackpots', min: '10 SC (gift cards)' },
-  { slug: 'spree', name: 'Spree', reviewLabel: 'Spree review', signup: '25,000 GC + <strong>2.5 SC</strong>', daily: 'Promotional drops', min: 'Gift cards (~48h)' },
-  { slug: 'spinblitz', name: 'SpinBlitz', reviewLabel: 'SpinBlitz review', signup: '7,500 GC + <strong>2.5 SC</strong>', daily: 'Daily login SC', min: 'See review' },
-  { slug: 'roxymoxy', name: 'RoxyMoxy', reviewLabel: 'RoxyMoxy review', signup: '50,000 GC + <strong>2.5 SC</strong>', daily: 'Daily login bonus', min: 'See review' },
-  { slug: 'pulsz', name: 'Pulsz', reviewLabel: 'Pulsz review', signup: '5,000 GC + <strong>2.3 SC</strong>', daily: 'Daily login rewards', min: '10 SC (gift cards)' },
-  { slug: 'crown-coins', name: 'Crown Coins', reviewLabel: 'Crown Coins review', signup: '100,000 CC + <strong>2 SC</strong>', daily: 'Daily login bonuses', min: '100 SC (cash)' },
-  { slug: 'casino-click', name: 'Casino Click', reviewLabel: 'Casino Click review', signup: '100,000 GC + <strong>2 SC</strong>', daily: 'Daily logins <strong>up to 5 SC</strong>', min: '100 SC (cash)' },
+  { slug: 'zula', name: 'Zula Casino', reviewLabel: 'Zula review', signup: 'Up to 120,000 GC + <strong>10 SC</strong>', signupSc: 10, daily: 'Daily login rewards', min: '50 SC (cash)' },
+  { slug: 'legendz', name: 'Legendz', reviewLabel: 'Legendz review', signup: '500 GC + <strong>3 SC</strong>', signupSc: 3, daily: 'Daily rewards', min: 'Prizeout gift cards' },
+  { slug: 'thrillzz', name: 'Thrillzz', reviewLabel: 'Thrillzz review', signup: '3,000 GC + <strong>3 SC</strong>', signupSc: 3, daily: 'Daily rewards', min: '50 SC (cash)' },
+  { slug: 'mcluck', name: 'McLuck', reviewLabel: 'McLuck review', signup: '7,500 GC + <strong>2.5 SC</strong>', signupSc: 2.5, daily: 'Daily login rewards', min: '10 SC (gift cards)' },
+  { slug: 'hello-millions', name: 'HelloMillions', reviewLabel: 'Hello Millions review', signup: '15,000 GC + <strong>2.5 SC</strong>', signupSc: 2.5, daily: 'Daily bonuses', min: '10 SC (gift cards)' },
+  { slug: 'playfame', name: 'PlayFame', reviewLabel: 'PlayFame review', signup: '7,500 GC + <strong>2.5 SC</strong>', signupSc: 2.5, daily: 'Daily login rewards + daily jackpots', min: '10 SC (gift cards)' },
+  { slug: 'spree', name: 'Spree', reviewLabel: 'Spree review', signup: '25,000 GC + <strong>2.5 SC</strong>', signupSc: 2.5, daily: 'Promotional drops', min: 'Gift cards (~48h)' },
+  { slug: 'spinblitz', name: 'SpinBlitz', reviewLabel: 'SpinBlitz review', signup: '7,500 GC + <strong>2.5 SC</strong>', signupSc: 2.5, daily: 'Daily login SC', min: 'See review' },
+  { slug: 'roxymoxy', name: 'RoxyMoxy', reviewLabel: 'RoxyMoxy review', signup: '50,000 GC + <strong>2.5 SC</strong>', signupSc: 2.5, daily: 'Daily login bonus', min: 'See review' },
+  { slug: 'pulsz', name: 'Pulsz', reviewLabel: 'Pulsz review', signup: '5,000 GC + <strong>2.3 SC</strong>', signupSc: 2.3, daily: 'Daily login rewards', min: '10 SC (gift cards)' },
+  { slug: 'crown-coins', name: 'Crown Coins', reviewLabel: 'Crown Coins review', signup: '100,000 CC + <strong>2 SC</strong>', signupSc: 2, daily: 'Daily login bonuses', min: '100 SC (cash)' },
+  { slug: 'casino-click', name: 'Casino Click', reviewLabel: 'Casino Click review', signup: '100,000 GC + <strong>2 SC</strong>', signupSc: 2, daily: 'Daily logins <strong>up to 5 SC</strong>', min: '100 SC (cash)' },
 ];
 
 const state = Astro.locals.usState;
@@ -78,6 +85,19 @@ const offers = OFFERS.map((o) => {
   const partner = getPartner(o.slug);
   return { ...o, partner, canCta: partner ? shouldRenderAffiliateCta(partner, state) : false };
 });
+
+// Signup-SC chart data, derived from the same OFFERS array (single source of
+// truth) and sorted high→low. `maxSc` scales the bar widths.
+const scChart = [...OFFERS].sort((a, b) => b.signupSc - a.signupSc);
+const maxSc = Math.max(...OFFERS.map((o) => o.signupSc));
+const fmtSc = (n: number) => (Number.isInteger(n) ? String(n) : n.toFixed(1));
+
+// Suppressed-state list, bound to SITE_BANNED_STATES (the legal-suppression
+// source), rendered alphabetically by full name. Oklahoma is handled separately
+// as a scheduled (not-yet-active) ban so the visual never overstates the count.
+const bannedStates = SITE_BANNED_STATES.map((code) => ({ code, name: stateName(code) })).sort(
+  (a, b) => a.name.localeCompare(b.name),
+);
 
 const faq = [
   {
@@ -158,6 +178,48 @@ const jsonLd = [itemListLd, faqLd];
     and <a href="/legal/affiliate-disclosure/">Affiliate Disclosure</a>.
   </p>
 
+  <h2 id="sc-vs-gc">Sweeps Coins vs Gold Coins — the difference that decides everything</h2>
+  <p>
+    Every no-deposit bonus below hands you <em>two</em> currencies. Only one of them can ever become a
+    prize. Before reading the table, get this distinction straight — it's why the SC figure is the only
+    number that matters.
+  </p>
+
+  <section class="nd-cc" aria-label="Gold Coins compared with Sweeps Coins">
+    <article class="nd-cc-card nd-cc-gc">
+      <div class="nd-cc-head">
+        <span class="nd-cc-coin" aria-hidden="true">GC</span>
+        <div>
+          <h3 class="nd-cc-title">Gold Coins</h3>
+          <span class="nd-cc-tag nd-cc-tag-gc">Fun play only</span>
+        </div>
+      </div>
+      <p class="nd-cc-lead">The play-money currency. Great for trying games — but that's where it ends.</p>
+      <ul class="nd-cc-list">
+        <li><strong>No cash value.</strong> Gold Coins can never be redeemed for money, gift cards, or prizes.</li>
+        <li><strong>Not withdrawable.</strong> They only unlock the standard (non-prize) version of each game.</li>
+        <li><strong>Freely topped up.</strong> Signup grants and daily bundles are generous precisely because they're purely for entertainment.</li>
+      </ul>
+    </article>
+
+    <article class="nd-cc-card nd-cc-sc">
+      <div class="nd-cc-head">
+        <span class="nd-cc-coin" aria-hidden="true">SC</span>
+        <div>
+          <h3 class="nd-cc-title">Sweeps Coins</h3>
+          <span class="nd-cc-tag nd-cc-tag-sc">Redeemable currency</span>
+        </div>
+      </div>
+      <p class="nd-cc-lead">The currency that can turn into a real prize — under clear, published conditions.</p>
+      <ul class="nd-cc-list">
+        <li><strong>Redeemable for prizes</strong> (cash or gift cards) <em>after</em> you clear the brand's playthrough requirement.</li>
+        <li><strong>Identity verification (KYC) required</strong> before any redemption is paid out.</li>
+        <li><strong>Minimum threshold applies</strong> — redemptions start at 10&nbsp;SC to 100&nbsp;SC depending on the brand.</li>
+        <li><strong>Winning is never guaranteed.</strong> SC lets you play prize-eligible games; it is not a payout.</li>
+      </ul>
+    </article>
+  </section>
+
   <h2>Verified no-deposit bonuses — July 2026</h2>
 
   <div class="nd-table-wrap">
@@ -211,6 +273,27 @@ const jsonLd = [itemListLd, faqLd];
     <li><strong>Best combined stack:</strong> PlayFame — signup SC, daily login rewards <em>and</em> daily jackpots on one account.</li>
   </ul>
 
+  <figure class="nd-chart" role="group" aria-labelledby="nd-chart-cap">
+    <figcaption id="nd-chart-cap" class="nd-chart-cap">
+      Free Sweeps Coins on signup, by brand (July 2026) — highest first
+    </figcaption>
+    <ol class="nd-chart-list">
+      {scChart.map((o) => (
+        <li class={`nd-chart-row${o.signupSc === maxSc ? ' nd-chart-lead' : ''}`}>
+          <span class="nd-chart-name">{o.name}</span>
+          <span class="nd-chart-track">
+            <span class="nd-chart-fill" style={`--pct:${(o.signupSc / maxSc) * 100}%`} aria-hidden="true"></span>
+            <span class="nd-chart-val">{fmtSc(o.signupSc)} SC</span>
+          </span>
+        </li>
+      ))}
+    </ol>
+    <p class="nd-chart-note">
+      Signup SC is a one-time grant. Daily logins and mail-in entries usually outvalue it within a few
+      weeks — and every figure above is Sweeps Coins, the only redeemable currency.
+    </p>
+  </figure>
+
   <h2>What a &ldquo;no deposit bonus&rdquo; actually is</h2>
   <p>
     At a sweepstakes casino, free coins aren't a promotion bolted onto a gambling product —
@@ -260,6 +343,31 @@ const jsonLd = [itemListLd, faqLd];
     brands accept players in each remaining state.
   </p>
 
+  <section class="nd-supp" aria-labelledby="nd-supp-cap">
+    <h3 id="nd-supp-cap" class="nd-supp-cap">
+      Suppressed states <span class="nd-supp-count">{bannedStates.length}</span>
+    </h3>
+    <ul class="nd-supp-grid">
+      {bannedStates.map((s) => (
+        <li class="nd-supp-chip">
+          <span class="nd-supp-code" aria-hidden="true">{s.code}</span>
+          <span class="nd-supp-name">{s.name}</span>
+        </li>
+      ))}
+    </ul>
+    <ul class="nd-supp-grid nd-supp-grid-scheduled">
+      <li class="nd-supp-chip nd-supp-chip-scheduled">
+        <span class="nd-supp-code" aria-hidden="true">OK</span>
+        <span class="nd-supp-name">Oklahoma <span class="nd-supp-when">scheduled Nov 1, 2026</span></span>
+      </li>
+    </ul>
+    <p class="nd-supp-note">
+      Wherever you sit in one of these states, the claim buttons above are replaced with an
+      &ldquo;info-only&rdquo; note — this list is generated from the same suppression rule that gates
+      every CTA, so it can't fall out of sync.
+    </p>
+  </section>
+
   <h2>How this tracker stays honest</h2>
   <p>
     Every figure on this page comes from the operator's published offer at our last review update — we
@@ -301,5 +409,57 @@ const jsonLd = [itemListLd, faqLd];
 
     .hub-byline { font-size:0.85rem; color:#64748b; border-top:1px solid #e2e8f0; padding-top:16px; margin-top:26px; }
     .hub-byline a { color:#b45309; font-weight:600; }
+
+    /* Visual 1 — Sweeps Coins vs Gold Coins explainer (GC = gold/fun, SC = green/redeemable) */
+    .nd-cc { display:grid; grid-template-columns:1fr 1fr; gap:16px; margin:18px 0 30px; }
+    .nd-cc-card { border:1px solid #e2e8f0; border-radius:14px; padding:20px 22px; background:#fff; }
+    .nd-cc-gc { border-top:4px solid #fbbf24; background:linear-gradient(180deg,#fffdf5 0%,#fff 55%); }
+    .nd-cc-sc { border-top:4px solid #10b981; background:linear-gradient(180deg,#f0fdf9 0%,#fff 55%); }
+    .nd-cc-head { display:flex; align-items:center; gap:12px; margin-bottom:12px; }
+    .nd-cc-coin { display:inline-flex; align-items:center; justify-content:center; width:44px; height:44px; border-radius:50%; font-family:'Sora',sans-serif; font-weight:900; font-size:0.9rem; flex-shrink:0; }
+    .nd-cc-gc .nd-cc-coin { background:linear-gradient(135deg,#fde68a,#f59e0b); color:#0a1628; box-shadow:0 2px 8px rgba(245,158,11,.35); }
+    .nd-cc-sc .nd-cc-coin { background:linear-gradient(135deg,#6ee7b7,#059669); color:#04241a; box-shadow:0 2px 8px rgba(5,150,105,.35); }
+    .nd-cc .nd-cc-title { font-family:'Sora',sans-serif; font-size:1.1rem; font-weight:800; color:#0a1628; margin:0; }
+    .nd-cc-tag { display:inline-block; margin-top:4px; font-size:0.66rem; font-weight:800; letter-spacing:.05em; text-transform:uppercase; padding:2px 9px; border-radius:100px; }
+    .nd-cc-tag-gc { background:#fef3c7; color:#92400e; }
+    .nd-cc-tag-sc { background:#d1fae5; color:#065f46; }
+    .nd-cc .nd-cc-lead { font-size:0.88rem; color:#475569; margin:0 0 10px; line-height:1.55; }
+    .nd-cc .nd-cc-list { margin:0; padding-left:18px; }
+    .nd-cc .nd-cc-list li { font-size:0.85rem; color:#334155; margin-bottom:7px; line-height:1.5; }
+
+    /* Visual 2 — signup Sweeps-Coins bar chart (derived from OFFERS.signupSc) */
+    .nd-chart { margin:22px 0 8px; border:1px solid #e2e8f0; border-radius:14px; padding:18px 20px 16px; background:#fff; }
+    .nd-chart .nd-chart-cap { font-family:'Sora',sans-serif; font-size:0.8rem; font-weight:800; letter-spacing:.02em; color:#0a1628; text-transform:uppercase; margin-bottom:14px; }
+    .nd-chart .nd-chart-list { list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:8px; }
+    .nd-chart .nd-chart-row { display:grid; grid-template-columns:120px 1fr; align-items:center; gap:12px; margin:0; }
+    .nd-chart-name { font-family:'DM Sans',sans-serif; font-weight:600; color:#0a1628; font-size:0.83rem; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    .nd-chart-track { position:relative; display:flex; align-items:center; background:#f1f5f9; border-radius:8px; height:26px; overflow:hidden; }
+    .nd-chart-fill { position:absolute; left:0; top:0; bottom:0; width:var(--pct); min-width:4px; background:linear-gradient(90deg,#34d399,#059669); border-radius:8px; }
+    .nd-chart-val { position:relative; z-index:1; margin-left:10px; font-weight:800; font-size:0.77rem; color:#04241a; }
+    .nd-chart-lead .nd-chart-fill { background:linear-gradient(90deg,#fbbf24,#f59e0b); }
+    .nd-chart-lead .nd-chart-name { color:#b45309; }
+    .nd-chart-lead .nd-chart-val { color:#0a1628; }
+    .nd-chart .nd-chart-note { font-size:0.8rem; color:#64748b; margin:14px 0 0; line-height:1.5; }
+
+    /* Visual 3 — suppressed-states grid (data-bound fallback for a true US map) */
+    .nd-supp { margin:16px 0 26px; }
+    .nd-supp .nd-supp-cap { font-family:'Sora',sans-serif; font-size:1rem; font-weight:800; color:#0a1628; margin:0 0 12px; display:flex; align-items:center; gap:8px; }
+    .nd-supp-count { display:inline-flex; align-items:center; justify-content:center; min-width:26px; height:24px; padding:0 8px; border-radius:100px; background:#fef2f2; color:#b91c1c; border:1px solid #fecaca; font-size:0.8rem; font-weight:800; }
+    .nd-supp .nd-supp-grid { list-style:none; margin:0; padding:0; display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:8px; }
+    .nd-supp .nd-supp-grid-scheduled { margin-top:8px; grid-template-columns:repeat(auto-fill,minmax(230px,1fr)); }
+    .nd-supp .nd-supp-chip { display:flex; align-items:center; gap:10px; margin:0; padding:9px 12px; border-radius:10px; background:#fef2f2; border:1px solid #fecaca; }
+    .nd-supp-code { display:inline-flex; align-items:center; justify-content:center; width:30px; height:24px; border-radius:6px; background:#fee2e2; color:#b91c1c; font-family:'Sora',sans-serif; font-weight:800; font-size:0.72rem; flex-shrink:0; }
+    .nd-supp-name { color:#7f1d1d; font-weight:600; font-size:0.85rem; }
+    .nd-supp-chip-scheduled { background:#fffbeb; border-color:#fde68a; }
+    .nd-supp-chip-scheduled .nd-supp-code { background:#fef3c7; color:#92400e; }
+    .nd-supp-chip-scheduled .nd-supp-name { color:#78350f; }
+    .nd-supp-when { display:block; font-size:0.72rem; font-weight:700; color:#92400e; opacity:.85; }
+    .nd-supp .nd-supp-note { font-size:0.8rem; color:#64748b; margin:14px 0 0; line-height:1.5; }
+
+    @media(max-width:600px){
+      .nd-cc { grid-template-columns:1fr; }
+      .nd-chart .nd-chart-row { grid-template-columns:88px 1fr; gap:8px; }
+      .nd-chart-name { font-size:0.76rem; }
+    }
   </style>
 </ContentLayout>
