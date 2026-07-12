@@ -155,6 +155,11 @@ const partner = result.partner;
         offers for {partner.name} are not available where you are.
       </p>
       <p>
+        You can still browse the free, no-purchase offers available where you are on our
+        <a href="/bonuses/no-deposit/">no-deposit bonuses</a> tracker, or check the
+        <a href="/state-legality/">state legality hub</a> for what's offered in your state.
+      </p>
+      <p>
         If you or someone you know has a gambling problem, call
         <strong>1-800-GAMBLER</strong> for confidential help.
       </p>
@@ -227,6 +232,11 @@ function writeSitemapAndRobots() {
   // New-sweepstakes-casinos freshness hub (authored under src/routes/new/index.astro).
   if (existsSync(join(root, 'src', 'routes', 'new', 'index.astro'))) urls.push('/new/');
 
+  // No-deposit / free Sweeps Coins bonus tracker (authored under
+  // src/routes/bonuses/no-deposit/index.astro). Indexable content hub that lives
+  // under /bonuses/ — see the robots Allow exception below.
+  if (existsSync(join(root, 'src', 'routes', 'bonuses', 'no-deposit', 'index.astro'))) urls.push('/bonuses/no-deposit/');
+
   // MDX content collections (skip drafts). comparisons render under /best/.
   const collectionUrlPrefix = { guides: '/guides', comparisons: '/best', states: '/states' };
   for (const [name, prefix] of Object.entries(collectionUrlPrefix)) {
@@ -252,12 +262,15 @@ function writeSitemapAndRobots() {
     'anthropic-ai', 'PerplexityBot', 'Google-Extended', 'Applebot-Extended',
     'CCBot', 'cohere-ai',
   ];
+  // The no-deposit hub is indexable content that lives under /bonuses/. A more
+  // specific Allow beats the broad Disallow (longest-match precedence on Google/
+  // Bing), so the affiliate redirect endpoints stay blocked while the hub crawls.
   const aiGroups = aiBots
-    .map((b) => `User-agent: ${b}\nAllow: /\nDisallow: /bonuses/`)
+    .map((b) => `User-agent: ${b}\nAllow: /\nAllow: /bonuses/no-deposit/\nDisallow: /bonuses/`)
     .join('\n\n');
   const robots =
     `# Sweepstakes Wiz\nUser-agent: *\nAllow: /\n\n` +
-    `# Affiliate redirect endpoints — not for indexing (legal/contact use noindex meta instead)\nDisallow: /bonuses/\n\n` +
+    `# Affiliate redirect endpoints — not for indexing (legal/contact use noindex meta instead)\n# The no-deposit bonus hub is indexable content; a more specific Allow keeps it crawlable.\nAllow: /bonuses/no-deposit/\nDisallow: /bonuses/\n\n` +
     `# AI / LLM crawlers — explicitly allowed (we want accurate citations)\n${aiGroups}\n\n` +
     `Sitemap: ${ORIGIN}/sitemap.xml\n# LLM guide: ${ORIGIN}/llms.txt\n`;
 
@@ -290,6 +303,7 @@ function writeSitemapAndRobots() {
     `## Start here\n` +
     `- [Best sweepstakes casinos](${ORIGIN}/best/sweepstakes-casinos/)\n` +
     `- [New sweepstakes casinos](${ORIGIN}/new/)\n` +
+    `- [No deposit bonuses & free Sweeps Coins](${ORIGIN}/bonuses/no-deposit/)\n` +
     `- [What are sweepstakes casinos?](${ORIGIN}/guides/what-are-sweepstakes-casinos/)\n` +
     `- [Sweepstakes casino legality by US state](${ORIGIN}/state-legality/)\n\n` +
     (stateGuideLines ? `## State guides\n${stateGuideLines}\n\n` : '') +

@@ -1,0 +1,305 @@
+---
+/**
+ * "No Deposit Bonuses & Free Sweeps Coins" hub (/bonuses/no-deposit/). A dated,
+ * geo-aware tracker of the no-purchase sweepstakes offers (signup grants, daily
+ * logins, mail-in AMOE) across our reviewed roster.
+ *
+ * SSR (prerender=false) so affiliate CTAs are geo-suppressed per the visitor's
+ * state via <AffiliateLink> — mirroring src/routes/best/[slug].astro. Emits
+ * CollectionPage (layout) + ItemList + FAQPage (+ BreadcrumbList from
+ * ContentLayout), connected via @id like the /new/ and /best/ hubs.
+ *
+ * Card Crush is intentionally excluded: its only availability states (CA & NY)
+ * are both site-banned, so it can never render a CTA and has no place here.
+ */
+export const prerender = false;
+
+import ContentLayout from '../../../layouts/ContentLayout.astro';
+import AffiliateLink from '../../../components/AffiliateLink.astro';
+import { getPartner } from '../../../data/affiliates';
+import { shouldRenderAffiliateCta } from '../../../data/geo';
+import { brandEntityId, getBrandEntity } from '../../../data/brandEntities';
+
+const ORIGIN = 'https://sweepstakeswiz.com';
+const canonicalPath = '/bonuses/no-deposit/';
+const canonical = `${ORIGIN}${canonicalPath}`;
+
+const DATE_PUBLISHED = '2026-07-12';
+const DATE_MODIFIED = '2026-07-12';
+const VERIFIED_LABEL = 'Jul 2026';
+
+const title =
+  'Sweepstakes Casino No Deposit Bonuses — July 2026 (Verified) | Sweepstakes Wiz';
+const description =
+  "Every no-deposit sweepstakes casino bonus we've verified for July 2026 — free Sweeps Coins on signup, daily login rewards, and mail-in entries. No promo codes required, checked against your state.";
+const heroTitle =
+  'No Deposit Bonuses & <span class="accent">Free Sweeps Coins</span> (July 2026)';
+const heroSubtitle =
+  'The no-purchase offers we track across our reviewed roster — free Sweeps Coins on signup, daily logins, and mail-in entries. No promo codes, and every offer is checked against your state.';
+
+const breadcrumbs = [
+  { name: 'Home', path: '/' },
+  { name: 'No Deposit Bonuses', path: canonicalPath },
+];
+
+/**
+ * Static offer facts as published on each operator at our last review update —
+ * the redeemable SC figure is what matters. GC/SC bonus amounts are not part of
+ * the structured affiliate/brand data, so they live here; the `slug` keeps the
+ * review link, brand @id and geo-gated CTA in sync. (Card Crush excluded — see
+ * header note.)
+ */
+type Offer = {
+  slug: string;
+  name: string;
+  reviewLabel: string;
+  signup: string;
+  daily: string;
+  min: string;
+};
+
+const OFFERS: Offer[] = [
+  { slug: 'zula', name: 'Zula Casino', reviewLabel: 'Zula review', signup: 'Up to 120,000 GC + <strong>10 SC</strong>', daily: 'Daily login rewards', min: '50 SC (cash)' },
+  { slug: 'legendz', name: 'Legendz', reviewLabel: 'Legendz review', signup: '500 GC + <strong>3 SC</strong>', daily: 'Daily rewards', min: 'Prizeout gift cards' },
+  { slug: 'thrillzz', name: 'Thrillzz', reviewLabel: 'Thrillzz review', signup: '3,000 GC + <strong>3 SC</strong>', daily: 'Daily rewards', min: '50 SC (cash)' },
+  { slug: 'mcluck', name: 'McLuck', reviewLabel: 'McLuck review', signup: '7,500 GC + <strong>2.5 SC</strong>', daily: 'Daily login rewards', min: '10 SC (gift cards)' },
+  { slug: 'hello-millions', name: 'HelloMillions', reviewLabel: 'Hello Millions review', signup: '15,000 GC + <strong>2.5 SC</strong>', daily: 'Daily bonuses', min: '10 SC (gift cards)' },
+  { slug: 'playfame', name: 'PlayFame', reviewLabel: 'PlayFame review', signup: '7,500 GC + <strong>2.5 SC</strong>', daily: 'Daily login rewards + daily jackpots', min: '10 SC (gift cards)' },
+  { slug: 'spree', name: 'Spree', reviewLabel: 'Spree review', signup: '25,000 GC + <strong>2.5 SC</strong>', daily: 'Promotional drops', min: 'Gift cards (~48h)' },
+  { slug: 'spinblitz', name: 'SpinBlitz', reviewLabel: 'SpinBlitz review', signup: '7,500 GC + <strong>2.5 SC</strong>', daily: 'Daily login SC', min: 'See review' },
+  { slug: 'roxymoxy', name: 'RoxyMoxy', reviewLabel: 'RoxyMoxy review', signup: '50,000 GC + <strong>2.5 SC</strong>', daily: 'Daily login bonus', min: 'See review' },
+  { slug: 'pulsz', name: 'Pulsz', reviewLabel: 'Pulsz review', signup: '5,000 GC + <strong>2.3 SC</strong>', daily: 'Daily login rewards', min: '10 SC (gift cards)' },
+  { slug: 'crown-coins', name: 'Crown Coins', reviewLabel: 'Crown Coins review', signup: '100,000 CC + <strong>2 SC</strong>', daily: 'Daily login bonuses', min: '100 SC (cash)' },
+  { slug: 'casino-click', name: 'Casino Click', reviewLabel: 'Casino Click review', signup: '100,000 GC + <strong>2 SC</strong>', daily: 'Daily logins <strong>up to 5 SC</strong>', min: '100 SC (cash)' },
+];
+
+const state = Astro.locals.usState;
+const offers = OFFERS.map((o) => {
+  const partner = getPartner(o.slug);
+  return { ...o, partner, canCta: partner ? shouldRenderAffiliateCta(partner, state) : false };
+});
+
+const faq = [
+  {
+    q: 'What is a sweepstakes casino no deposit bonus?',
+    a: "It's free virtual currency — Gold Coins for fun play and, more importantly, Sweeps Coins that can be redeemed for prizes — issued just for creating and verifying an account. No purchase is required, which is a legal requirement of the sweepstakes model, not a marketing gimmick.",
+  },
+  {
+    q: 'Do I need a promo code to claim these bonuses?',
+    a: "No. Every offer on this page is credited automatically after you register and verify your account. If a third-party site tells you a code is required for one of these brands, treat it as a red flag — the operators themselves don't require one.",
+  },
+  {
+    q: 'Which sweepstakes casino gives the most free Sweeps Coins on signup?',
+    a: "Of the brands we cover, Zula Casino currently leads with 10 free SC on signup. Legendz and Thrillzz follow with 3 SC each, and most other operators issue 2–2.5 SC. Signup value isn't everything — daily logins and mail-in entries usually outvalue the welcome within a few weeks of regular play.",
+  },
+  {
+    q: 'Can existing players get no-deposit bonuses?',
+    a: 'Yes — daily login streaks, social media drops, in-app promotions, and the mail-in (AMOE) route all issue free Sweeps Coins to existing accounts. Daily logins are the most reliable: claimed consistently, they typically outvalue the one-time welcome bonus.',
+  },
+  {
+    q: 'Can you actually win real money from a no-deposit bonus?',
+    a: "Yes. Sweeps Coins won from free play can be redeemed for cash prizes or gift cards once you meet the operator's playthrough requirement and minimum redemption threshold and pass identity verification. Winning is never guaranteed, and redemption minimums range from 10 SC to 100 SC depending on the brand.",
+  },
+  {
+    q: "Why can't I see some offers on this page?",
+    a: "We automatically suppress affiliate offers in the 13 states that ban or restrict sweepstakes casinos, and wherever a specific operator doesn't accept players. What remains is what's actually available to you. See our State Legality hub for the full picture.",
+  },
+];
+
+// CollectionPage (layout foundation) + ItemList whose items are brand @id refs
+// (brand Organization nodes auto-appended by buildPageGraph) + FAQPage. No
+// Offer / AggregateRating / promo-code schema — schema-content parity only.
+const itemListLd = {
+  '@type': 'ItemList',
+  '@id': `${canonical}#itemlist`,
+  name: 'Verified no-deposit sweepstakes casino bonuses — July 2026',
+  numberOfItems: offers.length,
+  itemListElement: offers.map((o, i) => ({
+    '@type': 'ListItem',
+    position: i + 1,
+    name: o.name,
+    url: `${ORIGIN}/reviews/${o.slug}/`,
+    ...(getBrandEntity(o.slug) ? { item: { '@id': brandEntityId(o.slug) } } : {}),
+  })),
+};
+
+const faqLd = {
+  '@type': 'FAQPage',
+  '@id': `${canonical}#faq`,
+  mainEntity: faq.map((f) => ({
+    '@type': 'Question',
+    name: f.q,
+    acceptedAnswer: { '@type': 'Answer', text: f.a },
+  })),
+};
+
+const jsonLd = [itemListLd, faqLd];
+---
+<ContentLayout
+  title={title}
+  description={description}
+  canonicalPath={canonicalPath}
+  breadcrumbs={breadcrumbs}
+  heroTitle={heroTitle}
+  heroSubtitle={heroSubtitle}
+  pageType="CollectionPage"
+  mainEntityId={`${canonical}#itemlist`}
+  datePublished={DATE_PUBLISHED}
+  dateModified={DATE_MODIFIED}
+  jsonLd={jsonLd}
+>
+  <p>
+    Every bonus below is a genuine <strong>no-purchase offer</strong> — free Gold Coins and Sweeps
+    Coins issued for signing up, logging in daily, or mailing a free entry. <strong>None of them
+    require a promo code</strong>: they're credited automatically after registration and verification.
+    Offers are re-checked against each operator's published terms; the &ldquo;verified&rdquo; date
+    shows when we last confirmed each one. Where an offer isn't legally available in your state, we
+    show that instead of a dead button — see our <a href="/state-legality/">state legality rules</a>
+    and <a href="/legal/affiliate-disclosure/">Affiliate Disclosure</a>.
+  </p>
+
+  <h2>Verified no-deposit bonuses — July 2026</h2>
+
+  <div class="nd-table-wrap">
+    <table class="nd-table">
+      <thead>
+        <tr>
+          <th>Operator</th>
+          <th>Signup bonus (no code)</th>
+          <th>Daily free SC</th>
+          <th>Min. redemption</th>
+          <th>Verified</th>
+          <th>Review</th>
+          <th>Bonus</th>
+        </tr>
+      </thead>
+      <tbody>
+        {offers.map((o) => (
+          <tr>
+            <td><strong>{o.name}</strong></td>
+            <td set:html={o.signup} />
+            <td set:html={o.daily} />
+            <td set:html={o.min} />
+            <td class="nd-verified">{VERIFIED_LABEL}</td>
+            <td><a href={`/reviews/${o.slug}/`}>{o.reviewLabel}</a></td>
+            <td class="nd-cta-cell">
+              {o.canCta ? (
+                <AffiliateLink slug={o.slug} label="Claim bonus" class="nd-cta" />
+              ) : (
+                <span class="nd-na">Not in your state</span>
+              )}
+            </td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  </div>
+
+  <blockquote class="nd-note">
+    <strong>Reading the table:</strong> the SC figure is what matters — Sweeps Coins are the
+    redeemable currency; Gold Coins are for fun play only. &ldquo;Verified&rdquo; is when we last
+    confirmed the published offer; the linked review always carries the current figure and full terms.
+    The <strong>Bonus</strong> column is checked against your location, so you only see a claim button
+    where the offer is actually available to you.
+  </blockquote>
+
+  <h2>Top picks for free SC value</h2>
+  <ul>
+    <li><strong>Biggest signup SC:</strong> Zula Casino (10 SC) — four times the category norm.</li>
+    <li><strong>Best ongoing daily value:</strong> Casino Click — daily logins scale up to 5 SC per day, which outpaces every signup bonus within a week of consistent claiming.</li>
+    <li><strong>Best for small redeemers:</strong> McLuck, Pulsz, HelloMillions and PlayFame — free-play winnings become redeemable from just 10 SC in gift cards.</li>
+    <li><strong>Best combined stack:</strong> PlayFame — signup SC, daily login rewards <em>and</em> daily jackpots on one account.</li>
+  </ul>
+
+  <h2>What a &ldquo;no deposit bonus&rdquo; actually is</h2>
+  <p>
+    At a sweepstakes casino, free coins aren't a promotion bolted onto a gambling product —
+    <strong>free entry is a legal requirement of the sweepstakes model</strong>. Operators must
+    provide no-purchase routes to Sweeps Coins, which is why signup grants, daily logins, and mail-in
+    entries exist at every legitimate brand. The full mechanics are in our guide to
+    <a href="/guides/what-are-sweepstakes-casinos/">what is a sweepstakes casino</a> and the
+    <a href="/guides/gold-coins-vs-sweeps-coins/">Gold Coins vs Sweeps Coins</a> explainer.
+  </p>
+  <p>
+    That legal footing has a practical consequence: <strong>you never need a promo code</strong>.
+    Every offer above is credited automatically. Sites promising &ldquo;exclusive codes&rdquo; for
+    these brands are dressing up the standard offer — or worse.
+  </p>
+
+  <h2>The four free-SC routes (and which are worth your time)</h2>
+  <ol>
+    <li><strong>Signup grant</strong> — one-time GC + SC for registering and verifying. Table above.</li>
+    <li><strong>Daily login</strong> — the workhorse. Small daily SC amounts, often on streak multipliers that grow through the week. Claimed consistently, dailies outvalue the signup bonus at most brands within a few weeks.</li>
+    <li><strong>Mail-in request (AMOE)</strong> — a free postal entry for SC at published rates (for example, SpinBlitz credits 4 SC per envelope). Slow, but purchase-free by design; each operator's official rules list the address and format requirements.</li>
+    <li><strong>Social drops &amp; promotions</strong> — SC giveaways on operator social channels and in-app events. Irregular, but free to follow.</li>
+  </ol>
+
+  <h2>How to claim (and keep) a no-deposit bonus</h2>
+  <ol>
+    <li><strong>Check your state first.</strong> Offers on this page are already geo-filtered, but the <a href="/state-legality/">state legality hub</a> has the full picture.</li>
+    <li><strong>Register with accurate details.</strong> Redemptions require identity verification later — mismatched details are the #1 cause of stuck payouts.</li>
+    <li><strong>Verify your email.</strong> Most brands credit the signup bonus at this step, no code needed.</li>
+    <li><strong>Note the playthrough.</strong> Free SC typically carries a 1x (sometimes higher) playthrough before it's redeemable — the linked reviews list each brand's terms.</li>
+    <li><strong>Claim dailies deliberately.</strong> Streak structures reward consistency; a missed day often resets the multiplier.</li>
+  </ol>
+
+  <h2>For existing players</h2>
+  <p>
+    You don't stop earning free SC after signup. Daily streaks, in-app promotions, social drops, and
+    the mail-in route all remain open to existing accounts — there are no &ldquo;existing player
+    codes&rdquo; because there are no codes at all. If an operator's daily structure matters to you,
+    compare the ongoing-value notes in each <a href="/reviews/mcluck/">review</a> rather than chasing
+    one-time offers.
+  </p>
+
+  <h2>Where these offers aren't available</h2>
+  <p>
+    Sweepstakes casinos are banned or restricted in 13 states as of July 2026, with Oklahoma scheduled
+    to follow on November 1, 2026. In those states this page is informational only and no offers
+    render. The <a href="/state-legality/">state legality hub</a> tracks the current status and which
+    brands accept players in each remaining state.
+  </p>
+
+  <h2>How this tracker stays honest</h2>
+  <p>
+    Every figure on this page comes from the operator's published offer at our last review update — we
+    don't reprint third-party &ldquo;exclusive&rdquo; claims, and we don't list brands we haven't
+    reviewed. When an offer changes, the review updates first and this table follows. If a bonus you
+    see here doesn't match what an operator shows you, the operator is right and we're out of date —
+    <a href="/report/">tell us</a> and we'll re-verify.
+  </p>
+
+  <section aria-label="Frequently asked questions">
+    <h2>Frequently asked questions</h2>
+    {faq.map((f) => (
+      <>
+        <h3>{f.q}</h3>
+        <p>{f.a}</p>
+      </>
+    ))}
+  </section>
+
+  <p class="hub-byline">
+    Curated and maintained by <a href="/author/ilija-milosevic/">Ilija Milosevic</a>, iGaming Writer &amp;
+    Analyst. Editorial analysis of published operator terms and cited sources — not first-hand testing.
+    Sweepstakes play only — no real-money gambling. 18+ (21+ where required). Not available in all US states.
+  </p>
+
+  <style>
+    .nd-table-wrap { overflow-x:auto; margin:18px 0 8px; }
+    .nd-table { width:100%; border-collapse:collapse; font-size:0.92rem; min-width:760px; }
+    .nd-table th, .nd-table td { text-align:left; padding:10px 12px; border-bottom:1px solid #e2e8f0; vertical-align:middle; }
+    .nd-table thead th { font-family:'Sora',sans-serif; font-size:0.76rem; letter-spacing:.03em; text-transform:uppercase; color:#475569; background:#f8fafc; border-bottom:2px solid #e2e8f0; }
+    .nd-table tbody tr:hover { background:#f8fafc; }
+    .nd-table strong { color:#0a1628; }
+    .nd-verified { color:#047857; font-weight:700; white-space:nowrap; }
+    .nd-cta-cell { white-space:nowrap; }
+    .nd-cta { display:inline-block; background:linear-gradient(135deg,#fbbf24,#f59e0b); color:#0a1628; font-weight:800; padding:8px 14px; border-radius:10px; text-decoration:none; font-size:0.82rem; }
+    .nd-na { font-size:0.74rem; color:#b91c1c; font-weight:700; }
+
+    .nd-note { background:#f8fafc; border:1px solid #e2e8f0; border-left:4px solid #fbbf24; border-radius:10px; padding:12px 16px; font-size:0.92rem; color:#334155; margin:14px 0 26px; }
+
+    .hub-byline { font-size:0.85rem; color:#64748b; border-top:1px solid #e2e8f0; padding-top:16px; margin-top:26px; }
+    .hub-byline a { color:#b45309; font-weight:600; }
+  </style>
+</ContentLayout>

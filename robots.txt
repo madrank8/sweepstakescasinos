@@ -3,51 +3,64 @@ User-agent: *
 Allow: /
 
 # Affiliate redirect endpoints — not for indexing (legal/contact use noindex meta instead)
+# The no-deposit bonus hub is indexable content; a more specific Allow keeps it crawlable.
+Allow: /bonuses/no-deposit/
 Disallow: /bonuses/
 
 # AI / LLM crawlers — explicitly allowed (we want accurate citations)
 User-agent: GPTBot
 Allow: /
+Allow: /bonuses/no-deposit/
 Disallow: /bonuses/
 
 User-agent: OAI-SearchBot
 Allow: /
+Allow: /bonuses/no-deposit/
 Disallow: /bonuses/
 
 User-agent: ChatGPT-User
 Allow: /
+Allow: /bonuses/no-deposit/
 Disallow: /bonuses/
 
 User-agent: ClaudeBot
 Allow: /
+Allow: /bonuses/no-deposit/
 Disallow: /bonuses/
 
 User-agent: Claude-Web
 Allow: /
+Allow: /bonuses/no-deposit/
 Disallow: /bonuses/
 
 User-agent: anthropic-ai
 Allow: /
+Allow: /bonuses/no-deposit/
 Disallow: /bonuses/
 
 User-agent: PerplexityBot
 Allow: /
+Allow: /bonuses/no-deposit/
 Disallow: /bonuses/
 
 User-agent: Google-Extended
 Allow: /
+Allow: /bonuses/no-deposit/
 Disallow: /bonuses/
 
 User-agent: Applebot-Extended
 Allow: /
+Allow: /bonuses/no-deposit/
 Disallow: /bonuses/
 
 User-agent: CCBot
 Allow: /
+Allow: /bonuses/no-deposit/
 Disallow: /bonuses/
 
 User-agent: cohere-ai
 Allow: /
+Allow: /bonuses/no-deposit/
 Disallow: /bonuses/
 
 Sitemap: https://sweepstakeswiz.com/sitemap.xml
