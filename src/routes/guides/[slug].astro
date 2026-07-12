@@ -108,7 +108,30 @@ const howToLd = howTo
     }
   : undefined;
 
-const jsonLd = [articleLd, ...(faqLd ? [faqLd] : []), ...(howToLd ? [howToLd] : [])];
+// ItemList for guides that enumerate items (e.g. a categorized casino list).
+// Items mirror a visible list in the body; url is normalized to absolute.
+const itemList = entry.data.itemList;
+const itemListLd = itemList
+  ? {
+      '@type': 'ItemList',
+      '@id': `${canonical}#itemlist`,
+      name: itemList.name,
+      numberOfItems: itemList.items.length,
+      itemListElement: itemList.items.map((it, i) => ({
+        '@type': 'ListItem',
+        position: i + 1,
+        name: it.name,
+        url: it.url.startsWith('http') ? it.url : `${ORIGIN}${it.url}`,
+      })),
+    }
+  : undefined;
+
+const jsonLd = [
+  articleLd,
+  ...(faqLd ? [faqLd] : []),
+  ...(howToLd ? [howToLd] : []),
+  ...(itemListLd ? [itemListLd] : []),
+];
 ---
 <ContentLayout
   title={entry.data.title}

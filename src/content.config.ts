@@ -46,6 +46,17 @@ const guides = defineCollection({
         steps: z.array(z.object({ name: z.string(), text: z.string() })),
       })
       .optional(),
+    /**
+     * Optional ItemList JSON-LD for guides that enumerate items (e.g. a
+     * categorized list of casinos). Items MUST mirror a visible list in the
+     * body; `url` is an absolute-from-root path (e.g. `/reviews/mcluck/`).
+     */
+    itemList: z
+      .object({
+        name: z.string(),
+        items: z.array(z.object({ name: z.string(), url: z.string() })),
+      })
+      .optional(),
   }),
 });
 
