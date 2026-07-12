@@ -8,6 +8,7 @@
 - [No deposit bonuses & free Sweeps Coins](https://sweepstakeswiz.com/bonuses/no-deposit/)
 - [What are sweepstakes casinos?](https://sweepstakeswiz.com/guides/what-are-sweepstakes-casinos/)
 - [Sweepstakes casino legality by US state](https://sweepstakeswiz.com/state-legality/)
+- [Live legality tracker (all 51 jurisdictions)](https://sweepstakeswiz.com/sweepstakes-tracker/)
 
 ## State guides
 - [California state guide](https://sweepstakeswiz.com/states/california/)
@@ -18,6 +19,15 @@
 - [Ohio state guide](https://sweepstakeswiz.com/states/ohio/)
 - [Texas state guide](https://sweepstakeswiz.com/states/texas/)
 - [Washington state guide](https://sweepstakeswiz.com/states/washington/)
+
+## Legality dataset (citable, CC-BY 4.0)
+- [Sweepstakes legality tracker](https://sweepstakeswiz.com/sweepstakes-tracker/): daily-updated legal status, operator availability, pending bills across all 51 US jurisdictions.
+- [legality.json](https://sweepstakeswiz.com/sweepstakes-tracker/api/legality.json): machine-readable full dataset.
+- [legality.csv](https://sweepstakeswiz.com/sweepstakes-tracker/api/legality.csv): CSV export.
+- [provenance.json](https://sweepstakeswiz.com/sweepstakes-tracker/api/provenance.json): per-state sources and freshness.
+- [Tracker methodology](https://sweepstakeswiz.com/sweepstakes-tracker/methodology/): sourcing tiers, cadence, verification, corrections.
+- [Pending legislation](https://sweepstakeswiz.com/sweepstakes-tracker/legislation/): live bill tracker.
+- Cite as: Sweepstakes Wiz, "U.S. Sweepstakes Casino Legality Dataset," https://sweepstakeswiz.com/sweepstakes-tracker/.
 
 ## Trust & methodology
 - [How we rate](https://sweepstakeswiz.com/how-we-rate/)

@@ -1,0 +1,157 @@
+---
+/**
+ * State legality hub -> /state-legality/.
+ *
+ * Replaces the previous hand-authored 50-state HTML table (which drifted from
+ * the data layer). Now fully data-driven: the site-status + "X of N operators"
+ * columns are computed from src/data/geo.ts + affiliates.ts, and the legal
+ * status + legislative tracker come from the live tracker dataset. One source
+ * of truth, no drift.
+ */
+export const prerender = true;
+
+import ContentLayout from '../../layouts/ContentLayout.astro';
+import UsLegalityMap from '../../components/tracker/UsLegalityMap.astro';
+import { getTrackerData } from '../../lib/tracker/data';
+import { SWEEPS_STATUS_META } from '../../lib/tracker/types';
+import { wizAvailabilityForState } from '../../data/trackerReconcile';
+import { AFFILIATE_PARTNERS } from '../../data/affiliates';
+import { stateName, isUsStateCode, type UsStateCode } from '../../data/usStates';
+
+const ORIGIN = 'https://sweepstakeswiz.com';
+const canonicalPath = '/state-legality/';
+const canonical = `${ORIGIN}${canonicalPath}`;
+
+const bundle = await getTrackerData();
+const totalOperators = AFFILIATE_PARTNERS.length;
+
+const rows = [...bundle.states]
+  .sort((a, b) => a.state_name.localeCompare(b.state_name))
+  .map((s) => {
+    const avail = wizAvailabilityForState(s.state_code);
+    return {
+      code: s.state_code,
+      name: s.state_name,
+      slug: s.state_slug,
+      siteStatus: avail.banned ? 'Info only' : 'Offers shown',
+      operators: avail.banned ? 0 : avail.availableCount,
+      trackerStatus: s.sweeps_casino_status,
+    };
+  });
+
+const bills = [...bundle.pendingLegislation]
+  .filter((b) => b.status !== 'dead')
+  .sort((a, b) => new Date(b.last_action_date).getTime() - new Date(a.last_action_date).getTime())
+  .slice(0, 25);
+
+const updatedHuman = new Date(bundle.generatedAt).toLocaleDateString('en-US', {
+  year: 'numeric', month: 'long', day: 'numeric', timeZone: 'UTC',
+});
+
+const breadcrumbs = [
+  { name: 'Home', path: '/' },
+  { name: 'State Legality', path: canonicalPath },
+];
+
+const itemListLd = {
+  '@type': 'ItemList',
+  '@id': `${canonical}#states`,
+  name: 'US sweepstakes casino legality by state',
+  numberOfItems: rows.length,
+  itemListElement: rows.map((r, i) => ({
+    '@type': 'ListItem',
+    position: i + 1,
+    name: `${r.name}: ${SWEEPS_STATUS_META[r.trackerStatus].label}`,
+    url: `${ORIGIN}/states/${r.slug}/`,
+  })),
+};
+
+function dirLabel(d: string) {
+  return d === 'anti_sweeps' ? 'Restrictive' : d === 'pro_sweeps' ? 'Permissive' : 'Neutral';
+}
+---
+<ContentLayout
+  title="Sweepstakes Casino Legality by US State (2026)"
+  description="Where sweepstakes casinos are legal, restricted, or banned across all 51 US jurisdictions, plus which operators we can recommend in each state and a live pending-legislation tracker."
+  canonicalPath={canonicalPath}
+  breadcrumbs={breadcrumbs}
+  heroTitle="Sweepstakes casino legality by US state"
+  heroSubtitle="Legal status, operator availability, and pending bills for every US jurisdiction."
+  pageType="CollectionPage"
+  dateModified={bundle.generatedAt}
+  mainEntityId={`${canonical}#states`}
+  jsonLd={[itemListLd]}
+>
+  <p class="sl-intro">
+    This hub combines two things: the neutral <strong>legal status</strong> of each state
+    (from our <a href="/sweepstakes-tracker/">daily legality tracker</a>) and the
+    <strong>site status</strong> &mdash; whether we show affiliate offers there. In states with
+    marketing restrictions we publish information only. Last updated {updatedHuman}.
+  </p>
+
+  <UsLegalityMap states={bundle.states} linkBase="/states/" />
+
+  <h2>All jurisdictions</h2>
+  <div class="sl-tablewrap">
+    <table class="sl-table">
+      <thead>
+        <tr><th>State</th><th>Site status</th><th>Operators</th><th>Legal status</th><th>Guide</th></tr>
+      </thead>
+      <tbody>
+        {rows.map((r) => (
+          <tr>
+            <td>{r.name}</td>
+            <td><span class:list={['sl-site', r.siteStatus === 'Info only' ? 'info' : 'offers']}>{r.siteStatus}</span></td>
+            <td>{r.operators} of {totalOperators}</td>
+            <td><span class="sl-badge" style={`--c:${SWEEPS_STATUS_META[r.trackerStatus].color}`}>{SWEEPS_STATUS_META[r.trackerStatus].label}</span></td>
+            <td><a href={`/states/${r.slug}/`}>{r.name} guide</a></td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  </div>
+
+  <h2>Pending legislation tracker</h2>
+  {bills.length === 0 ? (
+    <p>No active bills are currently tracked. See the <a href="/sweepstakes-tracker/legislation/">legislation page</a> for history.</p>
+  ) : (
+    <div class="sl-tablewrap">
+      <table class="sl-table">
+        <thead><tr><th>State</th><th>Bill</th><th>Direction</th><th>Status</th><th>Last action</th></tr></thead>
+        <tbody>
+          {bills.map((b) => (
+            <tr>
+              <td>{isUsStateCode(b.state_code) ? stateName(b.state_code as UsStateCode) : b.state_code}</td>
+              <td><a href={b.bill_url} rel="nofollow noopener" target="_blank">{b.bill_number}</a></td>
+              <td><span class={`sl-dir dir-${b.direction}`}>{dirLabel(b.direction)}</span></td>
+              <td>{b.status_label || b.status}</td>
+              <td>{b.last_action_date ? new Date(b.last_action_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' }) : '\u2014'}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  )}
+
+  <p class="sl-foot">
+    Legal status is compiled per our <a href="/sweepstakes-tracker/methodology/">tracker methodology</a>
+    and is editorial analysis of public law &mdash; not legal advice. Play responsibly &middot; 21+ &middot;
+    <a href="tel:18004262537">1-800-GAMBLER</a>.
+  </p>
+
+  <style>
+    .sl-intro{background:#f0f7ff;border:1px solid #cfe0f5;border-radius:10px;padding:12px 16px;margin:0 0 20px;}
+    .sl-intro a{color:#1d4ed8;font-weight:600;}
+    .sl-tablewrap{overflow-x:auto;border:1px solid #e2e8f0;border-radius:10px;margin:10px 0 24px;}
+    .sl-table{border-collapse:collapse;width:100%;font-size:.9rem;}
+    .sl-table th,.sl-table td{padding:9px 12px;border-bottom:1px solid #eef2f7;text-align:left;white-space:nowrap;}
+    .sl-table th{background:#f8fafc;font-size:.82rem;}
+    .sl-site{font-weight:600;font-size:.82rem;padding:2px 9px;border-radius:999px;}
+    .sl-site.info{background:#fee2e2;color:#b91c1c;} .sl-site.offers{background:#dcfce7;color:#15803d;}
+    .sl-badge{display:inline-block;padding:2px 10px;border-radius:999px;font-size:.78rem;font-weight:600;color:#0a1628;background:color-mix(in srgb, var(--c) 26%, #fff);border:1px solid var(--c);}
+    .sl-dir{font-size:.7rem;text-transform:uppercase;letter-spacing:.05em;padding:2px 8px;border-radius:6px;font-weight:700;}
+    .dir-anti_sweeps{background:#fee2e2;color:#b91c1c;} .dir-pro_sweeps{background:#dcfce7;color:#15803d;} .dir-neutral{background:#e2e8f0;color:#475569;}
+    .sl-foot{font-size:.85rem;color:#64748b;border-top:1px solid #e2e8f0;padding-top:14px;margin-top:12px;}
+    .sl-foot a{color:#b45309;font-weight:600;}
+  </style>
+</ContentLayout>

@@ -128,6 +128,58 @@ export function brandOrganizationNode(slug: string): Node | undefined {
   };
 }
 
+export interface DatasetNodeOptions {
+  /** Absolute page URL that hosts the dataset (with trailing slash). */
+  url: string;
+  /** Stable fragment @id, e.g. `${url}#dataset`. */
+  id: string;
+  name: string;
+  description: string;
+  /** ISO 8601 last-modified (max of source freshness). */
+  dateModified: string;
+  datePublished?: string;
+  keywords?: string[];
+  variableMeasured?: string[];
+  /** Absolute URLs for JSON / CSV distributions. */
+  distributions?: Array<{ encodingFormat: string; contentUrl: string }>;
+}
+
+/**
+ * Dataset node for the legality tracker (Google Dataset Search + AI-mode
+ * surface). CC-BY-4.0, US spatial coverage, publisher = the site Organization.
+ */
+export function datasetNode(opts: DatasetNodeOptions): Node {
+  return {
+    '@type': 'Dataset',
+    '@id': opts.id,
+    name: opts.name,
+    description: opts.description,
+    url: opts.url,
+    license: 'https://creativecommons.org/licenses/by/4.0/',
+    isAccessibleForFree: true,
+    creator: { '@id': ORG_ID },
+    publisher: { '@id': ORG_ID },
+    ...(opts.keywords ? { keywords: opts.keywords } : {}),
+    ...(opts.variableMeasured ? { variableMeasured: opts.variableMeasured } : {}),
+    spatialCoverage: {
+      '@type': 'Place',
+      geo: { '@type': 'GeoShape', addressCountry: 'US' },
+    },
+    temporalCoverage: '2020-01-01/..',
+    dateModified: opts.dateModified,
+    ...(opts.datePublished ? { datePublished: opts.datePublished } : {}),
+    ...(opts.distributions && opts.distributions.length > 0
+      ? {
+          distribution: opts.distributions.map((d) => ({
+            '@type': 'DataDownload',
+            encodingFormat: d.encodingFormat,
+            contentUrl: d.contentUrl,
+          })),
+        }
+      : {}),
+  };
+}
+
 export interface Crumb {
   name: string;
   path: string;
