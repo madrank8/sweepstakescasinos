@@ -21,6 +21,7 @@ import { AFFILIATE_PARTNERS } from '../../data/affiliates';
 import { isPartnerAvailableInState, isStateBannedSitewide } from '../../data/geo';
 import { stateName, isUsStateCode, type UsStateCode } from '../../data/usStates';
 import { ORG_ID, AUTHOR_ID } from '../../lib/schema';
+import { pngDimensions } from '../../lib/pngDimensions';
 import { brandEntityId, getBrandEntity } from '../../data/brandEntities';
 import { getTrackerData, legislationForState } from '../../lib/tracker/data';
 import { SWEEPS_STATUS_META } from '../../lib/tracker/types';
@@ -126,6 +127,9 @@ const brandMentions = availablePartners
   .filter((p) => getBrandEntity(p.slug))
   .map((p) => ({ '@id': brandEntityId(p.slug) }));
 
+const stateImagePath = `/images/states/${code.toLowerCase()}.png`;
+const stateImageDims = pngDimensions(stateImagePath);
+
 const articleLd = {
   '@type': 'Article',
   '@id': `${canonical}#article`,
@@ -134,7 +138,9 @@ const articleLd = {
   mainEntityOfPage: { '@id': `${canonical}#webpage` },
   url: canonical,
   inLanguage: 'en-US',
-  image: `${ORIGIN}/images/states/${code.toLowerCase()}.png`,
+  image: stateImageDims
+    ? { '@type': 'ImageObject', url: `${ORIGIN}${stateImagePath}`, ...stateImageDims }
+    : `${ORIGIN}${stateImagePath}`,
   datePublished: updatedIso,
   dateModified: updatedIso,
   about: [
