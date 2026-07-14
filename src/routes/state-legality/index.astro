@@ -18,6 +18,7 @@ import { wizAvailabilityForState } from '../../data/trackerReconcile';
 import { AFFILIATE_PARTNERS } from '../../data/affiliates';
 import { stateName, isUsStateCode, type UsStateCode } from '../../data/usStates';
 import { AUTHOR_ID } from '../../lib/schema';
+import { SITE } from '../../data/site';
 
 const ORIGIN = 'https://sweepstakeswiz.com';
 const canonicalPath = '/state-legality/';
@@ -116,11 +117,19 @@ const explainerNode = {
   '@id': `${canonical}#explainer`,
   headline: "Why Sweepstakes Casino Legality Isn't the Same in Every State",
   author: { '@id': AUTHOR_ID },
-  datePublished: '2026-07-14',
-  dateModified: '2026-07-14',
+  // Full datetime + timezone: Google's Article validator (Rich Results Test)
+  // is stricter than our internal ISO_DATE check and flags date-only strings.
+  datePublished: '2026-07-14T00:00:00Z',
+  dateModified: '2026-07-14T00:00:00Z',
   wordCount: 723,
   inLanguage: 'en-US',
   mainEntityOfPage: { '@id': `${canonical}#webpage` },
+  image: {
+    '@type': 'ImageObject',
+    url: `${ORIGIN}${SITE.logo}`,
+    width: 621,
+    height: 410,
+  },
   about: [
     { '@type': 'Thing', name: 'Gaming law', sameAs: 'https://www.wikidata.org/wiki/Q5520201' },
   ],
