@@ -43,6 +43,8 @@ export function organizationNode(): Node {
       '@type': 'ImageObject',
       '@id': LOGO_ID,
       url: `${ORIGIN}${SITE.logo}`,
+      width: 621,
+      height: 410,
       caption: SITE.name,
     },
     image: { '@id': LOGO_ID },
@@ -94,10 +96,24 @@ export function authorPersonNode(): Node {
     jobTitle: 'iGaming Writer & Analyst',
     description:
       'iGaming writer and analyst with 8+ years of experience creating search-driven content for gambling brands and affiliate websites, including casino, slot, and sportsbook reviews.',
-    image: `${ORIGIN}/sweepstakeslogo/ilija-milosevic.webp`,
+    image: {
+      '@type': 'ImageObject',
+      url: `${ORIGIN}/sweepstakeslogo/ilija-milosevic.webp`,
+      width: 148,
+      height: 148,
+    },
     url: `${ORIGIN}/author/${SITE.authorSlug}/`,
     sameAs: ['https://www.linkedin.com/in/ilija-milosevic-hiperion'],
     worksFor: { '@id': ORG_ID },
+    // Mirrors his described beat (plan §6): iGaming content, not sweepstakes law
+    // specifically, so this stays narrower than the Organization's knowsAbout.
+    knowsAbout: [
+      'Online casino reviews',
+      'Sweepstakes casino reviews',
+      'Sportsbook reviews',
+      'Slot game reviews',
+      'iGaming affiliate marketing',
+    ],
   };
 }
 

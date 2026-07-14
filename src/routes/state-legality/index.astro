@@ -17,6 +17,7 @@ import { SWEEPS_STATUS_META } from '../../lib/tracker/types';
 import { wizAvailabilityForState } from '../../data/trackerReconcile';
 import { AFFILIATE_PARTNERS } from '../../data/affiliates';
 import { stateName, isUsStateCode, type UsStateCode } from '../../data/usStates';
+import { AUTHOR_ID } from '../../lib/schema';
 
 const ORIGIN = 'https://sweepstakeswiz.com';
 const canonicalPath = '/state-legality/';
@@ -105,6 +106,25 @@ const faqNode = {
     acceptedAnswer: { '@type': 'Answer', text: f.a },
   })),
 };
+
+// Content entity for the editorial explainer/ban-wave/scope sections (the
+// hand-authored prose on this otherwise data-driven page). wordCount is the
+// real rendered count of those three sections only; the 51-row table and map
+// are already represented by the ItemList above and aren't prose.
+const explainerNode = {
+  '@type': 'Article',
+  '@id': `${canonical}#explainer`,
+  headline: "Why Sweepstakes Casino Legality Isn't the Same in Every State",
+  author: { '@id': AUTHOR_ID },
+  datePublished: '2026-07-14',
+  dateModified: '2026-07-14',
+  wordCount: 723,
+  inLanguage: 'en-US',
+  mainEntityOfPage: { '@id': `${canonical}#webpage` },
+  about: [
+    { '@type': 'Thing', name: 'Gaming law', sameAs: 'https://www.wikidata.org/wiki/Q5520201' },
+  ],
+};
 ---
 <ContentLayout
   title="Sweepstakes Casino Legality by US State (2026)"
@@ -116,7 +136,7 @@ const faqNode = {
   pageType="CollectionPage"
   dateModified={bundle.generatedAt}
   mainEntityId={`${canonical}#states`}
-  jsonLd={[itemListLd, faqNode]}
+  jsonLd={[itemListLd, faqNode, explainerNode]}
 >
   <p class="sl-intro">
     Sweepstakes casino legality is decided state by state, not nationally. As of {updatedHuman},
