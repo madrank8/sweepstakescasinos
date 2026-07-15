@@ -43,6 +43,8 @@ export function organizationNode(): Node {
       '@type': 'ImageObject',
       '@id': LOGO_ID,
       url: `${ORIGIN}${SITE.logo}`,
+      width: 621,
+      height: 410,
       caption: SITE.name,
     },
     image: { '@id': LOGO_ID },
@@ -94,10 +96,24 @@ export function authorPersonNode(): Node {
     jobTitle: 'iGaming Writer & Analyst',
     description:
       'iGaming writer and analyst with 8+ years of experience creating search-driven content for gambling brands and affiliate websites, including casino, slot, and sportsbook reviews.',
-    image: `${ORIGIN}/sweepstakeslogo/ilija-milosevic.webp`,
+    image: {
+      '@type': 'ImageObject',
+      url: `${ORIGIN}/sweepstakeslogo/ilija-milosevic.webp`,
+      width: 148,
+      height: 148,
+    },
     url: `${ORIGIN}/author/${SITE.authorSlug}/`,
     sameAs: ['https://www.linkedin.com/in/ilija-milosevic-hiperion'],
     worksFor: { '@id': ORG_ID },
+    // Mirrors his described beat (plan §6): iGaming content, not sweepstakes law
+    // specifically, so this stays narrower than the Organization's knowsAbout.
+    knowsAbout: [
+      'Online casino reviews',
+      'Sweepstakes casino reviews',
+      'Sportsbook reviews',
+      'Slot game reviews',
+      'iGaming affiliate marketing',
+    ],
   };
 }
 
@@ -123,6 +139,58 @@ export function brandOrganizationNode(slug: string): Node | undefined {
               ? { address: { '@type': 'PostalAddress', ...brand.operatorAddress } }
               : {}),
           },
+        }
+      : {}),
+  };
+}
+
+export interface DatasetNodeOptions {
+  /** Absolute page URL that hosts the dataset (with trailing slash). */
+  url: string;
+  /** Stable fragment @id, e.g. `${url}#dataset`. */
+  id: string;
+  name: string;
+  description: string;
+  /** ISO 8601 last-modified (max of source freshness). */
+  dateModified: string;
+  datePublished?: string;
+  keywords?: string[];
+  variableMeasured?: string[];
+  /** Absolute URLs for JSON / CSV distributions. */
+  distributions?: Array<{ encodingFormat: string; contentUrl: string }>;
+}
+
+/**
+ * Dataset node for the legality tracker (Google Dataset Search + AI-mode
+ * surface). CC-BY-4.0, US spatial coverage, publisher = the site Organization.
+ */
+export function datasetNode(opts: DatasetNodeOptions): Node {
+  return {
+    '@type': 'Dataset',
+    '@id': opts.id,
+    name: opts.name,
+    description: opts.description,
+    url: opts.url,
+    license: 'https://creativecommons.org/licenses/by/4.0/',
+    isAccessibleForFree: true,
+    creator: { '@id': ORG_ID },
+    publisher: { '@id': ORG_ID },
+    ...(opts.keywords ? { keywords: opts.keywords } : {}),
+    ...(opts.variableMeasured ? { variableMeasured: opts.variableMeasured } : {}),
+    spatialCoverage: {
+      '@type': 'Place',
+      geo: { '@type': 'GeoShape', addressCountry: 'US' },
+    },
+    temporalCoverage: '2020-01-01/..',
+    dateModified: opts.dateModified,
+    ...(opts.datePublished ? { datePublished: opts.datePublished } : {}),
+    ...(opts.distributions && opts.distributions.length > 0
+      ? {
+          distribution: opts.distributions.map((d) => ({
+            '@type': 'DataDownload',
+            encodingFormat: d.encodingFormat,
+            contentUrl: d.contentUrl,
+          })),
         }
       : {}),
   };

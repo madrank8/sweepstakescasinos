@@ -1,52 +1,119 @@
 ---
 /**
- * State legality pages (MDX content collection -> /states/<code>/).
- * Prerendered static pages. Partner availability is shown as EDITORIAL links to
- * reviews (no affiliate CTAs here); actual affiliate clicks always go through
- * the geo-gated /bonuses/ gateway, which suppresses by the visitor's state.
+ * State legality pages -> /states/<slug>/.
  *
- * Authored in src/routes and copied into src/pages by the page generator so it
- * survives the generator's wipe of src/pages.
+ * Now covers ALL 51 US jurisdictions, driven by the live legality tracker
+ * dataset and correlated with the Wiz affiliate + geo model:
+ *   - 8 states have rich hand-authored MDX guides (rendered via <Content/>).
+ *   - The other 43 render a substantive data-driven template from the tracker.
+ *
+ * Authority split: affiliate availability/CTA suppression is decided by
+ * src/data/geo.ts (legal layer). The tracker supplies the DISPLAYED legal
+ * status, pending bills, sources, and freshness. Affiliate partners are shown
+ * as EDITORIAL links to reviews here (no affiliate CTAs); real affiliate clicks
+ * always route through the geo-gated /bonuses/ gateway.
+ *
+ * Prerendered static; refreshed by the daily deploy hook after n8n ingest.
  */
 import { getCollection, render } from 'astro:content';
 import ContentLayout from '../../layouts/ContentLayout.astro';
 import { AFFILIATE_PARTNERS } from '../../data/affiliates';
 import { isPartnerAvailableInState, isStateBannedSitewide } from '../../data/geo';
-import { stateName, type UsStateCode } from '../../data/usStates';
+import { stateName, isUsStateCode, type UsStateCode } from '../../data/usStates';
 import { ORG_ID, AUTHOR_ID } from '../../lib/schema';
+import { pngDimensions } from '../../lib/pngDimensions';
 import { brandEntityId, getBrandEntity } from '../../data/brandEntities';
+import { getTrackerData, legislationForState } from '../../lib/tracker/data';
+import { SWEEPS_STATUS_META } from '../../lib/tracker/types';
+import type { StateRecord, PendingLegislation } from '../../lib/tracker/types';
 
 export const prerender = true;
 
 export async function getStaticPaths() {
-  const entries = await getCollection('states', (e) => !e.data.draft);
-  return entries.map((entry) => ({ params: { slug: entry.id }, props: { entry } }));
+  const mdxEntries = await getCollection('states', (e) => !e.data.draft);
+  const byCode = new Map(mdxEntries.map((e) => [e.data.stateCode as string, e]));
+  const bundle = await getTrackerData();
+  return bundle.states.map((ts) => {
+    const entry = byCode.get(ts.state_code) ?? null;
+    const slug = entry ? entry.id : ts.state_slug;
+    return {
+      params: { slug },
+      props: {
+        entry,
+        code: ts.state_code,
+        trackerState: ts,
+        bills: legislationForState(bundle, ts.state_code),
+        generatedAt: bundle.generatedAt,
+      },
+    };
+  });
 }
 
-const { entry } = Astro.props;
-const { Content } = await render(entry);
+interface Props {
+  entry: Awaited<ReturnType<typeof getCollection<'states'>>>[number] | null;
+  code: string;
+  trackerState: StateRecord;
+  bills: PendingLegislation[];
+  generatedAt: string;
+}
+
+const { entry, code: rawCode, trackerState, bills } = Astro.props as Props;
+const code = (isUsStateCode(rawCode) ? rawCode : 'AL') as UsStateCode;
+const name = stateName(code);
+const meta = SWEEPS_STATUS_META[trackerState.sweeps_casino_status];
 
 const ORIGIN = 'https://sweepstakeswiz.com';
-
-const code = entry.data.stateCode as UsStateCode;
-const name = stateName(code);
 const banned = isStateBannedSitewide(code);
 const availablePartners = banned
   ? []
   : AFFILIATE_PARTNERS.filter((p) => isPartnerAvailableInState(p, code));
 
-const canonicalPath = `/states/${entry.id}/`;
+const slug = entry ? entry.id : trackerState.state_slug;
+const canonicalPath = `/states/${slug}/`;
+const canonical = `${ORIGIN}${canonicalPath}`;
+
+const title = entry?.data.title ?? `Are Sweepstakes Casinos Legal in ${name}? Status & Law`;
+const description =
+  entry?.data.description ??
+  `${name} sweepstakes casino legal status: ${meta.label.toLowerCase()}. ${trackerState.sweeps_status_summary} Editorial legal monitor, updated regularly.`;
+
+// dateModified: MDX 'updated' if present, else the tracker's freshness stamp.
+const mdxUpdated = entry?.data.updated instanceof Date ? entry.data.updated : undefined;
+const updatedIso = mdxUpdated ? mdxUpdated.toISOString() : trackerState.last_auto_updated_at;
+const updatedHuman = new Date(updatedIso).toLocaleDateString('en-US', {
+  year: 'numeric', month: 'long', day: 'numeric', timeZone: 'UTC',
+});
+
+const { Content } = entry ? await render(entry) : { Content: null };
+
 const breadcrumbs = [
   { name: 'Home', path: '/' },
   { name: 'State Legality', path: '/state-legality/' },
-  { name: name, path: canonicalPath },
+  { name, path: canonicalPath },
 ];
 
-const faq = entry.data.faq ?? [];
+// FAQ: MDX-authored when present, else synthesized from the dataset.
+const faq =
+  entry?.data.faq && entry.data.faq.length > 0
+    ? entry.data.faq
+    : [
+        {
+          q: `Are sweepstakes casinos legal in ${name}?`,
+          a: `${name} is currently tracked as "${meta.label}". ${trackerState.sweeps_status_summary} This is an editorial legal monitor, not legal advice.`,
+        },
+        {
+          q: `Which sweepstakes casinos are available in ${name}?`,
+          a: banned
+            ? `Because of ${name}'s rules on marketing sweepstakes casinos, we show informational content only and do not promote affiliate offers here.`
+            : `${availablePartners.length} of the ${AFFILIATE_PARTNERS.length} operators we review list availability in ${name}. See the list below.`,
+        },
+      ];
+
 const faqLd =
   faq.length > 0
     ? {
         '@type': 'FAQPage',
+        '@id': `${canonical}#faq`,
         mainEntity: faq.map((f) => ({
           '@type': 'Question',
           name: f.q,
@@ -55,66 +122,70 @@ const faqLd =
       }
     : undefined;
 
-// E-E-A-T: named author + visible "last updated" + Article dateModified schema.
-const updatedDate = entry.data.updated instanceof Date ? entry.data.updated : undefined;
-const updatedIso = updatedDate ? updatedDate.toISOString() : undefined;
-const updatedHuman = updatedDate
-  ? updatedDate.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric', timeZone: 'UTC' })
-  : undefined;
-
-const canonical = `${ORIGIN}${canonicalPath}`;
-
-// Content entity: an Article about the state's legality posture. Compliance
-// guardrail (plan §4.3): on banned states the Article carries NO brand
-// mentions — schema must never leak monetization the page geo-suppresses.
-// Wikidata Q-ids deferred until verified (plan §6 open item 1).
+// Compliance guardrail: on banned states the Article carries NO brand mentions.
 const brandMentions = availablePartners
   .filter((p) => getBrandEntity(p.slug))
   .map((p) => ({ '@id': brandEntityId(p.slug) }));
 
+const stateImagePath = `/images/states/${code.toLowerCase()}.png`;
+const stateImageDims = pngDimensions(stateImagePath);
+
 const articleLd = {
   '@type': 'Article',
   '@id': `${canonical}#article`,
-  headline: entry.data.title,
-  description: entry.data.description,
+  headline: title,
+  description,
   mainEntityOfPage: { '@id': `${canonical}#webpage` },
   url: canonical,
   inLanguage: 'en-US',
-  image: `${ORIGIN}/images/states/${code.toLowerCase()}.png`,
-  ...(updatedIso ? { datePublished: updatedIso, dateModified: updatedIso } : {}),
+  image: stateImageDims
+    ? { '@type': 'ImageObject', url: `${ORIGIN}${stateImagePath}`, ...stateImageDims }
+    : `${ORIGIN}${stateImagePath}`,
+  datePublished: updatedIso,
+  dateModified: updatedIso,
   about: [
     { '@type': 'Thing', name: `Sweepstakes casino legality in ${name}` },
-    {
-      '@type': 'Thing',
-      name: 'Sweepstake',
-      sameAs: 'https://en.wikipedia.org/wiki/Sweepstake',
-    },
+    { '@type': 'Thing', name: 'Sweepstake', sameAs: 'https://en.wikipedia.org/wiki/Sweepstake' },
   ],
   spatialCoverage: { '@type': 'State', name, addressCountry: 'US' },
   ...(brandMentions.length > 0 ? { mentions: brandMentions } : {}),
+  ...(trackerState.sources_json.length > 0
+    ? { citation: trackerState.sources_json.map((url) => ({ '@type': 'CreativeWork', url })) }
+    : {}),
   author: { '@id': AUTHOR_ID },
   publisher: { '@id': ORG_ID },
 };
-const faqNode = faqLd ? { ...faqLd, '@id': `${canonical}#faq` } : undefined;
-const jsonLd = faqNode ? [articleLd, faqNode] : [articleLd];
+const jsonLd = faqLd ? [articleLd, faqLd] : [articleLd];
 
-// Auto sibling cross-links so every state page interlinks the state cluster.
-const allStates = await getCollection('states', (e) => !e.data.draft);
-const siblings = allStates
-  .filter((e) => e.id !== entry.id)
-  .map((e) => ({
-    slug: e.id,
-    name: stateName(e.data.stateCode as UsStateCode),
-    status: e.data.legalStatus as string,
+// All-state cross-links (the 51-state cluster).
+const bundle2 = await getTrackerData();
+const siblings = bundle2.states
+  .filter((s) => s.state_code !== code)
+  .map((s) => ({
+    slug: s.state_slug,
+    name: s.state_name,
+    banned: isUsStateCode(s.state_code) ? isStateBannedSitewide(s.state_code as UsStateCode) : false,
   }))
   .sort((a, b) => a.name.localeCompare(b.name));
+
+function pretty(v: string): string {
+  return v.replace(/_/g, ' ');
+}
+
+const regulated: Array<[string, string]> = [
+  ['Real-money casino', trackerState.real_money_casino],
+  ['Sportsbook', trackerState.sportsbook_status],
+  ['Daily fantasy', trackerState.dfs_status],
+  ['Lottery', trackerState.lottery_status],
+  ['Social casino', trackerState.social_casino_status],
+];
 ---
 <ContentLayout
-  title={entry.data.title}
-  description={entry.data.description}
+  title={title}
+  description={description}
   canonicalPath={canonicalPath}
   breadcrumbs={breadcrumbs}
-  heroSubtitle={entry.data.description}
+  heroSubtitle={description}
   datePublished={updatedIso}
   dateModified={updatedIso}
   mainEntityId={`${canonical}#article`}
@@ -130,7 +201,31 @@ const siblings = allStates
     <span>{name}</span>
   </div>
 
-  <Content />
+  <div class="status-card" style={`--c:${meta.color}`}>
+    <div class="status-top">
+      <span class="status-pill">{meta.label}</span>
+      <span class="status-conf">Confidence: {trackerState.sweeps_status_confidence}</span>
+    </div>
+    <p class="status-sum">{trackerState.sweeps_status_summary}</p>
+    <p class="status-meta">
+      Source: <a href="/sweepstakes-tracker/">Sweepstakes Wiz Legality Tracker</a> &middot;
+      last updated {updatedHuman}
+    </p>
+  </div>
+
+  {Content ? (
+    <Content />
+  ) : (
+    <>
+      <p>{trackerState.sweeps_status_full_text}</p>
+      <h2>What else is regulated in {name}</h2>
+      <ul class="reg-list">
+        {regulated.map(([label, val]) => (
+          <li><strong>{label}:</strong> {pretty(val)}</li>
+        ))}
+      </ul>
+    </>
+  )}
 
   <h2>Available sweepstakes casinos in {name}</h2>
   {banned ? (
@@ -145,14 +240,38 @@ const siblings = allStates
   ) : availablePartners.length > 0 ? (
     <ul>
       {availablePartners.map((p) => (
-        <li>
-          <a href={`/reviews/${p.slug}/`}>{p.name} review</a>
-          {p.model === 'cpa' ? '' : ''}
-        </li>
+        <li><a href={`/reviews/${p.slug}/`}>{p.name} review</a></li>
       ))}
     </ul>
   ) : (
     <p>No reviewed operators currently list availability in {name}.</p>
+  )}
+
+  {bills.length > 0 && (
+    <section aria-label="Pending legislation">
+      <h2>Pending legislation in {name}</h2>
+      <ul class="bills-list">
+        {bills.map((b) => (
+          <li>
+            <a href={b.bill_url} rel="nofollow noopener" target="_blank">{b.bill_number}</a>
+            {' '}&mdash; {b.title}
+            <span class="bill-status"> ({b.status_label || b.status})</span>
+          </li>
+        ))}
+      </ul>
+      <p><a href="/sweepstakes-tracker/legislation/">See all tracked bills &rarr;</a></p>
+    </section>
+  )}
+
+  {trackerState.sources_json.length > 0 && (
+    <section aria-label="Sources">
+      <h2>Sources</h2>
+      <ul class="src-list">
+        {trackerState.sources_json.map((url) => (
+          <li><a href={url} rel="nofollow noopener" target="_blank">{url}</a></li>
+        ))}
+      </ul>
+    </section>
   )}
 
   {faq.length > 0 && (
@@ -167,20 +286,16 @@ const siblings = allStates
     </section>
   )}
 
-  {siblings.length > 0 && (
-    <section class="state-siblings" aria-label="Other state guides">
-      <h2>Sweepstakes casino legality in other states</h2>
-      <ul>
-        {siblings.map((s) => (
-          <li>
-            <a href={`/states/${s.slug}/`}>Are sweepstakes casinos legal in {s.name}?</a>
-            {' '}&mdash; {s.status === 'available' ? 'offers shown' : 'info-only'}
-          </li>
-        ))}
-      </ul>
-      <p>See every US state on the <a href="/state-legality/">state legality hub</a>.</p>
-    </section>
-  )}
+  <section class="state-siblings" aria-label="Other state guides">
+    <h2>Sweepstakes casino legality in other states</h2>
+    <ul class="sib-grid">
+      {siblings.map((s) => (
+        <li><a href={`/states/${s.slug}/`}>{s.name}</a></li>
+      ))}
+    </ul>
+    <p>See every US state on the <a href="/state-legality/">state legality hub</a> or the
+      <a href="/sweepstakes-tracker/"> interactive tracker</a>.</p>
+  </section>
 
   <p class="state-byline">
     Researched and written by <a href="/author/ilija-milosevic/">Ilija Milosevic</a>,
@@ -202,9 +317,20 @@ const siblings = allStates
     .state-flag{height:66px;width:auto;display:block;background:#fff;padding:5px;border:1px solid #dbe3ee;border-radius:10px;box-shadow:0 3px 12px rgba(10,22,40,.18);}
     .state-flag-bar span{font-family:'Sora',sans-serif;font-weight:800;color:#0a1628;font-size:1.4rem;letter-spacing:-0.3px;}
     @media(max-width:480px){.state-flag{height:54px;}.state-flag-bar span{font-size:1.2rem;}}
+    .status-card{border:1px solid var(--c);border-left:5px solid var(--c);background:color-mix(in srgb, var(--c) 8%, #fff);border-radius:10px;padding:14px 16px;margin:0 0 22px;}
+    .status-top{display:flex;align-items:center;gap:12px;flex-wrap:wrap;}
+    .status-pill{background:var(--c);color:#0a1628;font-weight:700;padding:3px 12px;border-radius:999px;font-size:.85rem;}
+    .status-conf{font-size:.8rem;color:#475569;}
+    .status-sum{margin:8px 0 4px;color:#1e293b;}
+    .status-meta{margin:0;font-size:.8rem;color:#64748b;}
+    .status-meta a{color:#1d4ed8;font-weight:600;}
+    .reg-list{padding-left:20px;} .reg-list li{margin:5px 0;}
+    .bills-list,.src-list{padding-left:20px;} .bills-list li,.src-list li{margin:6px 0;line-height:1.5;}
+    .src-list a{word-break:break-all;font-size:.86rem;}
+    .bill-status{color:#64748b;font-size:.85rem;}
     .state-siblings{margin:8px 0 22px;}
-    .state-siblings ul{margin:8px 0 0;padding-left:20px;}
-    .state-siblings li{margin:6px 0;line-height:1.55;}
+    .sib-grid{list-style:none;padding:0;margin:10px 0 0;display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:4px 14px;}
+    .sib-grid li{margin:3px 0;line-height:1.5;}
     .state-byline{font-size:0.85rem;color:#64748b;border-top:1px solid #e2e8f0;padding-top:14px;margin:22px 0 18px;}
     .state-byline a{color:#b45309;font-weight:600;}
   </style>

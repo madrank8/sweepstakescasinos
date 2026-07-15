@@ -2,6 +2,12 @@ import { copyFileSync, cpSync, mkdirSync, readdirSync, readFileSync, rmSync, sta
 import { dirname, join, relative } from 'node:path';
 import { AFFILIATE_PARTNERS } from '../src/data/affiliates.ts';
 import { SITE } from '../src/data/site.ts';
+import { US_STATES } from '../src/data/usStates.ts';
+
+/** Match src/lib/tracker/fallback.ts slugifyState so sitemap URLs align. */
+function stateSlug(name) {
+  return name.toLowerCase().replaceAll('.', '').replaceAll(' ', '-');
+}
 
 const root = process.cwd();
 const pagesDir = join(root, 'src', 'pages');
@@ -216,7 +222,7 @@ function writeSitemapAndRobots() {
   // cookie/dmca — are noindex by design and intentionally excluded).
   const trustPages = [
     'about.html', 'how-we-rate.html', 'editorial-policy.html',
-    'responsible-gaming.html', 'state-legality.html',
+    'responsible-gaming.html',
     'legal/affiliate-disclosure.html',
   ];
   for (const rel of trustPages) {
@@ -237,8 +243,28 @@ function writeSitemapAndRobots() {
   // under /bonuses/ — see the robots Allow exception below.
   if (existsSync(join(root, 'src', 'routes', 'bonuses', 'no-deposit', 'index.astro'))) urls.push('/bonuses/no-deposit/');
 
+  // State legality hub (data-driven route replacing the old static HTML).
+  if (existsSync(join(root, 'src', 'routes', 'state-legality', 'index.astro'))) urls.push('/state-legality/');
+
+  // Sweepstakes Legality Tracker hub + support pages (authored under src/routes).
+  const trackerPages = [
+    ['sweepstakes-tracker/index.astro', '/sweepstakes-tracker/'],
+    ['sweepstakes-tracker/methodology.astro', '/sweepstakes-tracker/methodology/'],
+    ['sweepstakes-tracker/legislation/index.astro', '/sweepstakes-tracker/legislation/'],
+    ['sweepstakes-tracker/api.astro', '/sweepstakes-tracker/api/'],
+  ];
+  for (const [rel, url] of trackerPages) {
+    if (existsSync(join(root, 'src', 'routes', rel))) urls.push(url);
+  }
+
+  // All 51 state pages (data-driven via src/routes/states/[slug].astro).
+  if (existsSync(join(root, 'src', 'routes', 'states', '[slug].astro'))) {
+    for (const name of Object.values(US_STATES)) urls.push(`/states/${stateSlug(name)}/`);
+  }
+
   // MDX content collections (skip drafts). comparisons render under /best/.
-  const collectionUrlPrefix = { guides: '/guides', comparisons: '/best', states: '/states' };
+  // NOTE: states are enumerated above (all 51) — not from the MDX collection.
+  const collectionUrlPrefix = { guides: '/guides', comparisons: '/best' };
   for (const [name, prefix] of Object.entries(collectionUrlPrefix)) {
     const dir = join(root, 'src', 'content', name);
     if (!existsSync(dir)) continue;
@@ -305,8 +331,17 @@ function writeSitemapAndRobots() {
     `- [New sweepstakes casinos](${ORIGIN}/new/)\n` +
     `- [No deposit bonuses & free Sweeps Coins](${ORIGIN}/bonuses/no-deposit/)\n` +
     `- [What are sweepstakes casinos?](${ORIGIN}/guides/what-are-sweepstakes-casinos/)\n` +
-    `- [Sweepstakes casino legality by US state](${ORIGIN}/state-legality/)\n\n` +
+    `- [Sweepstakes casino legality by US state](${ORIGIN}/state-legality/)\n` +
+    `- [Live legality tracker (all 51 jurisdictions)](${ORIGIN}/sweepstakes-tracker/)\n\n` +
     (stateGuideLines ? `## State guides\n${stateGuideLines}\n\n` : '') +
+    `## Legality dataset (citable, CC-BY 4.0)\n` +
+    `- [Sweepstakes legality tracker](${ORIGIN}/sweepstakes-tracker/): daily-updated legal status, operator availability, pending bills across all 51 US jurisdictions.\n` +
+    `- [legality.json](${ORIGIN}/sweepstakes-tracker/api/legality.json): machine-readable full dataset.\n` +
+    `- [legality.csv](${ORIGIN}/sweepstakes-tracker/api/legality.csv): CSV export.\n` +
+    `- [provenance.json](${ORIGIN}/sweepstakes-tracker/api/provenance.json): per-state sources and freshness.\n` +
+    `- [Tracker methodology](${ORIGIN}/sweepstakes-tracker/methodology/): sourcing tiers, cadence, verification, corrections.\n` +
+    `- [Pending legislation](${ORIGIN}/sweepstakes-tracker/legislation/): live bill tracker.\n` +
+    `- Cite as: Sweepstakes Wiz, "U.S. Sweepstakes Casino Legality Dataset," ${ORIGIN}/sweepstakes-tracker/.\n\n` +
     `## Trust & methodology\n` +
     `- [How we rate](${ORIGIN}/how-we-rate/)\n` +
     `- [Editorial policy](${ORIGIN}/editorial-policy/)\n` +

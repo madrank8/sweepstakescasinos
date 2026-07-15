@@ -1,0 +1,328 @@
+---
+/**
+ * State legality hub -> /state-legality/.
+ *
+ * Replaces the previous hand-authored 50-state HTML table (which drifted from
+ * the data layer). Now fully data-driven: the site-status + "X of N operators"
+ * columns are computed from src/data/geo.ts + affiliates.ts, and the legal
+ * status + legislative tracker come from the live tracker dataset. One source
+ * of truth, no drift.
+ */
+export const prerender = true;
+
+import ContentLayout from '../../layouts/ContentLayout.astro';
+import UsLegalityMap from '../../components/tracker/UsLegalityMap.astro';
+import { getTrackerData } from '../../lib/tracker/data';
+import { SWEEPS_STATUS_META } from '../../lib/tracker/types';
+import { wizAvailabilityForState } from '../../data/trackerReconcile';
+import { AFFILIATE_PARTNERS } from '../../data/affiliates';
+import { stateName, isUsStateCode, type UsStateCode } from '../../data/usStates';
+import { AUTHOR_ID } from '../../lib/schema';
+import { SITE } from '../../data/site';
+
+const ORIGIN = 'https://sweepstakeswiz.com';
+const canonicalPath = '/state-legality/';
+const canonical = `${ORIGIN}${canonicalPath}`;
+
+const bundle = await getTrackerData();
+const totalOperators = AFFILIATE_PARTNERS.length;
+
+const rows = [...bundle.states]
+  .sort((a, b) => a.state_name.localeCompare(b.state_name))
+  .map((s) => {
+    const avail = wizAvailabilityForState(s.state_code);
+    return {
+      code: s.state_code,
+      name: s.state_name,
+      slug: s.state_slug,
+      siteStatus: avail.banned ? 'Info only' : 'Offers shown',
+      operators: avail.banned ? 0 : avail.availableCount,
+      trackerStatus: s.sweeps_casino_status,
+    };
+  });
+
+const bills = [...bundle.pendingLegislation]
+  .filter((b) => b.status !== 'dead')
+  .sort((a, b) => new Date(b.last_action_date).getTime() - new Date(a.last_action_date).getTime())
+  .slice(0, 25);
+
+const updatedHuman = new Date(bundle.generatedAt).toLocaleDateString('en-US', {
+  year: 'numeric', month: 'long', day: 'numeric', timeZone: 'UTC',
+});
+
+const breadcrumbs = [
+  { name: 'Home', path: '/' },
+  { name: 'State Legality', path: canonicalPath },
+];
+
+const itemListLd = {
+  '@type': 'ItemList',
+  '@id': `${canonical}#states`,
+  name: 'US sweepstakes casino legality by state',
+  numberOfItems: rows.length,
+  itemListElement: rows.map((r, i) => ({
+    '@type': 'ListItem',
+    position: i + 1,
+    name: `${r.name}: ${SWEEPS_STATUS_META[r.trackerStatus].label}`,
+    url: `${ORIGIN}/states/${r.slug}/`,
+  })),
+};
+
+function dirLabel(d: string) {
+  return d === 'anti_sweeps' ? 'Restrictive' : d === 'pro_sweeps' ? 'Permissive' : 'Neutral';
+}
+
+const bannedCount = rows.filter((r) => r.trackerStatus === 'banned').length;
+const restrictedCount = rows.filter((r) => r.trackerStatus === 'restricted' || r.trackerStatus === 'pending_ban').length;
+
+const FAQ = [
+  {
+    q: 'Is it illegal for me, personally, to play at a sweepstakes casino?',
+    a: 'In almost every state, no. The 2025\u20132026 wave of state laws \u2014 including California\u2019s AB-831 and New York\u2019s S5935A \u2014 targets operators, payment processors, geolocation providers, and media affiliates who knowingly support these platforms. They do not create a criminal offense for the player who signs up. The practical risk to a player in a banned state is losing access to the platform and any pending redemption, not prosecution.',
+  },
+  {
+    q: 'What\u2019s the difference between a "banned" state and a "restricted" one on this page?',
+    a: 'Banned means a state has enacted a specific law or the state\u2019s gambling code has been read to prohibit dual-currency sweepstakes play outright \u2014 operators exit or face fines. Restricted means enforcement is tightening (higher penalties, profit disgorgement) without a law naming sweepstakes casinos directly, which is pushing operators out voluntarily rather than by statute. Pending ban means a bill is moving through the legislature but hasn\u2019t been signed yet.',
+  },
+  {
+    q: 'Why do sweepstakes casinos still operate if regulators call them illegal in some states?',
+    a: 'Sweepstakes law is a different legal framework than gambling law. Operators structure play around "no purchase necessary" sweepstakes rules \u2014 the same doctrine that governs a McDonald\u2019s Monopoly promotion \u2014 rather than a state gaming license. That distinction held up for years, but state attorneys general and legislatures increasingly argue that a redeemable-for-cash "Sweeps Coin" is gambling in substance regardless of the label, which is exactly the argument behind the 2025\u20132026 ban wave.',
+  },
+  {
+    q: 'What happens to my account if my state bans sweepstakes casinos?',
+    a: 'Operators typically geoblock new signups first, then existing accounts, usually within days of a law taking effect \u2014 several did so the same week California, New York, and New Jersey signed their bans. Most platforms allow existing players to redeem any pending Sweeps Coin balance before cutting off access; check the operator\u2019s own notice rather than assuming, since the wind-down window varies by company.',
+  },
+  {
+    q: 'How current is the legal status shown on this page?',
+    a: 'Every status here pulls from the same live dataset behind our sweepstakes legality tracker, which ingests state legislative records and news daily and is fully documented on the methodology page. This page was last refreshed ' + updatedHuman + '.',
+  },
+];
+
+const faqNode = {
+  '@type': 'FAQPage',
+  '@id': `${canonical}#faq`,
+  mainEntity: FAQ.map((f) => ({
+    '@type': 'Question',
+    name: f.q,
+    acceptedAnswer: { '@type': 'Answer', text: f.a },
+  })),
+};
+
+// Content entity for the editorial explainer/ban-wave/scope sections (the
+// hand-authored prose on this otherwise data-driven page). wordCount is the
+// real rendered count of those three sections only; the 51-row table and map
+// are already represented by the ItemList above and aren't prose.
+const explainerNode = {
+  '@type': 'Article',
+  '@id': `${canonical}#explainer`,
+  headline: "Why Sweepstakes Casino Legality Isn't the Same in Every State",
+  author: { '@id': AUTHOR_ID },
+  // Full datetime + timezone: Google's Article validator (Rich Results Test)
+  // is stricter than our internal ISO_DATE check and flags date-only strings.
+  datePublished: '2026-07-14T00:00:00Z',
+  dateModified: '2026-07-14T00:00:00Z',
+  wordCount: 723,
+  inLanguage: 'en-US',
+  mainEntityOfPage: { '@id': `${canonical}#webpage` },
+  image: {
+    '@type': 'ImageObject',
+    url: `${ORIGIN}${SITE.logo}`,
+    width: 621,
+    height: 410,
+  },
+  about: [
+    { '@type': 'Thing', name: 'Gaming law', sameAs: 'https://www.wikidata.org/wiki/Q5520201' },
+  ],
+};
+---
+<ContentLayout
+  title="Sweepstakes Casino Legality by US State (2026)"
+  description="Where sweepstakes casinos are legal, restricted, or banned across all 51 US jurisdictions, plus which operators we can recommend in each state and a live pending-legislation tracker."
+  canonicalPath={canonicalPath}
+  breadcrumbs={breadcrumbs}
+  heroTitle="Sweepstakes casino legality by US state"
+  heroSubtitle="Legal status, operator availability, and pending bills for every US jurisdiction."
+  pageType="CollectionPage"
+  dateModified={bundle.generatedAt}
+  mainEntityId={`${canonical}#states`}
+  jsonLd={[itemListLd, faqNode, explainerNode]}
+>
+  <p class="sl-intro">
+    Sweepstakes casino legality is decided state by state, not nationally. As of {updatedHuman},
+    {bannedCount} states have banned dual-currency sweepstakes play outright, {restrictedCount} more
+    restrict or are moving to restrict it, and the rest currently permit it under sweepstakes law. Find
+    your state in the table below for its exact status, then read on for why the picture keeps
+    shifting and what it means if you're currently a player. This page combines the neutral
+    <strong>legal status</strong> of each state (from our <a href="/sweepstakes-tracker/">daily legality
+    tracker</a>) with our own <strong>site status</strong> &mdash; whether we show affiliate offers there.
+    In states with marketing restrictions or bans, we publish information only.
+  </p>
+
+  <UsLegalityMap states={bundle.states} linkBase="/states/" />
+
+  <h2>All jurisdictions</h2>
+  <div class="sl-tablewrap">
+    <table class="sl-table">
+      <thead>
+        <tr><th>State</th><th>Site status</th><th>Operators</th><th>Legal status</th><th>Guide</th></tr>
+      </thead>
+      <tbody>
+        {rows.map((r) => (
+          <tr>
+            <td>{r.name}</td>
+            <td><span class:list={['sl-site', r.siteStatus === 'Info only' ? 'info' : 'offers']}>{r.siteStatus}</span></td>
+            <td>{r.operators} of {totalOperators}</td>
+            <td><span class="sl-badge" style={`--c:${SWEEPS_STATUS_META[r.trackerStatus].color}`}>{SWEEPS_STATUS_META[r.trackerStatus].label}</span></td>
+            <td><a href={`/states/${r.slug}/`}>{r.name} guide</a></td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  </div>
+
+  <h2>Pending legislation tracker</h2>
+  {bills.length === 0 ? (
+    <p>No active bills are currently tracked. See the <a href="/sweepstakes-tracker/legislation/">legislation page</a> for history.</p>
+  ) : (
+    <div class="sl-tablewrap">
+      <table class="sl-table">
+        <thead><tr><th>State</th><th>Bill</th><th>Direction</th><th>Status</th><th>Last action</th></tr></thead>
+        <tbody>
+          {bills.map((b) => (
+            <tr>
+              <td>{isUsStateCode(b.state_code) ? stateName(b.state_code as UsStateCode) : b.state_code}</td>
+              <td><a href={b.bill_url} rel="nofollow noopener" target="_blank">{b.bill_number}</a></td>
+              <td><span class={`sl-dir dir-${b.direction}`}>{dirLabel(b.direction)}</span></td>
+              <td>{b.status_label || b.status}</td>
+              <td>{b.last_action_date ? new Date(b.last_action_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' }) : '\u2014'}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  )}
+
+  <h2>Why Sweepstakes Casino Legality Isn't the Same in Every State</h2>
+  <p>
+    Sweepstakes casinos run on a different legal theory than a licensed online casino. Instead of
+    holding a state gaming license, operators structure play as a promotional sweepstakes: players get
+    free "Gold Coins" for entertainment and bonus "Sweeps Coins" that can be redeemed for cash prizes,
+    with no purchase required to receive either.
+  </p>
+  <div class="sl-tablewrap">
+    <table class="sl-table sl-compare">
+      <thead>
+        <tr><th></th><th>Sweepstakes model</th><th>Licensed online gambling</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Legal basis</td><td>"No purchase necessary" promotional-sweepstakes law &mdash; the same doctrine covering a fast-food giveaway</td><td>State gaming license</td></tr>
+        <tr><td>Regulator</td><td>State attorneys general, FTC</td><td>State gaming commission</td></tr>
+        <tr><td>Entry cost</td><td>Free (Gold Coins never require a purchase)</td><td>Real-money wager</td></tr>
+        <tr><td>Cash-out mechanism</td><td>Sweeps Coins, redeemable for cash</td><td>Chips / account balance</td></tr>
+        <tr><td>Who can be liable</td><td>Operator &mdash; and in some states now payment processors, geolocation vendors, and media affiliates</td><td>Licensed operator only</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p>
+    That distinction held for years because sweepstakes promotions are legal in all 50 states by
+    default. What's changed is that regulators increasingly argue it doesn't survive contact with a
+    redeemable-for-cash coin: if a "Sweeps Coin" behaves like a chip you can cash out, several states
+    now treat it as gambling in substance, regardless of the label. That argument is the throughline
+    behind every ban signed since 2025 &mdash; a state-by-state legal reclassification, not a single
+    federal rule, which is why the map above shows every shade from fully legal to banned at once. One
+    thing the table doesn't fully capture: most of these laws target the operator side, not the player
+    who signs up. See the FAQ below for what that means in practice.
+  </p>
+
+  <h2>What Changed in 2025&ndash;2026</h2>
+  <p>
+    Six states enacted a sweepstakes-casino ban within an eight-month span, plus one policy change from
+    Google that hit the whole industry at once:
+  </p>
+  <div class="sl-tablewrap">
+    <table class="sl-table">
+      <thead>
+        <tr><th>State</th><th>Law</th><th>Signed</th><th>Effective</th><th>Mechanism</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Montana</td><td>SB 555</td><td>May 16, 2025</td><td>Oct. 1, 2025</td><td>Expanded "illegal internet gambling" definition to cover dual-currency play; felony penalties (up to $50k / 10 yrs)</td></tr>
+        <tr><td>New Jersey</td><td>A5447</td><td>Aug. 15, 2025</td><td>Aug. 15, 2025</td><td>Paid-entry sweepstakes ruled unlawful gambling under the NJ Constitution</td></tr>
+        <tr><td>Connecticut</td><td>SB 1235</td><td>&mdash;</td><td>Oct. 1, 2025</td><td>Bans simulated-gambling-device sweepstakes absent a CT gaming license</td></tr>
+        <tr><td>Nevada</td><td>SB 256</td><td>&mdash;</td><td>Oct. 1, 2025</td><td>Doesn't name sweeps by law, but adds profit disgorgement + raised penalties &mdash; pushed operators out anyway</td></tr>
+        <tr><td>California</td><td>AB-831</td><td>Oct. 11, 2025</td><td>Jan. 1, 2026</td><td>Misdemeanor (up to $25k / 1 yr); first to extend liability to media affiliates</td></tr>
+        <tr><td>New York</td><td>S5935A</td><td>Dec. 5, 2025</td><td>Immediate</td><td>Bans dual-currency sweeps casinos; fines of $10k&ndash;$100k per violation</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p>
+    California's AB-831 is the one to watch if you run or write about this industry: it's the first
+    of these laws to extend liability to "media affiliates" who knowingly and willfully support a
+    banned platform. That's why any legality resource covering California &mdash; including this one
+    &mdash; has to get the state's status exactly right, not just directionally right.
+  </p>
+  <p>
+    The pressure isn't only legislative. On Oct. 28, 2025, Google updated its Gambling and Games ad
+    policy to explicitly exclude sweepstakes casinos from the "social casino games" category they'd
+    been advertising under, cutting off a major paid-acquisition channel industry-wide overnight. That
+    single policy line is a big part of why organic search and editorial content &mdash; pages like
+    this one &mdash; now carry more weight for the industry than they did two years ago.
+  </p>
+
+  <h2>Not Sure Where You Stand? Read This First</h2>
+  <ul class="sl-notforyou">
+    <li><strong>If your state shows "Banned" above:</strong> don't rely on an operator's own site to
+      tell you it's fine &mdash; most reputable platforms geoblock banned states within days of a law
+      taking effect. Check the table above, and if you have an existing balance, look for the
+      operator's own wind-down or redemption notice rather than assuming your account still works.</li>
+    <li><strong>If you're not sure this page is current for your state:</strong> click through to your
+      <a href="/states/">state guide</a> for the full sourcing, or check the
+      <a href="/sweepstakes-tracker/">live tracker</a> directly &mdash; both pull from the same daily-
+      refreshed dataset as this page.</li>
+    <li><strong>If you're treating this page as legal advice:</strong> don't. This is editorial analysis
+      of public legislative and regulatory records, not a substitute for a lawyer, and law in this
+      space is changing on a roughly monthly cadence.</li>
+    <li><strong>If you or someone you know is spending more than intended:</strong> sweepstakes
+      casinos are still real-money-adjacent entertainment. Call
+      <a href="tel:18004262537">1-800-GAMBLER</a> or visit the National Council on Problem Gambling
+      before, not after, it becomes a problem.</li>
+  </ul>
+
+  <h2>Frequently Asked Questions</h2>
+  {FAQ.map((f) => (
+    <details class="sl-faq">
+      <summary>{f.q}</summary>
+      <p>{f.a}</p>
+    </details>
+  ))}
+
+  <p class="sl-foot">
+    Legal status is compiled per our <a href="/sweepstakes-tracker/methodology/">tracker methodology</a>
+    and is editorial analysis of public law &mdash; not legal advice. Play responsibly &middot; 21+ &middot;
+    <a href="tel:18004262537">1-800-GAMBLER</a>.
+  </p>
+
+  <style>
+    .sl-intro{background:#f0f7ff;border:1px solid #cfe0f5;border-radius:10px;padding:12px 16px;margin:0 0 20px;}
+    .sl-intro a{color:#1d4ed8;font-weight:600;}
+    .sl-tablewrap{overflow-x:auto;border:1px solid #e2e8f0;border-radius:10px;margin:10px 0 24px;}
+    .sl-table{border-collapse:collapse;width:100%;font-size:.9rem;}
+    .sl-table th,.sl-table td{padding:9px 12px;border-bottom:1px solid #eef2f7;text-align:left;white-space:nowrap;}
+    .sl-table th{background:#f8fafc;font-size:.82rem;}
+    .sl-table td:not(:first-child){white-space:normal;}
+    .sl-compare td:first-child{font-weight:600;color:#334155;background:#f8fafc;}
+    .sl-compare th:nth-child(2),.sl-compare td:nth-child(2){border-right:1px solid #eef2f7;}
+    .sl-site{font-weight:600;font-size:.82rem;padding:2px 9px;border-radius:999px;}
+    .sl-site.info{background:#fee2e2;color:#b91c1c;} .sl-site.offers{background:#dcfce7;color:#15803d;}
+    .sl-badge{display:inline-block;padding:2px 10px;border-radius:999px;font-size:.78rem;font-weight:600;color:#0a1628;background:color-mix(in srgb, var(--c) 26%, #fff);border:1px solid var(--c);}
+    .sl-dir{font-size:.7rem;text-transform:uppercase;letter-spacing:.05em;padding:2px 8px;border-radius:6px;font-weight:700;}
+    .dir-anti_sweeps{background:#fee2e2;color:#b91c1c;} .dir-pro_sweeps{background:#dcfce7;color:#15803d;} .dir-neutral{background:#e2e8f0;color:#475569;}
+    .sl-foot{font-size:.85rem;color:#64748b;border-top:1px solid #e2e8f0;padding-top:14px;margin-top:12px;}
+    .sl-foot a{color:#b45309;font-weight:600;}
+    .sl-notforyou{list-style:none;margin:0 0 24px;padding:0;display:grid;gap:10px;}
+    .sl-notforyou li{background:#fff7ed;border:1px solid #fed7aa;border-radius:10px;padding:12px 16px;font-size:.92rem;line-height:1.5;}
+    .sl-notforyou a{color:#b45309;font-weight:600;}
+    .sl-faq{border:1px solid #e2e8f0;border-radius:10px;padding:10px 16px;margin-bottom:8px;}
+    .sl-faq summary{cursor:pointer;font-weight:600;font-size:.95rem;}
+    .sl-faq p{margin:8px 0 2px;font-size:.9rem;color:#334155;line-height:1.55;}
+  </style>
+</ContentLayout>

@@ -1,0 +1,106 @@
+---
+/**
+ * Pending legislation tracker — bills affecting sweepstakes casinos, from the
+ * live tracker dataset (LegiScan-sourced). Clean page, no affiliate links.
+ */
+export const prerender = false;
+
+import ContentLayout from '../../../layouts/ContentLayout.astro';
+import { getTrackerData } from '../../../lib/tracker/data';
+import { stateName, isUsStateCode } from '../../../data/usStates';
+
+Astro.response.headers.set('Cache-Control', 'public, max-age=0, s-maxage=21600, stale-while-revalidate=86400');
+
+const ORIGIN = 'https://sweepstakeswiz.com';
+const canonicalPath = '/sweepstakes-tracker/legislation/';
+const canonical = `${ORIGIN}${canonicalPath}`;
+
+const bundle = await getTrackerData();
+const bills = [...bundle.pendingLegislation].sort(
+  (a, b) => new Date(b.last_action_date).getTime() - new Date(a.last_action_date).getTime(),
+);
+
+const anti = bills.filter((b) => b.direction === 'anti_sweeps').length;
+const pro = bills.filter((b) => b.direction === 'pro_sweeps').length;
+
+const breadcrumbs = [
+  { name: 'Home', path: '/' },
+  { name: 'Sweepstakes Tracker', path: '/sweepstakes-tracker/' },
+  { name: 'Legislation', path: canonicalPath },
+];
+
+const itemListLd = {
+  '@type': 'ItemList',
+  '@id': `${canonical}#bills`,
+  name: 'Pending sweepstakes casino legislation',
+  numberOfItems: bills.length,
+  itemListElement: bills.slice(0, 50).map((b, i) => ({
+    '@type': 'ListItem',
+    position: i + 1,
+    name: `${b.state_code} ${b.bill_number}: ${b.title}`,
+    url: b.bill_url,
+  })),
+};
+
+function dirLabel(d: string) {
+  return d === 'anti_sweeps' ? 'Restrictive' : d === 'pro_sweeps' ? 'Permissive' : 'Neutral';
+}
+---
+<ContentLayout
+  title="Pending Sweepstakes Casino Legislation — US Bill Tracker"
+  description="Live tracker of state bills that would restrict or permit sweepstakes casinos, sourced from LegiScan. Direction, status, and last action for each bill. Editorially independent."
+  canonicalPath={canonicalPath}
+  breadcrumbs={breadcrumbs}
+  heroTitle="Pending sweepstakes legislation"
+  heroSubtitle="State bills that would restrict or permit sweepstakes casinos, updated daily."
+  pageType="CollectionPage"
+  mainEntityId={`${canonical}#bills`}
+  jsonLd={[itemListLd]}
+>
+  <p class="lg-summary">
+    Tracking <strong>{bills.length}</strong> bills across US legislatures &mdash;
+    {anti} restrictive, {pro} permissive. Sourced from LegiScan and refreshed daily.
+    This is editorial monitoring, not legal advice.
+  </p>
+
+  {bills.length === 0 ? (
+    <div class="notice-box"><p>No pending bills are currently tracked. Check back after the next daily update.</p></div>
+  ) : (
+    <div class="lg-tablewrap">
+      <table class="lg-table">
+        <thead>
+          <tr><th>Bill</th><th>State</th><th>Direction</th><th>Status</th><th>Last action</th><th>Title</th></tr>
+        </thead>
+        <tbody>
+          {bills.map((b) => (
+            <tr>
+              <td><a href={b.bill_url} rel="nofollow noopener" target="_blank">{b.bill_number}</a></td>
+              <td>{isUsStateCode(b.state_code) ? stateName(b.state_code) : b.state_code}</td>
+              <td><span class={`lg-dir dir-${b.direction}`}>{dirLabel(b.direction)}</span></td>
+              <td>{b.status_label || b.status}</td>
+              <td>{b.last_action_date ? new Date(b.last_action_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' }) : '\u2014'}</td>
+              <td class="lg-title">{b.title}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  )}
+
+  <p class="lg-foot">
+    See the <a href="/sweepstakes-tracker/">legality map and full dataset</a> or read our
+    <a href="/sweepstakes-tracker/methodology/">methodology</a>.
+  </p>
+
+  <style>
+    .lg-summary{background:#fff8e6;border-left:4px solid #f59e0b;padding:12px 16px;border-radius:6px;margin:0 0 20px;}
+    .lg-tablewrap{overflow-x:auto;border:1px solid #e2e8f0;border-radius:10px;}
+    .lg-table{border-collapse:collapse;width:100%;font-size:.9rem;}
+    .lg-table th,.lg-table td{padding:9px 12px;border-bottom:1px solid #eef2f7;text-align:left;vertical-align:top;}
+    .lg-table th{background:#f8fafc;font-size:.82rem;white-space:nowrap;}
+    .lg-title{min-width:220px;color:#334155;}
+    .lg-dir{font-size:.7rem;text-transform:uppercase;letter-spacing:.05em;padding:2px 8px;border-radius:6px;font-weight:700;white-space:nowrap;}
+    .dir-anti_sweeps{background:#fee2e2;color:#b91c1c;} .dir-pro_sweeps{background:#dcfce7;color:#15803d;} .dir-neutral{background:#e2e8f0;color:#475569;}
+    .lg-foot{margin-top:22px;}
+  </style>
+</ContentLayout>

@@ -9,6 +9,7 @@
  */
 import { getCollection } from 'astro:content';
 import ContentLayout from '../../layouts/ContentLayout.astro';
+import { AUTHOR_ID } from '../../lib/schema';
 
 export const prerender = true;
 
@@ -16,6 +17,17 @@ const ORIGIN = 'https://sweepstakeswiz.com';
 const canonicalPath = '/guides/';
 
 const entries = await getCollection('guides', (e) => !e.data.draft);
+
+// Real freshness signal: the newest `updated` date across the linked guides
+// (never a fabricated "today" stamp). content.config.ts coerces `updated` to
+// a Date; full ISO datetime+timezone (not date-only) since Google's Rich
+// Results Article validator flags date-only strings as invalid/missing-tz.
+const dateModified = entries
+  .map((e) => e.data.updated)
+  .filter((d): d is Date => Boolean(d))
+  .sort((a, b) => a.getTime() - b.getTime())
+  .at(-1)
+  ?.toISOString();
 
 const stripTags = (s: string) => s.replace(/<[^>]+>/g, '').trim();
 const displayTitle = (e: (typeof entries)[number]) =>
@@ -104,7 +116,27 @@ const faqLd = {
   })),
 };
 
-const jsonLd = [itemListLd, faqLd];
+// Content entity for the hub's own hand-authored prose (intro + "where to go
+// next"), so the visible byline below is reflected in schema, not just on
+// the page. wordCount is the real count of those two sections only.
+const introNode = {
+  '@type': 'Article',
+  '@id': `${canonical}#intro`,
+  headline: title,
+  author: { '@id': AUTHOR_ID },
+  wordCount: 79,
+  inLanguage: 'en-US',
+  mainEntityOfPage: { '@id': `${canonical}#webpage` },
+  ...(dateModified ? { dateModified } : {}),
+  image: {
+    '@type': 'ImageObject',
+    url: `${ORIGIN}/images/guides/guides-hub.png`,
+    width: 1376,
+    height: 768,
+  },
+};
+
+const jsonLd = [itemListLd, faqLd, introNode];
 ---
 <ContentLayout
   title={title}
@@ -116,6 +148,7 @@ const jsonLd = [itemListLd, faqLd];
   ogImage="/images/guides/guides-hub.png"
   pageType="CollectionPage"
   mainEntityId={`${canonical}#itemlist`}
+  dateModified={dateModified}
   jsonLd={jsonLd}
 >
   <figure class="hub-hero">

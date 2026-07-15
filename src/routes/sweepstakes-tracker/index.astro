@@ -1,0 +1,409 @@
+---
+/**
+ * Sweepstakes Legality Tracker — hub (clean, editorially independent).
+ *
+ * This page carries NO affiliate links or CTAs. It is the citation-grade
+ * dataset surface: interactive map, live status table, recent changes, pending
+ * legislation, operator availability matrix (editorial cross-links only),
+ * citation kit, and API/embed access. Data is read live from the tracker
+ * Supabase via SSR; the same dataset also powers /states/ and /state-legality/.
+ */
+export const prerender = false;
+
+import ContentLayout from '../../layouts/ContentLayout.astro';
+import UsLegalityMap from '../../components/tracker/UsLegalityMap.astro';
+import {
+  buildProvenance,
+  computeStats,
+  getTrackerData,
+  wasChangedWithinDays,
+} from '../../lib/tracker/data';
+import { SWEEPS_STATUS_META, type SweepsCasinoStatus } from '../../lib/tracker/types';
+import { wizReviewPathForOperator } from '../../data/trackerReconcile';
+import { datasetNode } from '../../lib/schema';
+
+// Refresh from Supabase at the edge; the daily n8n deploy hook also rebuilds.
+Astro.response.headers.set('Cache-Control', 'public, max-age=0, s-maxage=21600, stale-while-revalidate=86400');
+
+const ORIGIN = 'https://sweepstakeswiz.com';
+const canonicalPath = '/sweepstakes-tracker/';
+const canonical = `${ORIGIN}${canonicalPath}`;
+
+const bundle = await getTrackerData();
+const stats = computeStats(bundle);
+const provenance = buildProvenance(bundle);
+
+const states = [...bundle.states].sort((a, b) => a.state_name.localeCompare(b.state_name));
+const changedRecently = [...bundle.states]
+  .filter((s) => wasChangedWithinDays(s.sweeps_status_changed_at, 90))
+  .sort((a, b) => new Date(b.sweeps_status_changed_at).getTime() - new Date(a.sweeps_status_changed_at).getTime())
+  .slice(0, 12);
+
+const recentEvents = [...bundle.events]
+  .sort((a, b) => new Date(b.event_date).getTime() - new Date(a.event_date).getTime())
+  .slice(0, 10);
+
+const activeBills = bundle.pendingLegislation
+  .filter((b) => b.status !== 'dead')
+  .slice(0, 12);
+
+const operators = [...bundle.operators].sort((a, b) => a.name.localeCompare(b.name));
+const availByKey = new Map(bundle.availability.map((a) => [`${a.operator_slug}|${a.state_code.toUpperCase()}`, a.status]));
+const matrixStates = states.map((s) => s.state_code.toUpperCase());
+
+const updatedHuman = new Date(stats.generatedAt).toLocaleDateString('en-US', {
+  year: 'numeric', month: 'long', day: 'numeric', timeZone: 'UTC',
+});
+
+const AVAIL_META: Record<string, { icon: string; label: string }> = {
+  available: { icon: '\u2705', label: 'Available' },
+  restricted: { icon: '\u26A0\uFE0F', label: 'Caution' },
+  pending_exit: { icon: '\u26A0\uFE0F', label: 'Pending exit' },
+  banned: { icon: '\uD83D\uDEAB', label: 'Blocked' },
+  never_offered: { icon: '\u2013', label: 'Not offered' },
+};
+
+const FAQ = [
+  {
+    q: 'Which states restrict or ban sweepstakes casinos?',
+    a: `As of ${updatedHuman}, the tracker lists ${stats.bannedCount} banned and ${stats.pendingCount} pending-ban jurisdictions, with the rest split between legal/unregulated, gray-market, and restricted. Use the interactive map and table above for each state's current status.`,
+  },
+  {
+    q: 'How often is this legality data updated?',
+    a: 'The dataset refreshes daily via automated ingestion of LegiScan bill data and vetted news sources, with a human review queue for high-impact status changes. Every state row shows its last-reviewed and last-updated timestamps.',
+  },
+  {
+    q: 'Can journalists and publishers cite this tracker?',
+    a: 'Yes. The dataset is published under CC-BY 4.0 with citation-ready JSON and CSV endpoints. See the "Cite this dataset" and API sections below.',
+  },
+  {
+    q: 'Is this legal advice?',
+    a: 'No. This is an editorial legal-status monitor compiled from public sources. It is not legal advice; consult a licensed attorney for your situation.',
+  },
+];
+
+const dataset = datasetNode({
+  url: canonical,
+  id: `${canonical}#dataset`,
+  name: 'U.S. Sweepstakes Casino Legality Dataset',
+  description:
+    'Daily-updated legal status of sweepstakes casinos across all 51 U.S. jurisdictions, with operator availability and pending legislation. Published by Sweepstakes Wiz under CC-BY 4.0.',
+  dateModified: stats.generatedAt,
+  datePublished: '2026-05-12',
+  keywords: [
+    'sweepstakes casino legality',
+    'sweepstakes law by state',
+    'social casino legal status',
+    'sweeps coins legal states',
+  ],
+  variableMeasured: [
+    'sweepstakes_casino_legal_status',
+    'operator_availability_by_state',
+    'pending_legislation_count',
+  ],
+  distributions: [
+    { encodingFormat: 'application/json', contentUrl: `${canonical}api/legality.json` },
+    { encodingFormat: 'text/csv', contentUrl: `${canonical}api/legality.csv` },
+  ],
+});
+
+const faqNode = {
+  '@type': 'FAQPage',
+  '@id': `${canonical}#faq`,
+  mainEntity: FAQ.map((f) => ({
+    '@type': 'Question',
+    name: f.q,
+    acceptedAnswer: { '@type': 'Answer', text: f.a },
+  })),
+};
+
+const breadcrumbs = [
+  { name: 'Home', path: '/' },
+  { name: 'Sweepstakes Tracker', path: canonicalPath },
+];
+
+function statusPill(status: SweepsCasinoStatus) {
+  return SWEEPS_STATUS_META[status];
+}
+---
+<ContentLayout
+  title="Sweepstakes Casino Legality Tracker — All 51 US Jurisdictions"
+  description="Daily-updated legal status of sweepstakes casinos in every US state and DC, with pending legislation, operator availability, and a citable CC-BY dataset. Editorially independent."
+  canonicalPath={canonicalPath}
+  breadcrumbs={breadcrumbs}
+  heroTitle="U.S. Sweepstakes Casino Legality Tracker"
+  heroSubtitle="Daily-updated legal status across all 51 US jurisdictions. Editorially independent. CC-BY licensed."
+  pageType="CollectionPage"
+  datePublished="2026-05-12"
+  dateModified={stats.generatedAt}
+  mainEntityId={`${canonical}#dataset`}
+  jsonLd={[dataset, faqNode]}
+>
+  <div class="tk-independence">
+    <strong>Editorially independent.</strong> This tracker carries no affiliate links.
+    Read our <a href="/sweepstakes-tracker/methodology/">methodology</a> and
+    <a href="/editorial-policy/">editorial policy</a>.
+  </div>
+
+  {bundle.degraded && (
+    <div class="notice-box">
+      <p>Showing a baseline snapshot — the live legality feed is temporarily unavailable. Timestamps reflect the last committed baseline.</p>
+    </div>
+  )}
+
+  <div class="tk-stats" role="list">
+    <div class="tk-stat" role="listitem"><span class="tk-num">{stats.jurisdictions}</span><span class="tk-lbl">Jurisdictions tracked</span></div>
+    <div class="tk-stat" role="listitem"><span class="tk-num">{stats.changed90d}</span><span class="tk-lbl">Status changes (90d)</span></div>
+    <div class="tk-stat" role="listitem"><span class="tk-num">{stats.activeBills}</span><span class="tk-lbl">Active bills</span></div>
+    <div class="tk-stat" role="listitem"><span class="tk-num">{stats.bannedCount + stats.pendingCount}</span><span class="tk-lbl">Banned or pending</span></div>
+    <div class="tk-stat" role="listitem"><span class="tk-num">{stats.coverage7dPct}%</span><span class="tk-lbl">Reviewed in 7 days</span></div>
+  </div>
+  <p class="tk-updated">Last updated {updatedHuman} (UTC). Coverage SLA target: review at least 70% of jurisdictions within 7 days.</p>
+
+  <p class="tk-tldr">
+    Sweepstakes casinos are tracked across all 51 US jurisdictions. As of {updatedHuman},
+    {stats.bannedCount} are banned and {stats.pendingCount} face a pending ban; the remainder
+    are legal/unregulated, gray-market, or restricted. Status is changing quickly — this page
+    updates daily from official bill data and vetted news.
+  </p>
+
+  <UsLegalityMap states={bundle.states} linkBase="/states/" />
+
+  <h2 id="table">State status table</h2>
+  <div class="tk-tablewrap">
+    <table class="tk-table" id="tk-state-table">
+      <thead>
+        <tr>
+          <th data-sort="name" aria-sort="ascending">State</th>
+          <th data-sort="status">Status</th>
+          <th data-sort="confidence">Confidence</th>
+          <th data-sort="sources">Sources</th>
+          <th data-sort="changed">Last changed</th>
+        </tr>
+      </thead>
+      <tbody>
+        {states.map((s) => {
+          const meta = statusPill(s.sweeps_casino_status);
+          const prov = provenance.find((p) => p.state_code === s.state_code);
+          const changed = new Date(s.sweeps_status_changed_at);
+          return (
+            <tr>
+              <td data-key="name" data-v={s.state_name}><a href={`/states/${s.state_slug}/`}>{s.state_name}</a></td>
+              <td data-key="status" data-v={s.sweeps_casino_status}>
+                <span class="tk-badge" style={`--c:${meta.color}`}>{meta.label}</span>
+              </td>
+              <td data-key="confidence" data-v={s.sweeps_status_confidence}>{s.sweeps_status_confidence}</td>
+              <td data-key="sources" data-v={String(prov?.source_count ?? 0)}>{prov?.source_count ?? 0}</td>
+              <td data-key="changed" data-v={String(changed.getTime())}>{changed.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' })}</td>
+            </tr>
+          );
+        })}
+      </tbody>
+    </table>
+  </div>
+
+  {changedRecently.length > 0 && (
+    <section aria-label="Recent status changes">
+      <h2>Recent changes (last 90 days)</h2>
+      <ul class="tk-changes">
+        {changedRecently.map((s) => (
+          <li>
+            <a href={`/states/${s.state_slug}/`}>{s.state_name}</a>
+            <span class="tk-badge sm" style={`--c:${statusPill(s.sweeps_casino_status).color}`}>{statusPill(s.sweeps_casino_status).label}</span>
+            <span class="tk-when">{new Date(s.sweeps_status_changed_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' })}</span>
+          </li>
+        ))}
+      </ul>
+    </section>
+  )}
+
+  {recentEvents.length > 0 && (
+    <section aria-label="Recent regulatory pulse">
+      <h2>Recent regulatory pulse</h2>
+      <ul class="tk-events">
+        {recentEvents.map((e) => (
+          <li>
+            <span class={`tk-sev sev-${e.severity}`}>{e.severity}</span>
+            <div>
+              <p class="tk-evt-title">{e.title}</p>
+              <p class="tk-evt-sum">{e.summary}</p>
+              <p class="tk-evt-src">
+                <a href={e.source_url} rel="nofollow noopener" target="_blank">{e.source_publisher}</a>
+                <span> &middot; {new Date(e.event_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' })}</span>
+                {e.human_verified ? <span class="tk-verified"> &middot; human-verified</span> : <span class="tk-pending"> &middot; awaiting review</span>}
+              </p>
+            </div>
+          </li>
+        ))}
+      </ul>
+      <p><a href="/sweepstakes-tracker/legislation/">See all pending legislation &rarr;</a></p>
+    </section>
+  )}
+
+  {activeBills.length > 0 && (
+    <section aria-label="Pending legislation">
+      <h2>Pending legislation</h2>
+      <ul class="tk-bills">
+        {activeBills.map((b) => (
+          <li>
+            <span class={`tk-dir dir-${b.direction}`}>{b.direction.replace('_', '-')}</span>
+            <a href={b.bill_url} rel="nofollow noopener" target="_blank">{b.bill_number}</a>
+            <span class="tk-bill-state">{b.state_code}</span>
+            <span class="tk-bill-title">{b.title}</span>
+            <span class="tk-bill-status">{b.status_label || b.status}</span>
+          </li>
+        ))}
+      </ul>
+    </section>
+  )}
+
+  {operators.length > 0 && (
+    <section aria-label="Operator availability matrix">
+      <h2>Operator availability matrix</h2>
+      <p class="tk-note">
+        Availability is reference data compiled from operator terms and public sources.
+        Operator names link to our editorial reviews where available — this tracker itself
+        contains no affiliate links.
+      </p>
+      <div class="tk-legend">
+        <span>{AVAIL_META.available.icon} Available</span>
+        <span>{AVAIL_META.restricted.icon} Caution</span>
+        <span>{AVAIL_META.banned.icon} Blocked</span>
+      </div>
+      <div class="tk-tablewrap">
+        <table class="tk-matrix">
+          <thead>
+            <tr>
+              <th class="tk-op">Operator</th>
+              {matrixStates.map((c) => <th>{c}</th>)}
+            </tr>
+          </thead>
+          <tbody>
+            {operators.map((op) => {
+              const reviewPath = wizReviewPathForOperator(op.operator_slug);
+              return (
+                <tr>
+                  <td class="tk-op">
+                    {reviewPath ? <a href={reviewPath}>{op.name}</a> : <span>{op.name}</span>}
+                  </td>
+                  {matrixStates.map((c) => {
+                    const st = availByKey.get(`${op.operator_slug}|${c}`) ?? 'never_offered';
+                    const meta = AVAIL_META[st] ?? AVAIL_META.never_offered;
+                    return <td title={`${op.name} — ${c}: ${meta.label}`}>{meta.icon}</td>;
+                  })}
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+    </section>
+  )}
+
+  <section aria-label="Cite this dataset" class="tk-cite">
+    <h2>Cite this dataset</h2>
+    <p>Free to reuse under <a href="https://creativecommons.org/licenses/by/4.0/" rel="nofollow noopener" target="_blank">CC-BY 4.0</a> with attribution to Sweepstakes Wiz.</p>
+    <pre class="tk-citation">Sweepstakes Wiz. "U.S. Sweepstakes Casino Legality Dataset." sweepstakeswiz.com/sweepstakes-tracker/, accessed {updatedHuman}.</pre>
+  </section>
+
+  <section aria-label="Data access" class="tk-api">
+    <h2>Get the data</h2>
+    <ul>
+      <li><a href="/sweepstakes-tracker/api/legality.json">legality.json</a> — full 51-jurisdiction dataset</li>
+      <li><a href="/sweepstakes-tracker/api/legality.csv">legality.csv</a> — spreadsheet-friendly export</li>
+      <li><a href="/sweepstakes-tracker/api/provenance.json">provenance.json</a> — per-state sources and freshness</li>
+      <li><a href="/sweepstakes-tracker/api/">API docs &amp; embed widget &rarr;</a></li>
+    </ul>
+  </section>
+
+  <section aria-label="Frequently asked questions">
+    <h2>Frequently asked questions</h2>
+    {FAQ.map((f) => (
+      <>
+        <h3>{f.q}</h3>
+        <p>{f.a}</p>
+      </>
+    ))}
+  </section>
+
+  <p class="tk-byline">
+    Compiled and maintained by <a href="/author/ilija-milosevic/">Ilija Milosevic</a>,
+    iGaming Writer &amp; Analyst, using our published
+    <a href="/sweepstakes-tracker/methodology/"> tracker methodology</a>. This is editorial
+    analysis of public law — not legal advice. Play responsibly &middot; 21+ &middot;
+    <a href="tel:18004262537">1-800-GAMBLER</a>.
+  </p>
+
+  <style>
+    .tk-independence{background:#f0f7ff;border:1px solid #cfe0f5;border-radius:10px;padding:12px 16px;font-size:.92rem;color:#1e3a5f;margin:0 0 20px;}
+    .tk-independence a{color:#1d4ed8;font-weight:600;}
+    .tk-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin:18px 0 6px;}
+    .tk-stat{background:#0a1628;color:#fff;border-radius:12px;padding:16px;text-align:center;}
+    .tk-num{display:block;font-size:1.9rem;font-weight:800;font-family:'Sora',sans-serif;line-height:1;}
+    .tk-lbl{display:block;font-size:.76rem;opacity:.82;margin-top:6px;}
+    .tk-updated{font-size:.82rem;color:#64748b;margin:6px 2px 20px;}
+    .tk-tldr{background:#fff8e6;border-left:4px solid #f59e0b;padding:12px 16px;border-radius:6px;font-size:.96rem;margin:0 0 24px;}
+    h2{margin-top:32px;color:#0a1628;}
+    .tk-tablewrap{overflow-x:auto;border:1px solid #e2e8f0;border-radius:10px;margin:10px 0;}
+    .tk-table{border-collapse:collapse;width:100%;font-size:.9rem;}
+    .tk-table th,.tk-table td{padding:9px 12px;border-bottom:1px solid #eef2f7;text-align:left;white-space:nowrap;}
+    .tk-table th{background:#f8fafc;cursor:pointer;user-select:none;font-size:.82rem;}
+    .tk-table th[aria-sort]{color:#0a1628;}
+    .tk-badge{display:inline-block;padding:2px 10px;border-radius:999px;font-size:.78rem;font-weight:600;color:#0a1628;background:color-mix(in srgb, var(--c) 26%, #fff);border:1px solid var(--c);}
+    .tk-badge.sm{font-size:.72rem;padding:1px 8px;margin:0 6px;}
+    .tk-changes{list-style:none;padding:0;margin:8px 0;}
+    .tk-changes li{padding:8px 0;border-bottom:1px solid #eef2f7;display:flex;align-items:center;flex-wrap:wrap;gap:4px;}
+    .tk-changes a{font-weight:600;color:#1d4ed8;}
+    .tk-when{color:#64748b;font-size:.82rem;margin-left:auto;}
+    .tk-events{list-style:none;padding:0;margin:8px 0;}
+    .tk-events li{display:flex;gap:12px;padding:12px 0;border-bottom:1px solid #eef2f7;}
+    .tk-sev{flex:0 0 auto;height:fit-content;font-size:.68rem;text-transform:uppercase;letter-spacing:.06em;padding:2px 8px;border-radius:6px;font-weight:700;}
+    .sev-critical{background:#fee2e2;color:#b91c1c;} .sev-high{background:#ffedd5;color:#c2410c;}
+    .sev-medium{background:#fef9c3;color:#a16207;} .sev-info{background:#e0f2fe;color:#0369a1;}
+    .tk-evt-title{font-weight:600;margin:0;color:#0a1628;} .tk-evt-sum{margin:2px 0;color:#334155;font-size:.9rem;}
+    .tk-evt-src{margin:0;font-size:.8rem;color:#64748b;} .tk-verified{color:#15803d;} .tk-pending{color:#b45309;}
+    .tk-bills{list-style:none;padding:0;margin:8px 0;}
+    .tk-bills li{display:flex;gap:10px;align-items:center;flex-wrap:wrap;padding:8px 0;border-bottom:1px solid #eef2f7;font-size:.9rem;}
+    .tk-dir{font-size:.7rem;text-transform:uppercase;letter-spacing:.05em;padding:2px 8px;border-radius:6px;font-weight:700;}
+    .dir-anti_sweeps{background:#fee2e2;color:#b91c1c;} .dir-pro_sweeps{background:#dcfce7;color:#15803d;} .dir-neutral{background:#e2e8f0;color:#475569;}
+    .tk-bill-state{font-weight:700;color:#0a1628;} .tk-bill-title{flex:1;min-width:180px;color:#334155;} .tk-bill-status{color:#64748b;font-size:.82rem;}
+    .tk-note{font-size:.86rem;color:#475569;} .tk-legend{display:flex;gap:16px;font-size:.84rem;color:#475569;margin:6px 0;}
+    .tk-matrix{border-collapse:collapse;font-size:.8rem;}
+    .tk-matrix th,.tk-matrix td{border:1px solid #eef2f7;padding:5px 7px;text-align:center;}
+    .tk-matrix th{background:#f8fafc;position:sticky;top:0;}
+    .tk-matrix .tk-op{text-align:left;white-space:nowrap;position:sticky;left:0;background:#fff;font-weight:600;}
+    .tk-matrix .tk-op a{color:#1d4ed8;}
+    .tk-cite pre.tk-citation{white-space:pre-wrap;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:12px;font-size:.84rem;color:#334155;}
+    .tk-api ul{padding-left:20px;} .tk-api li{margin:6px 0;}
+    .tk-byline{font-size:.85rem;color:#64748b;border-top:1px solid #e2e8f0;padding-top:14px;margin:28px 0 10px;}
+    .tk-byline a{color:#b45309;font-weight:600;}
+  </style>
+
+  <script is:inline>
+    (function () {
+      var table = document.getElementById('tk-state-table');
+      if (!table) return;
+      var tbody = table.querySelector('tbody');
+      var headers = table.querySelectorAll('th[data-sort]');
+      var state = { key: 'name', dir: 1 };
+      headers.forEach(function (th) {
+        th.addEventListener('click', function () {
+          var key = th.getAttribute('data-sort');
+          state.dir = state.key === key ? -state.dir : 1;
+          state.key = key;
+          headers.forEach(function (h) { h.removeAttribute('aria-sort'); });
+          th.setAttribute('aria-sort', state.dir === 1 ? 'ascending' : 'descending');
+          var rows = Array.prototype.slice.call(tbody.querySelectorAll('tr'));
+          var numeric = key === 'sources' || key === 'changed';
+          rows.sort(function (a, b) {
+            var av = a.querySelector('[data-key="' + key + '"]').getAttribute('data-v') || '';
+            var bv = b.querySelector('[data-key="' + key + '"]').getAttribute('data-v') || '';
+            if (numeric) return (parseFloat(av) - parseFloat(bv)) * state.dir;
+            return av.localeCompare(bv) * state.dir;
+          });
+          rows.forEach(function (r) { tbody.appendChild(r); });
+        });
+      });
+    })();
+  </script>
+</ContentLayout>

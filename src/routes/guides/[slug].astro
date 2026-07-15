@@ -57,7 +57,11 @@ const wordCount = entry.body
       .filter(Boolean).length
   : undefined;
 
-const image = entry.data.image ? `${ORIGIN}${entry.data.image}` : undefined;
+// Every guide image currently shipped is 1376x768 (verified against the
+// actual files in public/images/guides/) — same size as the hub hero image.
+const image = entry.data.image
+  ? { '@type': 'ImageObject', url: `${ORIGIN}${entry.data.image}`, width: 1376, height: 768 }
+  : undefined;
 const citations = entry.data.citations ?? [];
 
 // Article: the page's content entity. Author/publisher are @id refs — the

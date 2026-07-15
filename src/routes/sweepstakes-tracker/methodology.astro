@@ -1,0 +1,115 @@
+---
+/**
+ * Tracker methodology — the primary E-E-A-T page for the legality dataset.
+ * Editorial-independence statement, sourcing hierarchy, update cadence,
+ * verification protocol, and correction policy. No affiliate links.
+ */
+export const prerender = true;
+
+import ContentLayout from '../../layouts/ContentLayout.astro';
+import { AUTHOR_ID, ORG_ID } from '../../lib/schema';
+
+const ORIGIN = 'https://sweepstakeswiz.com';
+const canonicalPath = '/sweepstakes-tracker/methodology/';
+const canonical = `${ORIGIN}${canonicalPath}`;
+
+const breadcrumbs = [
+  { name: 'Home', path: '/' },
+  { name: 'Sweepstakes Tracker', path: '/sweepstakes-tracker/' },
+  { name: 'Methodology', path: canonicalPath },
+];
+
+const articleLd = {
+  '@type': 'Article',
+  '@id': `${canonical}#article`,
+  headline: 'How the Sweepstakes Legality Tracker works',
+  description:
+    'Sourcing hierarchy, update cadence, verification protocol, and correction policy for the Sweepstakes Wiz US legality dataset.',
+  mainEntityOfPage: { '@id': `${canonical}#webpage` },
+  inLanguage: 'en-US',
+  author: { '@id': AUTHOR_ID },
+  publisher: { '@id': ORG_ID },
+};
+---
+<ContentLayout
+  title="Tracker Methodology — Sourcing, Cadence & Verification"
+  description="How Sweepstakes Wiz compiles and verifies US sweepstakes casino legality data: source tiers, daily update cadence, human review, and corrections. Editorially independent."
+  canonicalPath={canonicalPath}
+  breadcrumbs={breadcrumbs}
+  heroTitle="Tracker methodology"
+  heroSubtitle="How we compile, verify, and correct the US sweepstakes legality dataset."
+  mainEntityId={`${canonical}#article`}
+  jsonLd={[articleLd]}
+>
+  <h2>Editorial independence</h2>
+  <p>
+    The Sweepstakes Legality Tracker is published by Sweepstakes Wiz, which also
+    operates commercial casino reviews. The tracker is editorially independent of
+    that review business: it carries <strong>no affiliate links</strong>, accepts
+    no operator funding for placement, and its legal-status labels are never
+    influenced by commercial relationships. Where our commercial pages suppress
+    affiliate promotion for legal reasons, this tracker still reports the neutral
+    legal status of each jurisdiction.
+  </p>
+
+  <h2>Sourcing hierarchy</h2>
+  <p>We weight sources in this order, and never change a status label on a single low-tier source alone:</p>
+  <ol>
+    <li><strong>Tier 1 — Official government.</strong> State legislatures, attorney-general offices, gaming commissions, and court records (via LegiScan bill tracking and primary filings).</li>
+    <li><strong>Tier 2 — Tier-1 journalism.</strong> AP, Reuters, and comparable outlets with published editorial standards.</li>
+    <li><strong>Tier 3 — Industry trade press</strong> with editorial standards.</li>
+    <li><strong>Tier 4 — Other sources</strong> used only as corroboration, never as the sole basis for a change.</li>
+  </ol>
+
+  <h2>Update cadence</h2>
+  <p>
+    The dataset refreshes <strong>daily</strong> via an automated pipeline that pulls
+    LegiScan bill activity and vetted news feeds. Each state row records both a
+    <em>last auto-updated</em> and a <em>last reviewed</em> timestamp. Our coverage
+    target is to review at least 70% of jurisdictions within any 7-day window.
+  </p>
+
+  <h2>Verification protocol</h2>
+  <p>Two tracks keep automation honest:</p>
+  <ul>
+    <li><strong>News events</strong> are auto-classified and published with a confidence score; low-confidence items are flagged for review before they surface.</li>
+    <li><strong>Status changes</strong> (a state moving between legal, gray, restricted, pending-ban, or banned) are <strong>always human-gated</strong>. A change requires a Tier-1 or Tier-2 source and editorial sign-off before the label updates.</li>
+  </ul>
+
+  <h2>Confidence levels</h2>
+  <p>
+    Each state carries a confidence rating (high / medium / low) reflecting how
+    settled its legal posture is. Actively contested or fast-moving states are
+    marked lower confidence even when a current label is assigned.
+  </p>
+
+  <h2>Corrections</h2>
+  <p>
+    We correct errors promptly and transparently. If you believe a status,
+    source, or bill is wrong, contact
+    <a href="/contact/">our editorial team</a>. Substantive corrections are
+    reflected in the affected state's timestamps.
+  </p>
+
+  <h2>License &amp; citation</h2>
+  <p>
+    The dataset is published under
+    <a href="https://creativecommons.org/licenses/by/4.0/" rel="nofollow noopener" target="_blank">CC-BY 4.0</a>.
+    You may reuse it with attribution to Sweepstakes Wiz. Machine-readable
+    endpoints are documented on the <a href="/sweepstakes-tracker/api/">API page</a>.
+  </p>
+
+  <p class="mt-byline">
+    Maintained by <a href="/author/ilija-milosevic/">Ilija Milosevic</a>. This page is
+    editorial analysis of public law &mdash; not legal advice. See our
+    <a href="/editorial-policy/">editorial policy</a>.
+  </p>
+
+  <style>
+    .content-card h2{color:#0a1628;margin-top:28px;}
+    .content-card ol,.content-card ul{padding-left:22px;}
+    .content-card li{margin:8px 0;line-height:1.6;}
+    .mt-byline{font-size:.85rem;color:#64748b;border-top:1px solid #e2e8f0;padding-top:14px;margin-top:26px;}
+    .mt-byline a{color:#b45309;font-weight:600;}
+  </style>
+</ContentLayout>

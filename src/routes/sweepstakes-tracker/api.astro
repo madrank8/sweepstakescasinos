@@ -1,0 +1,75 @@
+---
+/**
+ * Public API docs + embed widget generator for the legality dataset.
+ * Static page (endpoints themselves are SSR). No affiliate links.
+ */
+export const prerender = true;
+
+import ContentLayout from '../../layouts/ContentLayout.astro';
+
+const ORIGIN = 'https://sweepstakeswiz.com';
+const canonicalPath = '/sweepstakes-tracker/api/';
+
+const breadcrumbs = [
+  { name: 'Home', path: '/' },
+  { name: 'Sweepstakes Tracker', path: '/sweepstakes-tracker/' },
+  { name: 'API & Embed', path: canonicalPath },
+];
+
+const endpoints = [
+  { path: '/sweepstakes-tracker/api/legality.json', desc: 'Full 51-jurisdiction legality dataset (JSON).' },
+  { path: '/sweepstakes-tracker/api/legality.csv', desc: 'Same dataset as CSV for spreadsheets.' },
+  { path: '/sweepstakes-tracker/api/provenance.json', desc: 'Per-state sources, freshness, and latest event.' },
+  { path: '/sweepstakes-tracker/api/states/{CODE}.json', desc: 'Single-state status, e.g. /states/NY.json.' },
+];
+
+const embedSnippet =
+  '<script src="https://sweepstakeswiz.com/sweepstakes-tracker/embed/legality.js" data-state="NY" async><\/script>';
+---
+<ContentLayout
+  title="Legality Dataset API & Embed — Sweepstakes Wiz"
+  description="Free, CC-BY-4.0 JSON and CSV endpoints for US sweepstakes casino legality, plus a copy-paste embed widget. For journalists, analysts, and publishers."
+  canonicalPath={canonicalPath}
+  breadcrumbs={breadcrumbs}
+  heroTitle="Dataset API & embed"
+  heroSubtitle="Free, CC-BY-licensed endpoints and a drop-in status widget."
+>
+  <h2>Endpoints</h2>
+  <p>All endpoints are read-only, CORS-open (<code>Access-Control-Allow-Origin: *</code>), and return a <code>Link</code> header pointing to the CC-BY 4.0 license.</p>
+  <table class="api-table">
+    <thead><tr><th>Endpoint</th><th>Description</th></tr></thead>
+    <tbody>
+      {endpoints.map((e) => (
+        <tr>
+          <td><code>{e.path}</code></td>
+          <td>{e.desc}</td>
+        </tr>
+      ))}
+    </tbody>
+  </table>
+  <p><a href="/sweepstakes-tracker/api/legality.json">Open legality.json &rarr;</a></p>
+
+  <h2>Embed widget</h2>
+  <p>Drop this on any page to render a live status card for one state. Set <code>data-state</code> to a 2-letter code:</p>
+  <pre class="api-code">{embedSnippet}</pre>
+  <p>
+    The widget is free for editorial and non-commercial use and must retain the
+    "Source: Sweepstakes Wiz" attribution link. See the
+    <a href="/sweepstakes-tracker/methodology/">methodology</a> for how the data is compiled.
+  </p>
+
+  <h2>License</h2>
+  <p>
+    Data is published under
+    <a href="https://creativecommons.org/licenses/by/4.0/" rel="nofollow noopener" target="_blank">CC-BY 4.0</a>.
+    Cite as: <em>Sweepstakes Wiz, "U.S. Sweepstakes Casino Legality Dataset," sweepstakeswiz.com/sweepstakes-tracker/.</em>
+  </p>
+
+  <style>
+    .api-table{border-collapse:collapse;width:100%;font-size:.9rem;margin:10px 0;}
+    .api-table th,.api-table td{padding:9px 12px;border-bottom:1px solid #eef2f7;text-align:left;}
+    .api-table th{background:#f8fafc;}
+    .api-code{white-space:pre-wrap;background:#0a1628;color:#e2e8f0;border-radius:8px;padding:14px;font-size:.82rem;overflow-x:auto;}
+    code{background:#f1f5f9;padding:1px 5px;border-radius:4px;font-size:.85em;}
+  </style>
+</ContentLayout>
