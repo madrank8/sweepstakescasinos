@@ -1,0 +1,88 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 480" role="img" aria-labelledby="newVetTitle newVetDesc">
+  <title id="newVetTitle">Seven checks for vetting a new sweepstakes casino</title>
+  <desc id="newVetDesc">Numbered process diagram showing seven checks used before adding any new sweepstakes casino to the review roster: named operator with a registered address, published sweepstakes rules with a free entry route, clear redemption terms, transparent KYC, honest restricted-state list, realistic bonus figures, and independent reputation over time.</desc>
+  <defs>
+    <style>
+      .new-font-display { font-family: 'Sora', system-ui, sans-serif; }
+      .new-font-body { font-family: 'DM Sans', system-ui, sans-serif; }
+    </style>
+    <marker id="newArrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#94a3b8"/>
+    </marker>
+  </defs>
+  <rect width="720" height="480" rx="14" fill="#ffffff" stroke="#e2e8f0" stroke-width="1"/>
+
+  <text x="360" y="32" text-anchor="middle" class="new-font-display" font-size="16" font-weight="800" fill="#0a1628">Seven checks before we list a new sweepstakes casino</text>
+  <text x="360" y="52" text-anchor="middle" class="new-font-body" font-size="11" fill="#64748b">The same checklist behind every review we publish</text>
+
+  <rect x="24" y="76" width="216" height="88" rx="10" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1.5"/>
+  <circle cx="48" cy="100" r="14" fill="#0a1628"/>
+  <text x="48" y="104" text-anchor="middle" class="new-font-display" font-size="12" font-weight="800" fill="#fbbf24">1</text>
+  <text x="70" y="104" class="new-font-display" font-size="11.5" font-weight="700" fill="#0a1628">Named operator</text>
+  <text x="70" y="120" class="new-font-body" font-size="10" fill="#475569">Real company and registered</text>
+  <text x="70" y="134" class="new-font-body" font-size="10" fill="#475569">business address in Terms</text>
+
+  <line x1="240" y1="120" x2="270" y2="120" stroke="#94a3b8" stroke-width="2" marker-end="url(#newArrow)"/>
+
+  <rect x="272" y="76" width="216" height="88" rx="10" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1.5"/>
+  <circle cx="296" cy="100" r="14" fill="#0a1628"/>
+  <text x="296" y="104" text-anchor="middle" class="new-font-display" font-size="12" font-weight="800" fill="#fbbf24">2</text>
+  <text x="318" y="104" class="new-font-display" font-size="11.5" font-weight="700" fill="#0a1628">Free AMOE route</text>
+  <text x="318" y="120" class="new-font-body" font-size="10" fill="#475569">Published sweepstakes rules</text>
+  <text x="318" y="134" class="new-font-body" font-size="10" fill="#475569">plus no-purchase path to SC</text>
+
+  <line x1="488" y1="120" x2="518" y2="120" stroke="#94a3b8" stroke-width="2" marker-end="url(#newArrow)"/>
+
+  <rect x="520" y="76" width="176" height="88" rx="10" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1.5"/>
+  <circle cx="544" cy="100" r="14" fill="#0a1628"/>
+  <text x="544" y="104" text-anchor="middle" class="new-font-display" font-size="12" font-weight="800" fill="#fbbf24">3</text>
+  <text x="566" y="104" class="new-font-display" font-size="11.5" font-weight="700" fill="#0a1628">Clear redemption</text>
+  <text x="566" y="120" class="new-font-body" font-size="10" fill="#475569">Minimum, playthrough,</text>
+  <text x="566" y="134" class="new-font-body" font-size="10" fill="#475569">and payout rails</text>
+
+  <line x1="608" y1="164" x2="608" y2="192" stroke="#94a3b8" stroke-width="2" marker-end="url(#newArrow)"/>
+
+  <rect x="520" y="196" width="176" height="88" rx="10" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1.5"/>
+  <circle cx="544" cy="220" r="14" fill="#0a1628"/>
+  <text x="544" y="224" text-anchor="middle" class="new-font-display" font-size="12" font-weight="800" fill="#fbbf24">4</text>
+  <text x="566" y="224" class="new-font-display" font-size="11.5" font-weight="700" fill="#0a1628">Transparent KYC</text>
+  <text x="566" y="240" class="new-font-body" font-size="10" fill="#475569">Photo ID plus bill or bank</text>
+  <text x="566" y="254" class="new-font-body" font-size="10" fill="#475569">statement before payout</text>
+
+  <line x1="518" y1="240" x2="490" y2="240" stroke="#94a3b8" stroke-width="2" marker-end="url(#newArrow)"/>
+
+  <rect x="272" y="196" width="216" height="88" rx="10" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1.5"/>
+  <circle cx="296" cy="220" r="14" fill="#0a1628"/>
+  <text x="296" y="224" text-anchor="middle" class="new-font-display" font-size="12" font-weight="800" fill="#fbbf24">5</text>
+  <text x="318" y="224" class="new-font-display" font-size="11.5" font-weight="700" fill="#0a1628">Honest state list</text>
+  <text x="318" y="240" class="new-font-body" font-size="10" fill="#475569">Real US operators exclude</text>
+  <text x="318" y="254" class="new-font-body" font-size="10" fill="#475569">some states, always</text>
+
+  <line x1="270" y1="240" x2="242" y2="240" stroke="#94a3b8" stroke-width="2" marker-end="url(#newArrow)"/>
+
+  <rect x="24" y="196" width="216" height="88" rx="10" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1.5"/>
+  <circle cx="48" cy="220" r="14" fill="#0a1628"/>
+  <text x="48" y="224" text-anchor="middle" class="new-font-display" font-size="12" font-weight="800" fill="#fbbf24">6</text>
+  <text x="70" y="224" class="new-font-display" font-size="11.5" font-weight="700" fill="#0a1628">Realistic bonus</text>
+  <text x="70" y="240" class="new-font-body" font-size="10" fill="#475569">Redeemable SC matter,</text>
+  <text x="70" y="254" class="new-font-body" font-size="10" fill="#475569">not headline GC numbers</text>
+
+  <line x1="132" y1="284" x2="132" y2="312" stroke="#94a3b8" stroke-width="2" marker-end="url(#newArrow)"/>
+
+  <rect x="24" y="316" width="316" height="88" rx="10" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1.5"/>
+  <circle cx="48" cy="340" r="14" fill="#0a1628"/>
+  <text x="48" y="344" text-anchor="middle" class="new-font-display" font-size="12" font-weight="800" fill="#fbbf24">7</text>
+  <text x="70" y="344" class="new-font-display" font-size="11.5" font-weight="700" fill="#0a1628">Independent reputation, give it time</text>
+  <text x="70" y="360" class="new-font-body" font-size="10" fill="#475569">Read across sources plus moderated reader reports,</text>
+  <text x="70" y="374" class="new-font-body" font-size="10" fill="#475569">start small, complete one redemption before scaling</text>
+
+  <line x1="340" y1="360" x2="382" y2="360" stroke="#94a3b8" stroke-width="2" marker-end="url(#newArrow)"/>
+
+  <rect x="384" y="316" width="312" height="88" rx="10" fill="#0a1628" stroke="#fbbf24" stroke-width="1.5"/>
+  <text x="540" y="346" text-anchor="middle" class="new-font-display" font-size="14" font-weight="800" fill="#ffffff">Passes all 7?</text>
+  <text x="540" y="370" text-anchor="middle" class="new-font-body" font-size="11" fill="#fbbf24">Eligible for our review roster</text>
+  <text x="540" y="386" text-anchor="middle" class="new-font-body" font-size="9.5" fill="#cbd5e1">Editorial listing only, not a payout promise</text>
+
+  <text x="360" y="440" text-anchor="middle" class="new-font-body" font-size="10" fill="#64748b">Source: SweepstakesWiz new-casino vetting checklist, July 2026</text>
+  <text x="360" y="458" text-anchor="middle" class="new-font-body" font-size="9" fill="#94a3b8">New does not mean trustworthy: checks apply to every operator, at every refresh</text>
+</svg>

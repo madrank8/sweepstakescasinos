@@ -200,7 +200,32 @@ const faqLd = {
   })),
 };
 
-const jsonLd = [itemListLd, faqLd];
+const jsonLd = [
+  itemListLd,
+  faqLd,
+  {
+    '@type': 'ImageObject',
+    '@id': `${canonical}#vet-checklist`,
+    contentUrl: `${ORIGIN}/images/new/how-to-vet-new-sweepstakes-casino-checklist.svg`,
+    width: 720,
+    height: 480,
+    caption:
+      'The same seven checks behind every review we publish, applied before any new operator is added to the roster. Source: SweepstakesWiz new-casino vetting checklist, July 2026.',
+    creator: { '@type': 'Organization', name: 'SweepstakesWiz' },
+    creditText: 'SweepstakesWiz',
+  },
+  {
+    '@type': 'ImageObject',
+    '@id': `${canonical}#eligibility-flow`,
+    contentUrl: `${ORIGIN}/images/new/new-sweepstakes-casino-state-eligibility-flow.svg`,
+    width: 720,
+    height: 320,
+    caption:
+      "Two independent rules gate access — Wiz's editorial suppression layer plus the operator's own excluded states. Source: SweepstakesWiz /new/ hub, July 2026.",
+    creator: { '@type': 'Organization', name: 'SweepstakesWiz' },
+    creditText: 'SweepstakesWiz',
+  },
+];
 ---
 <ContentLayout
   title={title}
@@ -266,6 +291,21 @@ const jsonLd = [itemListLd, faqLd];
         </li>
       ))}
     </ol>
+
+    <figure class="new-figure" role="group" aria-labelledby="new-vet-cap">
+      <img
+        src="/images/new/how-to-vet-new-sweepstakes-casino-checklist.svg"
+        alt="Seven checks to vet a new sweepstakes casino: named operator, free AMOE route, clear terms, real KYC, and reputation."
+        width="720"
+        height="480"
+        loading="lazy"
+        decoding="async"
+      />
+      <figcaption id="new-vet-cap">
+        The same seven checks behind every review we publish, applied before any new operator is added to the roster.
+        <strong>Source:</strong> SweepstakesWiz new-casino vetting checklist, July 2026.
+      </figcaption>
+    </figure>
   </section>
 
   <section class="geo-sec" aria-label="Eligibility and state availability">
@@ -277,6 +317,22 @@ const jsonLd = [itemListLd, faqLd];
       <li><strong>The operator&rsquo;s own excluded states.</strong> Every legitimate US sweeps casino restricts some states — for example, American Luck excludes Idaho, Michigan and Washington. New operators change these lists as legislation moves, so confirm on the official site.</li>
       <li><strong>Our legal suppression layer.</strong> Separately, Sweepstakes Wiz shows information only — no promotion or offers — for residents of states where the model is banned or affiliate marketing carries direct exposure: California, New York, Montana, Connecticut, Nevada, New Jersey, Louisiana, Michigan, Idaho, Washington, Indiana, Maine and Tennessee (Oklahoma joins on November 1, 2026).</li>
     </ul>
+
+    <figure class="new-figure" role="group" aria-labelledby="new-geo-cap">
+      <img
+        src="/images/new/new-sweepstakes-casino-state-eligibility-flow.svg"
+        alt="Two eligibility gates decide play: Wiz info-only in 13 US states, then each operator applies its own excluded-state list."
+        width="720"
+        height="320"
+        loading="lazy"
+        decoding="async"
+      />
+      <figcaption id="new-geo-cap">
+        Two independent rules gate access — Wiz&rsquo;s editorial suppression layer plus the operator&rsquo;s own excluded states.
+        <strong>Source:</strong> SweepstakesWiz /new/ hub, July 2026.
+      </figcaption>
+    </figure>
+
     <p>Check your state first on our <a href="/state-legality/">sweepstakes casino legality by state</a> hub, and read <a href="/guides/are-sweepstakes-casinos-legit/">are sweepstakes casinos legit?</a> for how the model stays legal.</p>
   </section>
 
@@ -365,5 +421,9 @@ const jsonLd = [itemListLd, faqLd];
 
     .hub-byline { font-size:0.85rem; color:#64748b; border-top:1px solid #e2e8f0; padding-top:16px; margin-top:26px; }
     .hub-byline a { color:#b45309; font-weight:600; }
+
+    .new-figure { margin:22px 0 26px; }
+    .new-figure img { display:block; width:100%; height:auto; max-width:720px; margin:0 auto; }
+    .new-figure figcaption { font-size:0.8rem; color:#64748b; margin-top:10px; text-align:center; line-height:1.5; }
   </style>
 </ContentLayout>
