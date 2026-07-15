@@ -134,6 +134,18 @@ const explainerNode = {
     { '@type': 'Thing', name: 'Gaming law', sameAs: 'https://www.wikidata.org/wiki/Q5520201' },
   ],
 };
+
+const banWaveImageNode = {
+  '@type': 'ImageObject',
+  '@id': `${canonical}#ban-wave-timeline`,
+  contentUrl: `${ORIGIN}/images/state-legality/sweepstakes-casino-ban-wave-timeline.svg`,
+  width: 960,
+  height: 520,
+  caption:
+    'US sweepstakes casino ban wave: statutes signed or effective between May 2025 and November 2026, plus enforcement-driven info-only states. Source: state legislatures and SweepstakesWiz Sweepstakes Legality Tracker, July 2026.',
+  creator: { '@type': 'Organization', name: 'SweepstakesWiz' },
+  creditText: 'SweepstakesWiz',
+};
 ---
 <ContentLayout
   title="Sweepstakes Casino Legality by US State (2026)"
@@ -145,7 +157,7 @@ const explainerNode = {
   pageType="CollectionPage"
   dateModified={bundle.generatedAt}
   mainEntityId={`${canonical}#states`}
-  jsonLd={[itemListLd, faqNode, explainerNode]}
+  jsonLd={[itemListLd, faqNode, explainerNode, banWaveImageNode]}
 >
   <p class="sl-intro">
     Sweepstakes casino legality is decided state by state, not nationally. As of {updatedHuman},
@@ -201,6 +213,25 @@ const explainerNode = {
       </table>
     </div>
   )}
+
+  <h2 id="ban-wave">The 2025 to 2026 ban wave, chronologically</h2>
+  <p>
+    Nine states enacted statutes targeting dual-currency online sweepstakes casinos between May 2025 and July 2026, with Oklahoma&rsquo;s SB 1589 pending on November 1, 2026. Five more states restrict the model through enforcement or affiliate-liability layers rather than a dedicated statute. The timeline below plots each signed and effective date.
+  </p>
+  <figure class="sl-figure" role="group" aria-labelledby="sl-banwave-cap">
+    <img
+      src="/images/state-legality/sweepstakes-casino-ban-wave-timeline.svg"
+      alt="Sweepstakes casino ban wave 2025 to 2026: NJ, CT, MT, NY signed in 2025; CA, IN, ME, TN effective 2026; OK pending Nov 2026."
+      width="960"
+      height="520"
+      loading="lazy"
+      decoding="async"
+    />
+    <figcaption id="sl-banwave-cap">
+      Statutes signed or effective in the 2025 to 2026 US sweepstakes casino ban wave, plus enforcement-driven info-only states.
+      <strong>Source:</strong> state legislatures and SweepstakesWiz Sweepstakes Legality Tracker, July 2026.
+    </figcaption>
+  </figure>
 
   <h2>Why Sweepstakes Casino Legality Isn't the Same in Every State</h2>
   <p>
@@ -312,6 +343,9 @@ const explainerNode = {
   <style>
     .sl-intro{background:#f0f7ff;border:1px solid #cfe0f5;border-radius:10px;padding:12px 16px;margin:0 0 20px;}
     .sl-intro a{color:#1d4ed8;font-weight:600;}
+    .sl-figure{margin:16px 0 26px;}
+    .sl-figure img{display:block;width:100%;height:auto;max-width:960px;margin:0 auto;}
+    .sl-figure figcaption{font-size:0.8rem;color:#64748b;margin-top:10px;text-align:center;line-height:1.5;}
     .sl-tablewrap{overflow-x:auto;border:1px solid #e2e8f0;border-radius:10px;margin:10px 0 24px;}
     .sl-table{border-collapse:collapse;width:100%;font-size:.9rem;}
     .sl-table th,.sl-table td{padding:9px 12px;border-bottom:1px solid #eef2f7;text-align:left;white-space:nowrap;}

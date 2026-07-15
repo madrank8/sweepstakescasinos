@@ -1,0 +1,63 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 480" role="img" aria-labelledby="vennTitle vennDesc">
+  <title id="vennTitle">The three-element gambling test and why sweepstakes casinos sit outside it</title>
+  <desc id="vennDesc">Venn diagram of the three elements US gambling law requires simultaneously: Prize, Chance, and Consideration (payment). Where all three overlap, an activity is gambling. Sweepstakes casinos remove the Consideration element by law: they require a free no-purchase-necessary entry method known as AMOE, so participation never requires payment. That keeps the model in the Prize plus Chance zone as a promotional sweepstakes, until state statutes such as California AB-831 close the loophole for dual-currency online products.</desc>
+  <defs>
+    <style>
+      .gv-font-display { font-family: 'Sora', system-ui, sans-serif; }
+      .gv-font-body { font-family: 'DM Sans', system-ui, sans-serif; }
+    </style>
+  </defs>
+  <rect width="720" height="480" rx="14" fill="#ffffff" stroke="#e2e8f0" stroke-width="1"/>
+
+  <text x="360" y="34" text-anchor="middle" class="gv-font-display" font-size="17" font-weight="800" fill="#0a1628">The gambling test: three elements, one exit</text>
+  <text x="360" y="55" text-anchor="middle" class="gv-font-body" font-size="11.5" fill="#64748b">US gambling law traditionally needs all three: sweepstakes remove one on purpose</text>
+
+  <!-- Three overlapping circles. Center of triangle around (360, 235). -->
+  <!-- Prize (top) -->
+  <circle cx="360" cy="170" r="105" fill="#dc2626" fill-opacity="0.16" stroke="#dc2626" stroke-width="1.5"/>
+  <text x="360" y="115" text-anchor="middle" class="gv-font-display" font-size="14" font-weight="800" fill="#7f1d1d">Prize</text>
+  <text x="360" y="132" text-anchor="middle" class="gv-font-body" font-size="10" fill="#7f1d1d">Cash, gift cards,</text>
+  <text x="360" y="145" text-anchor="middle" class="gv-font-body" font-size="10" fill="#7f1d1d">or other value</text>
+
+  <!-- Chance (bottom-left) -->
+  <circle cx="290" cy="280" r="105" fill="#1a56db" fill-opacity="0.14" stroke="#1a56db" stroke-width="1.5"/>
+  <text x="220" y="355" text-anchor="middle" class="gv-font-display" font-size="14" font-weight="800" fill="#1e3a8a">Chance</text>
+  <text x="220" y="373" text-anchor="middle" class="gv-font-body" font-size="10" fill="#1e3a8a">Outcome not fully</text>
+  <text x="220" y="386" text-anchor="middle" class="gv-font-body" font-size="10" fill="#1e3a8a">skill-determined</text>
+
+  <!-- Consideration (bottom-right) -->
+  <circle cx="430" cy="280" r="105" fill="#f59e0b" fill-opacity="0.18" stroke="#f59e0b" stroke-width="1.5"/>
+  <text x="500" y="355" text-anchor="middle" class="gv-font-display" font-size="14" font-weight="800" fill="#78350f">Consideration</text>
+  <text x="500" y="373" text-anchor="middle" class="gv-font-body" font-size="10" fill="#78350f">Payment required</text>
+  <text x="500" y="386" text-anchor="middle" class="gv-font-body" font-size="10" fill="#78350f">to enter</text>
+
+  <!-- Center label: Gambling (all 3) -->
+  <text x="360" y="248" text-anchor="middle" class="gv-font-display" font-size="15" font-weight="900" fill="#0a1628">Gambling</text>
+  <text x="360" y="264" text-anchor="middle" class="gv-font-body" font-size="9" fill="#334155">requires all three</text>
+
+  <!-- Sweepstakes zone label: Prize + Chance only (top-left overlap area) -->
+  <g>
+    <rect x="292" y="188" width="136" height="34" rx="6" fill="#ffffff" stroke="#10b981" stroke-width="1.5"/>
+    <text x="360" y="202" text-anchor="middle" class="gv-font-display" font-size="10.5" font-weight="800" fill="#047857">Sweepstakes zone</text>
+    <text x="360" y="215" text-anchor="middle" class="gv-font-body" font-size="9" fill="#065f46">Prize + Chance, no Consideration</text>
+  </g>
+
+  <!-- AMOE callout arrow to Consideration circle -->
+  <g>
+    <path d="M 610 180 Q 560 220, 500 268" stroke="#10b981" stroke-width="2" fill="none" marker-end="url(#gvArrow)"/>
+    <rect x="560" y="140" width="150" height="46" rx="8" fill="#ecfdf5" stroke="#a7f3d0"/>
+    <text x="635" y="158" text-anchor="middle" class="gv-font-display" font-size="11" font-weight="800" fill="#047857">AMOE removes it</text>
+    <text x="635" y="172" text-anchor="middle" class="gv-font-body" font-size="9" fill="#065f46">Free no-purchase entry method</text>
+    <text x="635" y="182" text-anchor="middle" class="gv-font-body" font-size="9" fill="#065f46">is legally required</text>
+  </g>
+  <defs>
+    <marker id="gvArrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#10b981"/>
+    </marker>
+  </defs>
+
+  <!-- Bottom explanatory band -->
+  <rect x="24" y="404" width="672" height="52" rx="8" fill="#f8fafc" stroke="#e2e8f0"/>
+  <text x="360" y="424" text-anchor="middle" class="gv-font-body" font-size="10.5" fill="#334155">Statutes like California AB-831, New York S5935A and Connecticut SB 1235 target the dual-currency online model directly: so in those states the exit closes and the activity is treated as unlawful gambling regardless of the AMOE path.</text>
+  <text x="360" y="442" text-anchor="middle" class="gv-font-body" font-size="10" fill="#64748b">Editorial illustration; not legal advice. Source: US promotional sweepstakes law framework, SweepstakesWiz July 2026.</text>
+</svg>

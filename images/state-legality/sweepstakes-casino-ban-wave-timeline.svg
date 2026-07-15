@@ -1,0 +1,153 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 520" role="img" aria-labelledby="banWaveTitle banWaveDesc">
+  <title id="banWaveTitle">US sweepstakes casino ban wave, 2025 through 2026</title>
+  <desc id="banWaveDesc">Chronological timeline of state bans on dual-currency online sweepstakes casinos from mid-2025 through late 2026. New Jersey A5447 signed and effective August 15 2025, Connecticut SB 1235 and Montana SB 555 effective October 1 2025, New York S5935A signed and effective December 5 2025, California AB-831 effective January 1 2026, Indiana HB 1052 effective July 1 2026, Maine LD 2007 effective July 14 2026, Tennessee SB 2136 in effect, and Oklahoma SB 1589 pending on November 1 2026. Louisiana, Michigan, Idaho, Washington and Nevada are info-only under enforcement or affiliate-liability grounds.</desc>
+  <defs>
+    <style>
+      .bw-font-display { font-family: 'Sora', system-ui, sans-serif; }
+      .bw-font-body { font-family: 'DM Sans', system-ui, sans-serif; }
+    </style>
+  </defs>
+  <rect width="960" height="520" rx="14" fill="#ffffff" stroke="#e2e8f0" stroke-width="1"/>
+
+  <text x="480" y="34" text-anchor="middle" class="bw-font-display" font-size="17" font-weight="800" fill="#0a1628">The 2025 to 2026 US sweepstakes casino ban wave</text>
+  <text x="480" y="55" text-anchor="middle" class="bw-font-body" font-size="11.5" fill="#64748b">Statutes signed or effective between May 2025 and November 2026, plus enforcement-only info-only states</text>
+
+  <!-- Legend -->
+  <g transform="translate(60,74)">
+    <circle cx="8" cy="8" r="6" fill="#dc2626"/>
+    <text x="20" y="12" class="bw-font-body" font-size="10.5" fill="#334155">Signed and effective</text>
+    <circle cx="150" cy="8" r="6" fill="#f59e0b"/>
+    <text x="162" y="12" class="bw-font-body" font-size="10.5" fill="#334155">Delayed effective date</text>
+    <circle cx="300" cy="8" r="6" fill="#94a3b8"/>
+    <text x="312" y="12" class="bw-font-body" font-size="10.5" fill="#334155">Pending / future effective</text>
+    <rect x="450" y="2" width="12" height="12" rx="2" fill="#eff6ff" stroke="#bfdbfe"/>
+    <text x="468" y="12" class="bw-font-body" font-size="10.5" fill="#334155">Info-only (enforcement or affiliate liability)</text>
+  </g>
+
+  <!-- Axis baseline -->
+  <line x1="80" y1="270" x2="880" y2="270" stroke="#cbd5e1" stroke-width="1.5"/>
+
+  <!-- Quarter ticks: May 2025 (0) -> Nov 2026 (18 months). x range 80-880 = 800px / 18 = ~44.4 per month -->
+  <!-- Anchor months: May25 x=80, Aug25 x=213, Nov25 x=347, Feb26 x=480, May26 x=613, Aug26 x=747, Nov26 x=880 -->
+  <g class="bw-font-body" font-size="10" fill="#64748b">
+    <line x1="80"  y1="265" x2="80"  y2="275" stroke="#cbd5e1"/>
+    <text x="80"  y="290" text-anchor="middle">May 2025</text>
+    <line x1="213" y1="265" x2="213" y2="275" stroke="#cbd5e1"/>
+    <text x="213" y="290" text-anchor="middle">Aug 2025</text>
+    <line x1="347" y1="265" x2="347" y2="275" stroke="#cbd5e1"/>
+    <text x="347" y="290" text-anchor="middle">Nov 2025</text>
+    <line x1="480" y1="265" x2="480" y2="275" stroke="#cbd5e1"/>
+    <text x="480" y="290" text-anchor="middle">Feb 2026</text>
+    <line x1="613" y1="265" x2="613" y2="275" stroke="#cbd5e1"/>
+    <text x="613" y="290" text-anchor="middle">May 2026</text>
+    <line x1="747" y1="265" x2="747" y2="275" stroke="#cbd5e1"/>
+    <text x="747" y="290" text-anchor="middle">Aug 2026</text>
+    <line x1="880" y1="265" x2="880" y2="275" stroke="#cbd5e1"/>
+    <text x="880" y="290" text-anchor="middle">Nov 2026</text>
+  </g>
+
+  <!-- Today marker (Jul 15 2026 approx month 14.5 -> x = 80 + 14.5*44.4 = 723.8) -->
+  <line x1="724" y1="112" x2="724" y2="270" stroke="#0a1628" stroke-width="1" stroke-dasharray="3,3" opacity="0.55"/>
+  <text x="724" y="106" text-anchor="middle" class="bw-font-body" font-size="10" font-weight="700" fill="#0a1628">Today (Jul 2026)</text>
+
+  <!-- Event markers. Each: state code + bill + date pill. Alternating above/below to avoid collisions. -->
+  <!-- MT signed May 16 2025 (0.5 month) x = 80 + 0.5*44.4 = 102 -->
+  <g transform="translate(102,270)">
+    <circle r="7" fill="#dc2626" stroke="#ffffff" stroke-width="2"/>
+    <line x1="0" y1="-8" x2="0" y2="-38" stroke="#94a3b8" stroke-width="1"/>
+    <rect x="-52" y="-88" width="104" height="50" rx="6" fill="#fef2f2" stroke="#fecaca"/>
+    <text x="0" y="-72" text-anchor="middle" class="bw-font-display" font-size="11" font-weight="800" fill="#0a1628">MT: SB 555</text>
+    <text x="0" y="-58" text-anchor="middle" class="bw-font-body" font-size="9" fill="#7f1d1d">Signed May 16, 2025</text>
+    <text x="0" y="-46" text-anchor="middle" class="bw-font-body" font-size="9" fill="#7f1d1d">Effective Oct 1, 2025</text>
+  </g>
+
+  <!-- NJ Aug 15 2025 (3 months) x = 80 + 3*44.4 = 213 -->
+  <g transform="translate(213,270)">
+    <circle r="7" fill="#dc2626" stroke="#ffffff" stroke-width="2"/>
+    <line x1="0" y1="8" x2="0" y2="38" stroke="#94a3b8" stroke-width="1"/>
+    <rect x="-52" y="38" width="104" height="50" rx="6" fill="#fef2f2" stroke="#fecaca"/>
+    <text x="0" y="54" text-anchor="middle" class="bw-font-display" font-size="11" font-weight="800" fill="#0a1628">NJ: A5447</text>
+    <text x="0" y="68" text-anchor="middle" class="bw-font-body" font-size="9" fill="#7f1d1d">Signed Aug 15, 2025</text>
+    <text x="0" y="80" text-anchor="middle" class="bw-font-body" font-size="9" fill="#7f1d1d">Effective same day</text>
+  </g>
+
+  <!-- CT Oct 1 2025 (5 months) x = 80 + 5*44.4 = 302 -->
+  <g transform="translate(302,270)">
+    <circle r="7" fill="#dc2626" stroke="#ffffff" stroke-width="2"/>
+    <line x1="0" y1="-8" x2="0" y2="-38" stroke="#94a3b8" stroke-width="1"/>
+    <rect x="-52" y="-80" width="104" height="42" rx="6" fill="#fef2f2" stroke="#fecaca"/>
+    <text x="0" y="-64" text-anchor="middle" class="bw-font-display" font-size="11" font-weight="800" fill="#0a1628">CT: SB 1235</text>
+    <text x="0" y="-50" text-anchor="middle" class="bw-font-body" font-size="9" fill="#7f1d1d">Effective Oct 1, 2025</text>
+  </g>
+
+  <!-- NY Dec 5 2025 (7 months) x = 80 + 7*44.4 = 391 -->
+  <g transform="translate(391,270)">
+    <circle r="7" fill="#dc2626" stroke="#ffffff" stroke-width="2"/>
+    <line x1="0" y1="8" x2="0" y2="38" stroke="#94a3b8" stroke-width="1"/>
+    <rect x="-58" y="38" width="116" height="50" rx="6" fill="#fef2f2" stroke="#fecaca"/>
+    <text x="0" y="54" text-anchor="middle" class="bw-font-display" font-size="11" font-weight="800" fill="#0a1628">NY: S5935A</text>
+    <text x="0" y="68" text-anchor="middle" class="bw-font-body" font-size="9" fill="#7f1d1d">Signed Dec 5, 2025</text>
+    <text x="0" y="80" text-anchor="middle" class="bw-font-body" font-size="9" fill="#7f1d1d">Effective same day</text>
+  </g>
+
+  <!-- CA Jan 1 2026 (8 months) x = 80 + 8*44.4 = 435 -->
+  <g transform="translate(435,270)">
+    <circle r="7" fill="#f59e0b" stroke="#ffffff" stroke-width="2"/>
+    <line x1="0" y1="-8" x2="0" y2="-38" stroke="#94a3b8" stroke-width="1"/>
+    <rect x="-56" y="-88" width="112" height="50" rx="6" fill="#fffbeb" stroke="#fde68a"/>
+    <text x="0" y="-72" text-anchor="middle" class="bw-font-display" font-size="11" font-weight="800" fill="#0a1628">CA: AB-831</text>
+    <text x="0" y="-58" text-anchor="middle" class="bw-font-body" font-size="9" fill="#78350f">Signed Oct 11, 2025</text>
+    <text x="0" y="-46" text-anchor="middle" class="bw-font-body" font-size="9" fill="#78350f">Effective Jan 1, 2026</text>
+  </g>
+
+  <!-- IN Jul 1 2026 (14 months) x = 80 + 14*44.4 = 702 -->
+  <g transform="translate(702,270)">
+    <circle r="7" fill="#dc2626" stroke="#ffffff" stroke-width="2"/>
+    <line x1="0" y1="8" x2="0" y2="38" stroke="#94a3b8" stroke-width="1"/>
+    <rect x="-52" y="38" width="104" height="42" rx="6" fill="#fef2f2" stroke="#fecaca"/>
+    <text x="0" y="54" text-anchor="middle" class="bw-font-display" font-size="11" font-weight="800" fill="#0a1628">IN: HB 1052</text>
+    <text x="0" y="68" text-anchor="middle" class="bw-font-body" font-size="9" fill="#7f1d1d">Effective Jul 1, 2026</text>
+  </g>
+
+  <!-- ME Jul 14 2026 (14.5 months) x = 80 + 14.5*44.4 = 724 -->
+  <g transform="translate(770,270)">
+    <circle r="7" fill="#dc2626" stroke="#ffffff" stroke-width="2"/>
+    <line x1="0" y1="-8" x2="0" y2="-38" stroke="#94a3b8" stroke-width="1"/>
+    <rect x="-52" y="-80" width="104" height="42" rx="6" fill="#fef2f2" stroke="#fecaca"/>
+    <text x="0" y="-64" text-anchor="middle" class="bw-font-display" font-size="11" font-weight="800" fill="#0a1628">ME: LD 2007</text>
+    <text x="0" y="-50" text-anchor="middle" class="bw-font-body" font-size="9" fill="#7f1d1d">Effective Jul 14, 2026</text>
+  </g>
+
+  <!-- OK Nov 1 2026 (18 months) x = 880 -->
+  <g transform="translate(858,270)">
+    <circle r="7" fill="#94a3b8" stroke="#ffffff" stroke-width="2"/>
+    <line x1="0" y1="8" x2="0" y2="38" stroke="#94a3b8" stroke-width="1"/>
+    <rect x="-52" y="38" width="104" height="42" rx="6" fill="#f8fafc" stroke="#e2e8f0"/>
+    <text x="0" y="54" text-anchor="middle" class="bw-font-display" font-size="11" font-weight="800" fill="#0a1628">OK: SB 1589</text>
+    <text x="0" y="68" text-anchor="middle" class="bw-font-body" font-size="9" fill="#475569">Effective Nov 1, 2026</text>
+  </g>
+
+  <!-- TN summary marker (SB 2136 already in effect; place near NY without collision at x ~ 555 (10 months)) -->
+  <g transform="translate(555,270)">
+    <circle r="7" fill="#dc2626" stroke="#ffffff" stroke-width="2"/>
+    <line x1="0" y1="-8" x2="0" y2="-38" stroke="#94a3b8" stroke-width="1"/>
+    <rect x="-52" y="-70" width="104" height="32" rx="6" fill="#fef2f2" stroke="#fecaca"/>
+    <text x="0" y="-54" text-anchor="middle" class="bw-font-display" font-size="11" font-weight="800" fill="#0a1628">TN: SB 2136</text>
+    <text x="0" y="-42" text-anchor="middle" class="bw-font-body" font-size="9" fill="#7f1d1d">In effect early 2026</text>
+  </g>
+
+  <!-- Info-only band (enforcement, not statute) -->
+  <rect x="60" y="360" width="840" height="88" rx="9" fill="#eff6ff" stroke="#bfdbfe"/>
+  <text x="80" y="384" class="bw-font-display" font-size="12" font-weight="800" fill="#1e3a8a">Info-only by enforcement or affiliate-liability layer (not on the timeline)</text>
+  <text x="80" y="404" class="bw-font-body" font-size="10.5" fill="#1a56db">These states have no dedicated dual-currency statute yet, but Sweepstakes Wiz suppresses affiliate offers based on enforcement pressure, AG posture, or promoter-liability exposure.</text>
+  <g class="bw-font-body" font-size="10.5" fill="#334155">
+    <text x="80" y="428">NV: enforcement pressure</text>
+    <text x="260" y="428">LA: Gaming Control Board</text>
+    <text x="460" y="428">MI: MGCB C&amp;D letters</text>
+    <text x="640" y="428">ID: banned by policy</text>
+    <text x="800" y="428">WA: banned by policy</text>
+  </g>
+
+  <text x="60" y="482" class="bw-font-body" font-size="10" fill="#64748b">Sources: California AB-831 (leginfo), NY S5935A / Ch. 605, NJ A5447, CT SB 1235, MT SB 555, IN HB 1052, ME LD 2007, TN SB 2136, OK SB 1589 (state legislatures).</text>
+  <text x="60" y="500" class="bw-font-body" font-size="10" fill="#94a3b8">SweepstakesWiz Sweepstakes Legality Tracker, July 2026. Editorial content; not legal advice.</text>
+</svg>
