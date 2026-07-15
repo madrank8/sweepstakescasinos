@@ -1,0 +1,62 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 560" role="img" aria-labelledby="rgTitle rgDesc">
+  <title id="rgTitle">Four-rung responsible gambling escalation ladder</title>
+  <desc id="rgDesc">Editorial ladder for responsible-gambling escalation, from lightest intervention on the bottom rung to strongest on the top. Rung one, set limits before you play: time, budget and loss limits set in advance while calm. Rung two, use operator-side self-exclusion: cooling off periods from 24 hours to permanent, plus removal from marketing. Rung three, cross-operator device blocking with tools such as GamBan, Gamblock and BetBlocker, plus bank-side gambling-category merchant blocks. Rung four, professional and crisis help through free confidential 24/7 hotlines: US 1-800-GAMBLER, Canada ConnexOntario 1-866-531-2600, UK GamCare 0808 8020 133, and the US 988 Suicide and Crisis Lifeline.</desc>
+  <defs>
+    <style>
+      .rg-font-display { font-family: 'Sora', system-ui, sans-serif; }
+      .rg-font-body { font-family: 'DM Sans', system-ui, sans-serif; }
+    </style>
+  </defs>
+  <rect width="960" height="560" rx="14" fill="#ffffff" stroke="#e2e8f0" stroke-width="1"/>
+
+  <text x="480" y="34" text-anchor="middle" class="rg-font-display" font-size="17" font-weight="800" fill="#0a1628">The four-rung responsible-gambling escalation ladder</text>
+  <text x="480" y="55" text-anchor="middle" class="rg-font-body" font-size="11.5" fill="#64748b">Escalate at your own pace; every rung is legitimate and free to use</text>
+
+  <!-- Rung 4 top: Professional help + crisis lines -->
+  <g transform="translate(24,80)">
+    <rect width="912" height="94" rx="10" fill="#0a1628" stroke="#fbbf24" stroke-width="1.5"/>
+    <circle cx="42" cy="47" r="20" fill="#fbbf24"/>
+    <text x="42" y="53" text-anchor="middle" class="rg-font-display" font-size="16" font-weight="800" fill="#0a1628">4</text>
+    <text x="80" y="42" class="rg-font-display" font-size="14" font-weight="800" fill="#ffffff">Professional and crisis help</text>
+    <text x="80" y="60" class="rg-font-body" font-size="10.5" fill="#fbbf24">Free, confidential 24/7 hotlines when you or someone you know needs to talk to a person now</text>
+    <text x="80" y="78" class="rg-font-body" font-size="10" fill="#cbd5e1">US 1-800-GAMBLER (text HELP to same):  US 988 Suicide and Crisis Lifeline:  UK GamCare 0808 8020 133:  CA ConnexOntario 1-866-531-2600</text>
+  </g>
+
+  <!-- Rung 3: Cross-operator + bank blocking -->
+  <g transform="translate(24,192)">
+    <rect width="912" height="86" rx="10" fill="#fef2f2" stroke="#fecaca" stroke-width="1.5"/>
+    <circle cx="42" cy="43" r="18" fill="#dc2626"/>
+    <text x="42" y="49" text-anchor="middle" class="rg-font-display" font-size="14" font-weight="800" fill="#ffffff">3</text>
+    <text x="76" y="38" class="rg-font-display" font-size="13" font-weight="800" fill="#7f1d1d">Cross-operator and payment blocking</text>
+    <text x="76" y="56" class="rg-font-body" font-size="10.5" fill="#7f1d1d">Device-level tools that block thousands of sweepstakes and gambling sites at once, plus bank-side card controls</text>
+    <text x="76" y="72" class="rg-font-body" font-size="10" fill="#991b1b">GamBan:  Gamblock:  BetBlocker (free):  bank app gambling-category merchant blocks (single tap, very effective)</text>
+  </g>
+
+  <!-- Rung 2: Operator self-exclusion -->
+  <g transform="translate(24,296)">
+    <rect width="912" height="86" rx="10" fill="#fffbeb" stroke="#fde68a" stroke-width="1.5"/>
+    <circle cx="42" cy="43" r="18" fill="#f59e0b"/>
+    <text x="42" y="49" text-anchor="middle" class="rg-font-display" font-size="14" font-weight="800" fill="#ffffff">2</text>
+    <text x="76" y="38" class="rg-font-display" font-size="13" font-weight="800" fill="#78350f">Operator-side self-exclusion</text>
+    <text x="76" y="56" class="rg-font-body" font-size="10.5" fill="#78350f">Every legitimate operator offers Cooling Off, Self-Exclusion, or Account Limits in account settings</text>
+    <text x="76" y="72" class="rg-font-body" font-size="10" fill="#a16207">Cooling off 24h / 7d / 30d / 90d:  permanent self-exclusion:  marketing opt-out:  coin-purchase block during limits</text>
+  </g>
+
+  <!-- Rung 1: Set limits before -->
+  <g transform="translate(24,400)">
+    <rect width="912" height="86" rx="10" fill="#ecfdf5" stroke="#a7f3d0" stroke-width="1.5"/>
+    <circle cx="42" cy="43" r="18" fill="#10b981"/>
+    <text x="42" y="49" text-anchor="middle" class="rg-font-display" font-size="14" font-weight="800" fill="#ffffff">1</text>
+    <text x="76" y="38" class="rg-font-display" font-size="13" font-weight="800" fill="#065f46">Set limits before you play, not after</text>
+    <text x="76" y="56" class="rg-font-body" font-size="10.5" fill="#065f46">Decide in advance while calm; treat any coin-package purchase as an already-spent movie-ticket cost</text>
+    <text x="76" y="72" class="rg-font-body" font-size="10" fill="#047857">Time limit (phone alarm):  monthly budget cap:  loss limit set in account (not when chasing)</text>
+  </g>
+
+  <!-- Escalation arrow up left side -->
+  <g transform="translate(978,470) rotate(-90 0 0)">
+    <!-- (empty placeholder, kept for potential future) -->
+  </g>
+
+  <text x="480" y="514" text-anchor="middle" class="rg-font-body" font-size="10.5" fill="#334155">Skip rungs freely: if 1 or 2 is not enough, go straight to 3, and never wait to call a helpline if you are in crisis.</text>
+  <text x="480" y="536" text-anchor="middle" class="rg-font-body" font-size="10" fill="#64748b">Source: SweepstakesWiz Responsible Gaming page, July 2026. Not medical advice; hotlines are free, confidential, and 24/7.</text>
+</svg>
