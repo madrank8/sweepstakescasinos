@@ -10,7 +10,7 @@
   <rect width="720" height="340" rx="14" fill="#ffffff" stroke="#e2e8f0" stroke-width="1"/>
 
   <text x="360" y="34" text-anchor="middle" class="hwr-font-display" font-size="16" font-weight="800" fill="#0a1628">Four criteria, 100 points total</text>
-  <text x="360" y="54" text-anchor="middle" class="hwr-font-body" font-size="11" fill="#64748b">Same weights shown on our homepage  verified at build time</text>
+  <text x="360" y="54" text-anchor="middle" class="hwr-font-body" font-size="11" fill="#64748b">Same weights shown on our homepage, verified at build time</text>
 
   <!-- grid -->
   <line x1="248" y1="78" x2="248" y2="292" stroke="#e2e8f0" stroke-width="1"/>
@@ -40,5 +40,5 @@
   <rect x="248" y="238" width="259.2" height="28" rx="7" fill="#334155"/>
   <text x="515.2" y="256" class="hwr-font-display" font-size="12" font-weight="800" fill="#334155">20%</text>
 
-  <text x="360" y="328" text-anchor="middle" class="hwr-font-body" font-size="10" fill="#64748b">Source: SweepstakesWiz rating methodology · July 2026</text>
+  <text x="360" y="328" text-anchor="middle" class="hwr-font-body" font-size="10" fill="#64748b">Source: SweepstakesWiz rating methodology, July 2026</text>
 </svg>
