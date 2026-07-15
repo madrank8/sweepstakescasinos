@@ -1,0 +1,56 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 300" role="img" aria-labelledby="hwrFlowTitle hwrFlowDesc">
+  <title id="hwrFlowTitle">How a sweepstakes casino review score is built</title>
+  <desc id="hwrFlowDesc">Flow diagram: three evidence sources - published operator terms, aggregated third-party data, and reader reports - feed weighted scoring across four criteria to produce a final editorial score out of 100.</desc>
+  <defs>
+    <style>
+      .hwr-font-display { font-family: 'Sora', system-ui, sans-serif; }
+      .hwr-font-body { font-family: 'DM Sans', system-ui, sans-serif; }
+    </style>
+    <marker id="hwrArrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#94a3b8"/>
+    </marker>
+  </defs>
+  <rect width="720" height="300" rx="14" fill="#ffffff" stroke="#e2e8f0" stroke-width="1"/>
+
+  <text x="360" y="30" text-anchor="middle" class="hwr-font-display" font-size="16" font-weight="800" fill="#0a1628">How every review score is built</text>
+  <text x="360" y="50" text-anchor="middle" class="hwr-font-body" font-size="11" fill="#64748b">Three labeled evidence sources to weighted criteria to final score</text>
+
+  <rect x="24" y="62" width="10" height="10" rx="2" fill="#eff6ff" stroke="#1a56db" stroke-width="1"/>
+  <text x="40" y="71" class="hwr-font-body" font-size="10" fill="#1e3a8a">Evidence</text>
+  <rect x="108" y="62" width="10" height="10" rx="2" fill="#fef9e7" stroke="#f59e0b" stroke-width="1"/>
+  <text x="124" y="71" class="hwr-font-body" font-size="10" fill="#78350f">Scoring</text>
+  <rect x="188" y="62" width="10" height="10" rx="2" fill="#0a1628"/>
+  <text x="204" y="71" class="hwr-font-body" font-size="10" fill="#334155">Output</text>
+
+  <rect x="24" y="88" width="188" height="52" rx="9" fill="#eff6ff" stroke="#bfdbfe" stroke-width="1.5"/>
+  <text x="118" y="110" text-anchor="middle" class="hwr-font-display" font-size="11" font-weight="700" fill="#1e3a8a">Published operator terms</text>
+  <text x="118" y="128" text-anchor="middle" class="hwr-font-body" font-size="10" fill="#1a56db">Bonus rules, cashier, redemption policy</text>
+
+  <rect x="24" y="150" width="188" height="52" rx="9" fill="#eff6ff" stroke="#bfdbfe" stroke-width="1.5"/>
+  <text x="118" y="172" text-anchor="middle" class="hwr-font-display" font-size="11" font-weight="700" fill="#1e3a8a">Aggregated third-party data</text>
+  <text x="118" y="190" text-anchor="middle" class="hwr-font-body" font-size="10" fill="#1a56db">Trustpilot volume, score, trends</text>
+
+  <rect x="24" y="212" width="188" height="52" rx="9" fill="#eff6ff" stroke="#bfdbfe" stroke-width="1.5"/>
+  <text x="118" y="234" text-anchor="middle" class="hwr-font-display" font-size="11" font-weight="700" fill="#1e3a8a">Reader reports</text>
+  <text x="118" y="252" text-anchor="middle" class="hwr-font-body" font-size="10" fill="#1a56db">Moderated player submissions</text>
+
+  <line x1="214" y1="114" x2="268" y2="164" stroke="#94a3b8" stroke-width="2" marker-end="url(#hwrArrow)"/>
+  <line x1="214" y1="176" x2="268" y2="176" stroke="#94a3b8" stroke-width="2" marker-end="url(#hwrArrow)"/>
+  <line x1="214" y1="238" x2="268" y2="188" stroke="#94a3b8" stroke-width="2" marker-end="url(#hwrArrow)"/>
+
+  <rect x="272" y="118" width="196" height="116" rx="9" fill="#fef9e7" stroke="#fde68a" stroke-width="1.5"/>
+  <text x="370" y="142" text-anchor="middle" class="hwr-font-display" font-size="11" font-weight="700" fill="#78350f">Weighted scoring</text>
+  <text x="370" y="160" text-anchor="middle" class="hwr-font-body" font-size="10" fill="#92400e">4 criteria, 100 points</text>
+  <text x="370" y="178" text-anchor="middle" class="hwr-font-body" font-size="9.5" fill="#78350f">Redemption 30%, Bonus 25%</text>
+  <text x="370" y="194" text-anchor="middle" class="hwr-font-body" font-size="9.5" fill="#78350f">Ongoing 25%, Trust 20%</text>
+  <text x="370" y="218" text-anchor="middle" class="hwr-font-body" font-size="9" fill="#64748b">Affiliate links do not shift scores</text>
+
+  <line x1="470" y1="176" x2="524" y2="176" stroke="#94a3b8" stroke-width="2" marker-end="url(#hwrArrow)"/>
+
+  <rect x="528" y="118" width="168" height="116" rx="9" fill="#0a1628" stroke="#1a56db" stroke-width="1.5"/>
+  <text x="612" y="148" text-anchor="middle" class="hwr-font-display" font-size="11" font-weight="700" fill="#ffffff">Final score</text>
+  <text x="612" y="182" text-anchor="middle" class="hwr-font-display" font-size="28" font-weight="900" fill="#fbbf24">/ 100</text>
+  <text x="612" y="210" text-anchor="middle" class="hwr-font-body" font-size="9.5" fill="#cbd5e1">Editorial rating, not a payout promise</text>
+
+  <text x="360" y="288" text-anchor="middle" class="hwr-font-body" font-size="10" fill="#64748b">Source: SweepstakesWiz How We Rate page, July 2026</text>
+</svg>

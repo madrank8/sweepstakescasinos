@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 340" role="img" aria-labelledby="hwrWeightsTitle hwrWeightsDesc">
+  <title id="hwrWeightsTitle">Sweepstakes casino rating criteria weights</title>
+  <desc id="hwrWeightsDesc">Horizontal bar chart showing four weighted scoring criteria totaling 100 points: Redemption Terms and Speed 30 percent, Sign-Up Bonus Value 25 percent, Ongoing Free Value 25 percent, and Trust and Support 20 percent.</desc>
+  <defs>
+    <style>
+      .hwr-font-display { font-family: 'Sora', system-ui, sans-serif; }
+      .hwr-font-body { font-family: 'DM Sans', system-ui, sans-serif; }
+    </style>
+  </defs>
+  <rect width="720" height="340" rx="14" fill="#ffffff" stroke="#e2e8f0" stroke-width="1"/>
+
+  <text x="360" y="34" text-anchor="middle" class="hwr-font-display" font-size="16" font-weight="800" fill="#0a1628">Four criteria, 100 points total</text>
+  <text x="360" y="54" text-anchor="middle" class="hwr-font-body" font-size="11" fill="#64748b">Same weights shown on our homepage  verified at build time</text>
+
+  <!-- grid -->
+  <line x1="248" y1="78" x2="248" y2="292" stroke="#e2e8f0" stroke-width="1"/>
+  <line x1="248" y1="292" x2="680" y2="292" stroke="#e2e8f0" stroke-width="1"/>
+  <text x="248" y="308" text-anchor="middle" class="hwr-font-body" font-size="10" fill="#94a3b8">0%</text>
+  <text x="377.6" y="308" text-anchor="middle" class="hwr-font-body" font-size="10" fill="#94a3b8">15%</text>
+  <text x="507.2" y="308" text-anchor="middle" class="hwr-font-body" font-size="10" fill="#94a3b8">30%</text>
+  <text x="636.8" y="308" text-anchor="middle" class="hwr-font-body" font-size="10" fill="#94a3b8">45%</text>
+
+  <!-- Row 1: Redemption 30% -->
+  <text x="24" y="104" class="hwr-font-display" font-size="12" font-weight="700" fill="#0a1628">Redemption Terms &amp; Speed</text>
+  <rect x="248" y="88" width="388.8" height="28" rx="7" fill="#1a56db"/>
+  <text x="644.8" y="106" class="hwr-font-display" font-size="12" font-weight="800" fill="#1a56db">30%</text>
+
+  <!-- Row 2: Sign-Up 25% -->
+  <text x="24" y="154" class="hwr-font-display" font-size="12" font-weight="700" fill="#0a1628">Sign-Up Bonus Value</text>
+  <rect x="248" y="138" width="324" height="28" rx="7" fill="#fbbf24"/>
+  <text x="580" y="156" class="hwr-font-display" font-size="12" font-weight="800" fill="#b45309">25%</text>
+
+  <!-- Row 3: Ongoing 25% -->
+  <text x="24" y="204" class="hwr-font-display" font-size="12" font-weight="700" fill="#0a1628">Ongoing Free Value</text>
+  <rect x="248" y="188" width="324" height="28" rx="7" fill="#10b981"/>
+  <text x="580" y="206" class="hwr-font-display" font-size="12" font-weight="800" fill="#047857">25%</text>
+
+  <!-- Row 4: Trust 20% -->
+  <text x="24" y="254" class="hwr-font-display" font-size="12" font-weight="700" fill="#0a1628">Trust &amp; Support</text>
+  <rect x="248" y="238" width="259.2" height="28" rx="7" fill="#334155"/>
+  <text x="515.2" y="256" class="hwr-font-display" font-size="12" font-weight="800" fill="#334155">20%</text>
+
+  <text x="360" y="328" text-anchor="middle" class="hwr-font-body" font-size="10" fill="#64748b">Source: SweepstakesWiz rating methodology · July 2026</text>
+</svg>
