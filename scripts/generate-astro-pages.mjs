@@ -55,6 +55,20 @@ function relImport(fromFile, toFile) {
   return path;
 }
 
+/**
+ * Placement label baked into each affiliate CTA's clickId (see bonusGateway).
+ * Homepage -> "homepage", reviews/<slug>.html -> "review-<slug>", any other
+ * affiliate page -> its path slugified. Restricted to [a-z0-9-] so it never
+ * needs URL-encoding and always survives the gateway's sanitize step.
+ */
+function placementLabel(sourcePath) {
+  const noExt = sourcePath.replace(/\.html$/, '');
+  if (noExt === 'index') return 'homepage';
+  const reviewMatch = noExt.match(/^reviews\/([a-z0-9-]+)$/);
+  if (reviewMatch) return `review-${reviewMatch[1]}`;
+  return noExt.replace(/[^a-z0-9-]+/gi, '-').replace(/^-+|-+$/g, '').toLowerCase() || 'site';
+}
+
 /** A page is "affiliate" if it embeds at least one /bonuses/<partner-slug>/ CTA. */
 function isAffiliatePage(sourcePath) {
   const html = readFileSync(join(root, sourcePath), 'utf8');
@@ -91,13 +105,14 @@ function writePage(sourcePath) {
     // (runtime fs reads of source files are NOT available in serverless).
     const suppressImport = relImport(destination, join(root, 'src', 'lib', 'affiliateHtml'));
     const rawImport = relImport(destination, join(root, sourcePath));
+    const placement = placementLabel(sourcePath);
     if (reviewSlug) {
       content =
         `---\n` +
         `export const prerender = false;\n` +
         `import rawHtml from '${rawImport}?raw';\n` +
         `import { prepareSsrAffiliateReviewHtml } from '${suppressImport}';\n` +
-        `const html = prepareSsrAffiliateReviewHtml(rawHtml, Astro.locals.usState, '${reviewSlug}');\n` +
+        `const html = prepareSsrAffiliateReviewHtml(rawHtml, Astro.locals.usState, '${reviewSlug}', '${placement}');\n` +
         `---\n<Fragment set:html={html} />\n`;
     } else {
       content =
@@ -105,7 +120,7 @@ function writePage(sourcePath) {
         `export const prerender = false;\n` +
         `import rawHtml from '${rawImport}?raw';\n` +
         `import { prepareSsrAffiliateHtml } from '${suppressImport}';\n` +
-        `const html = prepareSsrAffiliateHtml(rawHtml, Astro.locals.usState);\n` +
+        `const html = prepareSsrAffiliateHtml(rawHtml, Astro.locals.usState, '${placement}');\n` +
         `---\n<Fragment set:html={html} />\n`;
     }
   } else if (reviewSlug) {
@@ -138,7 +153,7 @@ function writeBonusGateway() {
 export const prerender = false;
 import { resolveBonusGateway } from '${gatewayImport}';
 
-const result = resolveBonusGateway(Astro.params.slug, Astro.locals.usState);
+const result = resolveBonusGateway(Astro.params.slug, Astro.locals.usState, Astro.url.searchParams.get('clickId'));
 if (result.status === 'redirect') return Astro.redirect(result.url, 302);
 if (result.status === 'not-found') return new Response('Not found', { status: 404 });
 const partner = result.partner;
@@ -235,6 +250,9 @@ function writeSitemapAndRobots() {
   // Guides hub / index (authored under src/routes/guides/index.astro).
   if (existsSync(join(root, 'src', 'routes', 'guides', 'index.astro'))) urls.push('/guides/');
 
+  // News hub (legislation / enforcement updates).
+  if (existsSync(join(root, 'src', 'routes', 'news', 'index.astro'))) urls.push('/news/');
+
   // New-sweepstakes-casinos freshness hub (authored under src/routes/new/index.astro).
   if (existsSync(join(root, 'src', 'routes', 'new', 'index.astro'))) urls.push('/new/');
 
@@ -264,7 +282,7 @@ function writeSitemapAndRobots() {
 
   // MDX content collections (skip drafts). comparisons render under /best/.
   // NOTE: states are enumerated above (all 51) — not from the MDX collection.
-  const collectionUrlPrefix = { guides: '/guides', comparisons: '/best' };
+  const collectionUrlPrefix = { guides: '/guides', comparisons: '/best', news: '/news' };
   for (const [name, prefix] of Object.entries(collectionUrlPrefix)) {
     const dir = join(root, 'src', 'content', name);
     if (!existsSync(dir)) continue;
@@ -332,7 +350,8 @@ function writeSitemapAndRobots() {
     `- [No deposit bonuses & free Sweeps Coins](${ORIGIN}/bonuses/no-deposit/)\n` +
     `- [What are sweepstakes casinos?](${ORIGIN}/guides/what-are-sweepstakes-casinos/)\n` +
     `- [Sweepstakes casino legality by US state](${ORIGIN}/state-legality/)\n` +
-    `- [Live legality tracker (all 51 jurisdictions)](${ORIGIN}/sweepstakes-tracker/)\n\n` +
+    `- [Live legality tracker (all 51 jurisdictions)](${ORIGIN}/sweepstakes-tracker/)\n` +
+    `- [Sweepstakes casino news & legislation](${ORIGIN}/news/)\n\n` +
     (stateGuideLines ? `## State guides\n${stateGuideLines}\n\n` : '') +
     `## Legality dataset (citable, CC-BY 4.0)\n` +
     `- [Sweepstakes legality tracker](${ORIGIN}/sweepstakes-tracker/): daily-updated legal status, operator availability, pending bills across all 51 US jurisdictions.\n` +

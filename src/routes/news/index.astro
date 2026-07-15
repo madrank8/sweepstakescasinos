@@ -1,0 +1,160 @@
+---
+/**
+ * News hub — legislation, enforcement, and operator changes affecting US
+ * sweepstakes casinos. Feeds the legality moat with timely, citable coverage.
+ */
+import { getCollection } from 'astro:content';
+import ContentLayout from '../../layouts/ContentLayout.astro';
+import { AUTHOR_ID } from '../../lib/schema';
+
+export const prerender = true;
+
+const ORIGIN = 'https://sweepstakeswiz.com';
+const canonicalPath = '/news/';
+
+const entries = await getCollection('news', (e) => !e.data.draft);
+const sorted = [...entries].sort(
+  (a, b) => b.data.published.getTime() - a.data.published.getTime(),
+);
+
+const dateModified = sorted
+  .map((e) => e.data.updated ?? e.data.published)
+  .sort((a, b) => b.getTime() - a.getTime())[0]
+  ?.toISOString();
+
+const title = 'Sweepstakes Casino News & Legislation Updates';
+const description =
+  'Breaking sweepstakes casino legislation, state bans, operator shutdowns, and enforcement actions — sourced from statutes, regulators, and our live legality tracker.';
+
+const breadcrumbs = [
+  { name: 'Home', path: '/' },
+  { name: 'News', path: canonicalPath },
+];
+
+const canonical = `${ORIGIN}${canonicalPath}`;
+const itemListLd = {
+  '@type': 'ItemList',
+  '@id': `${canonical}#itemlist`,
+  name: title,
+  itemListOrder: 'https://schema.org/ItemListOrderDescending',
+  numberOfItems: sorted.length,
+  itemListElement: sorted.map((e, i) => ({
+    '@type': 'ListItem',
+    position: i + 1,
+    name: e.data.title,
+    url: `${ORIGIN}/news/${e.id}/`,
+  })),
+};
+
+const CATEGORY_LABEL: Record<string, string> = {
+  legislation: 'Legislation',
+  shutdown: 'Shutdown',
+  enforcement: 'Enforcement',
+  industry: 'Industry',
+};
+---
+
+<ContentLayout
+  title={title}
+  description={description}
+  canonicalPath={canonicalPath}
+  breadcrumbs={breadcrumbs}
+  pageType="CollectionPage"
+  dateModified={dateModified}
+  jsonLd={[itemListLd]}
+>
+  <article class="news-hub">
+    <p class="news-lead">
+      Timely coverage of the 2025–2026 sweepstakes casino ban wave — state bills, operator exits,
+      and enforcement — cross-linked to our <a href="/sweepstakes-tracker/">live legality tracker</a>
+      and <a href="/state-legality/">50-state hub</a>.
+    </p>
+
+    {sorted.length === 0 ? (
+      <p>No news stories published yet.</p>
+    ) : (
+      <ul class="news-list">
+        {sorted.map((e) => (
+          <li class="news-card">
+            <div class="news-meta">
+              <span class="news-cat">{CATEGORY_LABEL[e.data.category] ?? e.data.category}</span>
+              {e.data.stateCode && <span class="news-state">{e.data.stateCode}</span>}
+              <time datetime={e.data.published.toISOString().slice(0, 10)}>
+                {e.data.published.toLocaleDateString('en-US', {
+                  year: 'numeric',
+                  month: 'long',
+                  day: 'numeric',
+                  timeZone: 'UTC',
+                })}
+              </time>
+            </div>
+            <h2><a href={`/news/${e.id}/`}>{e.data.title}</a></h2>
+            <p>{e.data.description}</p>
+            <a class="news-read" href={`/news/${e.id}/`}>Read update →</a>
+          </li>
+        ))}
+      </ul>
+    )}
+
+    <aside class="news-aside">
+      <h2>Related resources</h2>
+      <ul>
+        <li><a href="/sweepstakes-tracker/legislation/">Pending legislation feed</a></li>
+        <li><a href="/state-legality/">State legality hub</a></li>
+        <li><a href="/guides/dual-currency-sweepstakes-model/">Dual-currency model explained</a></li>
+        <li><a href="/guides/amoe-sweepstakes-casinos/">AMOE / mail-in entries guide</a></li>
+        <li><a href="/guides/sweepstakes-casino-laws-by-state/">Laws by state guide</a></li>
+      </ul>
+    </aside>
+  </article>
+</ContentLayout>
+
+<style>
+  .news-hub { max-width: 760px; }
+  .news-lead { font-size: 1.02rem; line-height: 1.7; margin-bottom: 1.75rem; color: var(--lt-tx2, #334155); }
+  .news-lead a { color: var(--accent, #6366f1); font-weight: 600; }
+  .news-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 1.25rem; }
+  .news-card {
+    background: #fff;
+    border: 1px solid rgba(15, 23, 42, 0.08);
+    border-radius: 14px;
+    padding: 1.15rem 1.25rem;
+    box-shadow: 0 2px 12px rgba(15, 23, 42, 0.04);
+  }
+  .news-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem 0.75rem;
+    align-items: center;
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: #64748b;
+    margin-bottom: 0.5rem;
+  }
+  .news-cat {
+    background: #eef2ff;
+    color: #4338ca;
+    padding: 0.15rem 0.5rem;
+    border-radius: 999px;
+  }
+  .news-state {
+    background: #f1f5f9;
+    color: #475569;
+    padding: 0.15rem 0.45rem;
+    border-radius: 6px;
+  }
+  .news-card h2 { font-size: 1.15rem; margin: 0 0 0.45rem; line-height: 1.35; }
+  .news-card h2 a { color: inherit; text-decoration: none; }
+  .news-card h2 a:hover { color: #4338ca; }
+  .news-card p { margin: 0 0 0.65rem; font-size: 0.92rem; line-height: 1.65; color: #475569; }
+  .news-read { font-size: 0.85rem; font-weight: 700; color: #4338ca; text-decoration: none; }
+  .news-aside {
+    margin-top: 2.5rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid rgba(15, 23, 42, 0.08);
+  }
+  .news-aside h2 { font-size: 1rem; margin-bottom: 0.65rem; }
+  .news-aside ul { padding-left: 1.1rem; line-height: 1.8; font-size: 0.92rem; }
+</style>

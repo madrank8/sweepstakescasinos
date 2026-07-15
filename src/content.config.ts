@@ -111,4 +111,23 @@ const comparisons = defineCollection({
   }),
 });
 
-export const collections = { states, reviews, comparisons, guides };
+const news = defineCollection({
+  loader: glob({ pattern: '**/*.mdx', base: './src/content/news' }),
+  schema: z.object({
+    title: z.string(),
+    description: z.string(),
+    /** Legislation, operator exit, enforcement, or industry change. */
+    category: z.enum(['legislation', 'shutdown', 'enforcement', 'industry']).default('legislation'),
+    /** Primary US state when the story is jurisdiction-specific. */
+    stateCode: z.enum(ALL_US_STATE_CODES as [string, ...string[]]).optional(),
+    published: isoDate,
+    updated: isoDate.optional(),
+    draft: z.boolean().default(false),
+    faq: z.array(faqItem).default([]),
+    /** Primary source URL (statute, regulator, operator notice). */
+    sourceUrl: z.string().url().optional(),
+    citations: z.array(z.string().url()).default([]),
+  }),
+});
+
+export const collections = { states, reviews, comparisons, guides, news };
