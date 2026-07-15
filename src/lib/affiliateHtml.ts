@@ -26,19 +26,28 @@ const BONUS_ANCHOR = /<a\b[^>]*?href="\/bonuses\/([a-z0-9-]+)\/?"[^>]*>.*?<\/a>/
 const NOTE =
   '<span class="affiliate-unavailable" data-reason="geo-suppressed">Not available in your location</span>';
 
+// Injects `?clickId=<placement>` into a /bonuses/<slug>/ href while preserving
+// the optional trailing slash. Only applied to CTAs that will actually render.
+const HREF_TARGET = /(href="\/bonuses\/[a-z0-9-]+\/?)(")/i;
+
 /**
- * Replace suppressed partners' CTA anchors with an inline note.
- * Anchors for partners that are allowed in `state` are left untouched.
- * Unknown slugs (non-partner bonus pages) are left untouched.
+ * Replace suppressed partners' CTA anchors with an inline note, and stamp the
+ * `?clickId=<placement>` attribution param onto the anchors that survive.
+ * Anchors for partners that are allowed in `state` keep their markup (only the
+ * href gains the clickId). Unknown slugs (non-partner bonus pages) are left
+ * untouched. `placement` is a build-time-trusted label (see generate script);
+ * when omitted, hrefs are left as-is.
  */
 export function suppressAffiliateCtas(
   html: string,
   state: UsStateCode | null | undefined,
+  placement?: string,
 ): string {
   return html.replace(BONUS_ANCHOR, (match, slug: string) => {
     const partner = getPartner(slug);
     if (!partner) return match; // not one of our 13 partners — leave as-is
-    return shouldRenderAffiliateCta(partner, state) ? match : NOTE;
+    if (!shouldRenderAffiliateCta(partner, state)) return NOTE;
+    return placement ? match.replace(HREF_TARGET, `$1?clickId=${placement}$2`) : match;
   });
 }
 
@@ -56,8 +65,9 @@ export function hasAffiliateCtas(html: string): boolean {
 export function prepareSsrAffiliateHtml(
   rawHtml: string,
   state: UsStateCode | null | undefined,
+  placement?: string,
 ): string {
-  return suppressAffiliateCtas(stampUpdatedDate(decorateChrome(rawHtml)), state);
+  return suppressAffiliateCtas(stampUpdatedDate(decorateChrome(rawHtml)), state, placement);
 }
 
 /**
@@ -69,6 +79,7 @@ export function prepareSsrAffiliateReviewHtml(
   rawHtml: string,
   state: UsStateCode | null | undefined,
   slug: string,
+  placement?: string,
 ): string {
-  return injectReaderReports(prepareSsrAffiliateHtml(rawHtml, state), slug);
+  return injectReaderReports(prepareSsrAffiliateHtml(rawHtml, state, placement), slug);
 }

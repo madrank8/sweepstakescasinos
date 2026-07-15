@@ -114,9 +114,34 @@ if (txMcLuck.status === 'redirect') {
     /tracker\.gemified\.io/.test(txMcLuck.url),
     true,
   );
+  check('no clickId -> bare tracking link (no clickId param)', !txMcLuck.url.includes('clickId'), true);
 }
-// Banned state -> blocked, NO url emitted.
-const caMcLuck = resolveBonusGateway('mcluck', 'CA');
+// Allowed state + clickId -> gemified link with `&clickId=<value>` appended.
+const txMcLuckClick = resolveBonusGateway('mcluck', 'TX', 'no-deposit');
+check('McLuck gateway redirects in TX with clickId', txMcLuckClick.status === 'redirect', true);
+if (txMcLuckClick.status === 'redirect') {
+  check(
+    'clickId appended with literal & (gemified format)',
+    txMcLuckClick.url === `${mcluck.trackingLink}&clickId=no-deposit`,
+    true,
+  );
+}
+// Malicious clickId -> stripped; redirect stays anchored to the gemified domain.
+const evilClick = resolveBonusGateway('mcluck', 'TX', 'evil"><script>?x=/../@attacker.com');
+check('malicious clickId gateway still redirects in TX', evilClick.status === 'redirect', true);
+if (evilClick.status === 'redirect') {
+  check('malicious clickId is dropped entirely', !evilClick.url.includes('clickId'), true);
+  check('malicious clickId cannot break the tracker URL', evilClick.url === mcluck.trackingLink, true);
+}
+// Over-long clickId (>64 chars) -> rejected.
+const longClick = resolveBonusGateway('mcluck', 'TX', 'a'.repeat(65));
+check(
+  'over-long clickId (>64) is rejected',
+  longClick.status === 'redirect' && !longClick.url.includes('clickId'),
+  true,
+);
+// Banned state -> blocked, NO url emitted (clickId must never resurrect a CTA).
+const caMcLuck = resolveBonusGateway('mcluck', 'CA', 'no-deposit');
 check('McLuck gateway blocked in CA (banned)', caMcLuck.status === 'blocked', true);
 check('blocked result carries no url', !('url' in caMcLuck), true);
 // Unknown slug -> not-found.
@@ -130,10 +155,15 @@ const sampleHtml =
   '<a href="/bonuses/mcluck/" class="btn-claim" rel="nofollow noopener">Claim Bonus</a>' +
   '<a href="/bonuses/zula/" class="btn-claim">Claim Zula</a>' +
   '<a href="/reviews/mcluck/">Read review</a>';
-const inTX = suppressAffiliateCtas(sampleHtml, 'TX');
+const inTX = suppressAffiliateCtas(sampleHtml, 'TX', 'homepage');
 check('TX keeps McLuck CTA', inTX.includes('/bonuses/mcluck/'), true);
-check('TX keeps editorial link', inTX.includes('/reviews/mcluck/'), true);
-const inCA = suppressAffiliateCtas(sampleHtml, 'CA');
+check('TX stamps clickId placement on surviving CTA', inTX.includes('/bonuses/mcluck/?clickId=homepage'), true);
+check('TX stamps clickId on Zula CTA too', inTX.includes('/bonuses/zula/?clickId=homepage'), true);
+check('TX keeps editorial link untouched (no clickId)', inTX.includes('/reviews/mcluck/"'), true);
+// No placement -> hrefs left as-is (back-compat).
+const inTXNoPlacement = suppressAffiliateCtas(sampleHtml, 'TX');
+check('no placement -> CTA href unchanged', inTXNoPlacement.includes('/bonuses/mcluck/"'), true);
+const inCA = suppressAffiliateCtas(sampleHtml, 'CA', 'homepage');
 check('CA removes McLuck affiliate CTA', !inCA.includes('/bonuses/mcluck/'), true);
 check('CA removes Zula affiliate CTA', !inCA.includes('/bonuses/zula/'), true);
 check('CA keeps editorial (non-affiliate) link', inCA.includes('/reviews/mcluck/'), true);

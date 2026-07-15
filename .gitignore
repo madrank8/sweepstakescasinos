@@ -11,6 +11,9 @@ output/
 .env
 .env.*
 !.env.example
+
+# Local MCP server config — may contain API keys (e.g. n8n). Never commit.
+.cursor/mcp.json
 .seo/
 evidence/*
 !evidence/README.md

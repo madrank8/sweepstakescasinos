@@ -106,7 +106,7 @@ const jsonLd = faqLd ? [itemListLd, faqLd] : [itemListLd];
           </div>
           <div class="best-cta">
             <a class="best-review" href={`/reviews/${p.slug}/`}>Read review</a>
-            <AffiliateLink slug={p.slug} label="Get bonus" />
+            <AffiliateLink slug={p.slug} label="Get bonus" clickId={`best-${entry.id}`} />
           </div>
         </li>
       );

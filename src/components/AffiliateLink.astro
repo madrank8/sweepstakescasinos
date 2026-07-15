@@ -26,6 +26,12 @@ interface Props {
   class?: string;
   /** Show a small "not available in your state" note when suppressed. */
   showUnavailableNote?: boolean;
+  /**
+   * Placement label passed through to the gateway as `?clickId=`, used for
+   * attribution (e.g. "no-deposit", "best-sweepstakes-casinos"). Restrict to
+   * [A-Za-z0-9_-]; the gateway sanitizes anything else out.
+   */
+  clickId?: string;
 }
 
 const {
@@ -34,6 +40,7 @@ const {
   label,
   class: className = '',
   showUnavailableNote = false,
+  clickId,
 } = Astro.props;
 
 const partner = partnerProp ?? (slug ? getPartner(slug) : undefined);
@@ -45,10 +52,11 @@ const state = Astro.locals.usState;
 const canRender = shouldRenderAffiliateCta(partner, state);
 const reason = suppressionReason(partner, state);
 const ctaLabel = label ?? `Visit ${partner.name}`;
+const href = `/bonuses/${partner.slug}/${clickId ? `?clickId=${clickId}` : ''}`;
 ---
 {canRender ? (
   <a
-    href={`/bonuses/${partner.slug}/`}
+    href={href}
     rel="sponsored nofollow"
     target="_blank"
     data-affiliate={partner.slug}

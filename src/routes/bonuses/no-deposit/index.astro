@@ -243,7 +243,7 @@ const jsonLd = [itemListLd, faqLd];
             <td><a href={`/reviews/${o.slug}/`}>{o.reviewLabel}</a></td>
             <td class="nd-cta-cell">
               {o.canCta ? (
-                <AffiliateLink slug={o.slug} label="Claim bonus" class="nd-cta" />
+                <AffiliateLink slug={o.slug} label="Claim bonus" class="nd-cta" clickId="no-deposit" />
               ) : (
                 <span class="nd-na">Not in your state</span>
               )}
