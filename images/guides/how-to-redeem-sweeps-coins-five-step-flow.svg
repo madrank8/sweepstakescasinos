@@ -1,0 +1,131 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 520" role="img" aria-labelledby="rfsTitle rfsDesc">
+  <title id="rfsTitle">How to redeem Sweeps Coins for cash or gift cards, in five steps</title>
+  <desc id="rfsDesc">Five-step numbered flow diagram for redeeming Sweeps Coins. Step one: build a redeemable balance above the operator minimum. Step two: verify identity through KYC before requesting the first payout. Step three: open the cashier and select Redeem. Step four: enter the SC amount and pick a payout method. Step five: submit and track the request. Alongside, a horizontal bar chart shows typical relative payout speeds by method: e-wallet fastest, gift card fast, crypto fast, bank or ACH transfer slower.</desc>
+  <defs>
+    <style>
+      .rs-font-display { font-family: 'Sora', system-ui, sans-serif; }
+      .rs-font-body { font-family: 'DM Sans', system-ui, sans-serif; }
+    </style>
+    <marker id="rsArrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#94a3b8"/>
+    </marker>
+  </defs>
+  <rect width="960" height="520" rx="14" fill="#ffffff" stroke="#e2e8f0" stroke-width="1"/>
+
+  <text x="480" y="34" text-anchor="middle" class="rs-font-display" font-size="17" font-weight="800" fill="#0a1628">How to redeem Sweeps Coins, in five steps</text>
+  <text x="480" y="55" text-anchor="middle" class="rs-font-body" font-size="11.5" fill="#64748b">Get the three prerequisites right first and most redemptions are routine</text>
+
+  <!-- Row of five step cards. Each 168 wide x 118 tall. Gap 12. Origin y=90 -->
+  <!-- Step 1 -->
+  <g transform="translate(24,90)">
+    <rect width="168" height="118" rx="10" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1.5"/>
+    <circle cx="30" cy="30" r="14" fill="#0a1628"/>
+    <text x="30" y="34" text-anchor="middle" class="rs-font-display" font-size="12" font-weight="800" fill="#fbbf24">1</text>
+    <text x="52" y="34" class="rs-font-display" font-size="12" font-weight="800" fill="#0a1628">Build balance</text>
+    <text x="14" y="60" class="rs-font-body" font-size="10" fill="#475569">Reach the operator</text>
+    <text x="14" y="74" class="rs-font-body" font-size="10" fill="#475569">minimum. Typical:</text>
+    <text x="14" y="88" class="rs-font-body" font-size="10.5" font-weight="700" fill="#334155">50 SC gift cards</text>
+    <text x="14" y="102" class="rs-font-body" font-size="10.5" font-weight="700" fill="#334155">100 SC for cash</text>
+  </g>
+
+  <line x1="196" y1="149" x2="216" y2="149" stroke="#94a3b8" stroke-width="2" marker-end="url(#rsArrow)"/>
+
+  <!-- Step 2 -->
+  <g transform="translate(220,90)">
+    <rect width="168" height="118" rx="10" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1.5"/>
+    <circle cx="30" cy="30" r="14" fill="#0a1628"/>
+    <text x="30" y="34" text-anchor="middle" class="rs-font-display" font-size="12" font-weight="800" fill="#fbbf24">2</text>
+    <text x="52" y="34" class="rs-font-display" font-size="12" font-weight="800" fill="#0a1628">Verify KYC early</text>
+    <text x="14" y="60" class="rs-font-body" font-size="10" fill="#475569">Government ID plus</text>
+    <text x="14" y="74" class="rs-font-body" font-size="10" fill="#475569">a proof of address.</text>
+    <text x="14" y="90" class="rs-font-body" font-size="10" font-style="italic" fill="#065f46">Do this at signup,</text>
+    <text x="14" y="102" class="rs-font-body" font-size="10" font-style="italic" fill="#065f46">not at first payout.</text>
+  </g>
+
+  <line x1="392" y1="149" x2="412" y2="149" stroke="#94a3b8" stroke-width="2" marker-end="url(#rsArrow)"/>
+
+  <!-- Step 3 -->
+  <g transform="translate(416,90)">
+    <rect width="168" height="118" rx="10" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1.5"/>
+    <circle cx="30" cy="30" r="14" fill="#0a1628"/>
+    <text x="30" y="34" text-anchor="middle" class="rs-font-display" font-size="12" font-weight="800" fill="#fbbf24">3</text>
+    <text x="52" y="34" class="rs-font-display" font-size="12" font-weight="800" fill="#0a1628">Open the cashier</text>
+    <text x="14" y="60" class="rs-font-body" font-size="10" fill="#475569">In the operator app or</text>
+    <text x="14" y="74" class="rs-font-body" font-size="10" fill="#475569">site, choose Redeem</text>
+    <text x="14" y="88" class="rs-font-body" font-size="10" fill="#475569">(not Buy).</text>
+  </g>
+
+  <line x1="588" y1="149" x2="608" y2="149" stroke="#94a3b8" stroke-width="2" marker-end="url(#rsArrow)"/>
+
+  <!-- Step 4 -->
+  <g transform="translate(612,90)">
+    <rect width="168" height="118" rx="10" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1.5"/>
+    <circle cx="30" cy="30" r="14" fill="#0a1628"/>
+    <text x="30" y="34" text-anchor="middle" class="rs-font-display" font-size="12" font-weight="800" fill="#fbbf24">4</text>
+    <text x="52" y="34" class="rs-font-display" font-size="12" font-weight="800" fill="#0a1628">Amount + method</text>
+    <text x="14" y="60" class="rs-font-body" font-size="10" fill="#475569">Enter SC to redeem.</text>
+    <text x="14" y="74" class="rs-font-body" font-size="10" fill="#475569">Pick e-wallet,</text>
+    <text x="14" y="88" class="rs-font-body" font-size="10" fill="#475569">gift card, crypto,</text>
+    <text x="14" y="102" class="rs-font-body" font-size="10" fill="#475569">or bank / ACH.</text>
+  </g>
+
+  <line x1="784" y1="149" x2="804" y2="149" stroke="#94a3b8" stroke-width="2" marker-end="url(#rsArrow)"/>
+
+  <!-- Step 5 -->
+  <g transform="translate(808,90)">
+    <rect width="128" height="118" rx="10" fill="#0a1628" stroke="#fbbf24" stroke-width="1.5"/>
+    <circle cx="30" cy="30" r="14" fill="#fbbf24"/>
+    <text x="30" y="34" text-anchor="middle" class="rs-font-display" font-size="12" font-weight="800" fill="#0a1628">5</text>
+    <text x="52" y="34" class="rs-font-display" font-size="12" font-weight="800" fill="#ffffff">Submit</text>
+    <text x="14" y="60" class="rs-font-body" font-size="10" fill="#cbd5e1">Track through the</text>
+    <text x="14" y="74" class="rs-font-body" font-size="10" fill="#cbd5e1">operator review.</text>
+    <text x="14" y="90" class="rs-font-body" font-size="10" font-style="italic" fill="#fbbf24">Prize paid on</text>
+    <text x="14" y="102" class="rs-font-body" font-size="10" font-style="italic" fill="#fbbf24">approval.</text>
+  </g>
+
+  <!-- Prerequisites banner -->
+  <rect x="24" y="228" width="912" height="42" rx="8" fill="#eff6ff" stroke="#bfdbfe"/>
+  <text x="42" y="248" class="rs-font-display" font-size="11" font-weight="800" fill="#1e3a8a">Three prerequisites before any of the above</text>
+  <text x="42" y="264" class="rs-font-body" font-size="10.5" fill="#1a56db">Enough redeemable SC in SC mode - Any 1x playthrough on bonus SC cleared - Completed identity verification (KYC)</text>
+
+  <!-- Payout speed bar chart -->
+  <text x="24" y="304" class="rs-font-display" font-size="13" font-weight="800" fill="#0a1628">Typical relative payout speed by method</text>
+  <text x="24" y="322" class="rs-font-body" font-size="10.5" fill="#64748b">Editorial estimate of relative speed once KYC is complete; exact windows vary per operator</text>
+
+  <!-- Bars: label column ends at x=200, bar starts x=210, bar area ends x=760, note column starts x=780 -->
+  <!-- Scale: Fastest = 100%, Fast = 78%, Slower = 40% (relative bar width to ~550px) -->
+
+  <!-- E-wallet -->
+  <text x="30" y="360" class="rs-font-display" font-size="11" font-weight="700" fill="#0a1628">E-wallet</text>
+  <text x="30" y="374" class="rs-font-body" font-size="9.5" fill="#64748b">Skrill, PayPal</text>
+  <rect x="210" y="348" width="550" height="24" rx="4" fill="#f8fafc" stroke="#e2e8f0"/>
+  <rect x="210" y="348" width="540" height="24" rx="4" fill="#10b981"/>
+  <text x="230" y="365" class="rs-font-display" font-size="11" font-weight="700" fill="#ffffff">Fastest</text>
+  <text x="780" y="365" class="rs-font-body" font-size="10" fill="#334155">Lowest friction where offered</text>
+
+  <!-- Gift card -->
+  <text x="30" y="396" class="rs-font-display" font-size="11" font-weight="700" fill="#0a1628">Gift card</text>
+  <text x="30" y="410" class="rs-font-body" font-size="9.5" fill="#64748b">Amazon, Visa etc.</text>
+  <rect x="210" y="384" width="550" height="24" rx="4" fill="#f8fafc" stroke="#e2e8f0"/>
+  <rect x="210" y="384" width="430" height="24" rx="4" fill="#34d399"/>
+  <text x="230" y="401" class="rs-font-display" font-size="11" font-weight="700" fill="#ffffff">Fast</text>
+  <text x="780" y="401" class="rs-font-body" font-size="10" fill="#334155">Often the lowest minimum</text>
+
+  <!-- Crypto -->
+  <text x="30" y="432" class="rs-font-display" font-size="11" font-weight="700" fill="#0a1628">Crypto</text>
+  <text x="30" y="446" class="rs-font-body" font-size="9.5" fill="#64748b">Some operators only</text>
+  <rect x="210" y="420" width="550" height="24" rx="4" fill="#f8fafc" stroke="#e2e8f0"/>
+  <rect x="210" y="420" width="420" height="24" rx="4" fill="#34d399"/>
+  <text x="230" y="437" class="rs-font-display" font-size="11" font-weight="700" fill="#ffffff">Fast</text>
+  <text x="780" y="437" class="rs-font-body" font-size="10" fill="#334155">Where the operator offers it</text>
+
+  <!-- Bank ACH -->
+  <text x="30" y="468" class="rs-font-display" font-size="11" font-weight="700" fill="#0a1628">Bank / ACH</text>
+  <text x="30" y="482" class="rs-font-body" font-size="9.5" fill="#64748b">Transfer to your bank</text>
+  <rect x="210" y="456" width="550" height="24" rx="4" fill="#f8fafc" stroke="#e2e8f0"/>
+  <rect x="210" y="456" width="220" height="24" rx="4" fill="#f59e0b"/>
+  <text x="230" y="473" class="rs-font-display" font-size="11" font-weight="700" fill="#ffffff">Slower</text>
+  <text x="780" y="473" class="rs-font-body" font-size="10" fill="#334155">A few business days typical</text>
+
+  <text x="480" y="510" text-anchor="middle" class="rs-font-body" font-size="9.5" fill="#64748b">Source: SweepstakesWiz redemption guide, July 2026. Editorial illustration; times vary and are not a payout guarantee.</text>
+</svg>

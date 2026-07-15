@@ -30,6 +30,18 @@ const articleLd = {
   author: { '@id': AUTHOR_ID },
   publisher: { '@id': ORG_ID },
 };
+
+const pyramidImageNode = {
+  '@type': 'ImageObject',
+  '@id': `${canonical}#source-tier-pyramid`,
+  contentUrl: `${ORIGIN}/images/sweepstakes-tracker/sweepstakes-tracker-source-tier-pyramid.svg`,
+  width: 960,
+  height: 560,
+  caption:
+    'Four-tier sourcing hierarchy behind the SweepstakesWiz legality tracker plus the four-step verification workflow that gates any status change on human editorial sign-off. Source: SweepstakesWiz Tracker Methodology, July 2026.',
+  creator: { '@type': 'Organization', name: 'SweepstakesWiz' },
+  creditText: 'SweepstakesWiz',
+};
 ---
 <ContentLayout
   title="Tracker Methodology — Sourcing, Cadence & Verification"
@@ -39,7 +51,7 @@ const articleLd = {
   heroTitle="Tracker methodology"
   heroSubtitle="How we compile, verify, and correct the US sweepstakes legality dataset."
   mainEntityId={`${canonical}#article`}
-  jsonLd={[articleLd]}
+  jsonLd={[articleLd, pyramidImageNode]}
 >
   <h2>Editorial independence</h2>
   <p>
@@ -60,6 +72,21 @@ const articleLd = {
     <li><strong>Tier 3 — Industry trade press</strong> with editorial standards.</li>
     <li><strong>Tier 4 — Other sources</strong> used only as corroboration, never as the sole basis for a change.</li>
   </ol>
+
+  <figure class="mt-figure" role="group" aria-labelledby="mt-pyramid-cap">
+    <img
+      src="/images/sweepstakes-tracker/sweepstakes-tracker-source-tier-pyramid.svg"
+      alt="Four-tier source pyramid: government, tier-one journalism, trade press, other; label changes require human sign-off."
+      width="960"
+      height="560"
+      loading="lazy"
+      decoding="async"
+    />
+    <figcaption id="mt-pyramid-cap">
+      The four-tier sourcing hierarchy plus the four-step verification workflow behind every status change.
+      <strong>Source:</strong> SweepstakesWiz Tracker Methodology, July 2026.
+    </figcaption>
+  </figure>
 
   <h2>Update cadence</h2>
   <p>
@@ -111,5 +138,8 @@ const articleLd = {
     .content-card li{margin:8px 0;line-height:1.6;}
     .mt-byline{font-size:.85rem;color:#64748b;border-top:1px solid #e2e8f0;padding-top:14px;margin-top:26px;}
     .mt-byline a{color:#b45309;font-weight:600;}
+    .mt-figure{margin:18px 0 24px;}
+    .mt-figure img{display:block;width:100%;height:auto;max-width:960px;margin:0 auto;}
+    .mt-figure figcaption{font-size:0.8rem;color:#64748b;margin-top:10px;text-align:center;line-height:1.5;}
   </style>
 </ContentLayout>

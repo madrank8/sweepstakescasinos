@@ -1,0 +1,98 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 560" role="img" aria-labelledby="stpTitle stpDesc">
+  <title id="stpTitle">The four-tier sourcing hierarchy behind the sweepstakes legality tracker</title>
+  <desc id="stpDesc">Editorial pyramid of the four source tiers SweepstakesWiz uses to update its US sweepstakes casino legality dataset. Tier one is official government sources, including state legislatures, attorney-general offices, gaming commissions and court records via LegiScan. Tier two is Tier-one journalism such as AP and Reuters with published editorial standards. Tier three is industry trade press with editorial standards. Tier four is other sources used only as corroboration. Status label changes always require a Tier one or Tier two source and human editorial sign-off before the label updates.</desc>
+  <defs>
+    <style>
+      .stp-font-display { font-family: 'Sora', system-ui, sans-serif; }
+      .stp-font-body { font-family: 'DM Sans', system-ui, sans-serif; }
+    </style>
+    <marker id="stpArrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#0a1628"/>
+    </marker>
+  </defs>
+  <rect width="960" height="560" rx="14" fill="#ffffff" stroke="#e2e8f0" stroke-width="1"/>
+
+  <text x="480" y="34" text-anchor="middle" class="stp-font-display" font-size="17" font-weight="800" fill="#0a1628">Sourcing hierarchy behind the legality tracker</text>
+  <text x="480" y="55" text-anchor="middle" class="stp-font-body" font-size="11.5" fill="#64748b">Every status label update passes through this stack. Status changes require Tier 1 or Tier 2 plus human sign-off.</text>
+
+  <!-- Pyramid: four horizontal bands stacked, widening as tier number rises. Centered at x=350. -->
+  <!-- Band widths -->
+  <!-- T1 = 240 wide at top -->
+  <!-- T2 = 360 wide -->
+  <!-- T3 = 480 wide -->
+  <!-- T4 = 600 wide at base -->
+  <!-- Band heights 68. y positions: T1=98, T2=176, T3=254, T4=332 -->
+
+  <!-- T1 -->
+  <polygon points="230,98 470,98 500,166 200,166" fill="#0a1628" stroke="#0a1628" stroke-width="1"/>
+  <text x="350" y="128" text-anchor="middle" class="stp-font-display" font-size="13" font-weight="800" fill="#fbbf24">Tier 1 - Official government</text>
+  <text x="350" y="148" text-anchor="middle" class="stp-font-body" font-size="10.5" fill="#f1f5f9">Legislatures, AG offices, gaming commissions, courts (LegiScan)</text>
+
+  <!-- T2 -->
+  <polygon points="200,168 500,168 530,236 170,236" fill="#1e3a8a" stroke="#1e3a8a" stroke-width="1"/>
+  <text x="350" y="198" text-anchor="middle" class="stp-font-display" font-size="13" font-weight="800" fill="#fbbf24">Tier 2 - Tier-1 journalism</text>
+  <text x="350" y="218" text-anchor="middle" class="stp-font-body" font-size="10.5" fill="#e0e7ff">AP, Reuters, comparable outlets with published editorial standards</text>
+
+  <!-- T3 -->
+  <polygon points="170,238 530,238 560,306 140,306" fill="#1a56db" stroke="#1a56db" stroke-width="1"/>
+  <text x="350" y="268" text-anchor="middle" class="stp-font-display" font-size="13" font-weight="800" fill="#fbbf24">Tier 3 - Industry trade press</text>
+  <text x="350" y="288" text-anchor="middle" class="stp-font-body" font-size="10.5" fill="#dbeafe">Vetted industry outlets with published editorial standards</text>
+
+  <!-- T4 -->
+  <polygon points="140,308 560,308 590,376 110,376" fill="#94a3b8" stroke="#94a3b8" stroke-width="1"/>
+  <text x="350" y="338" text-anchor="middle" class="stp-font-display" font-size="13" font-weight="800" fill="#ffffff">Tier 4 - Other sources</text>
+  <text x="350" y="358" text-anchor="middle" class="stp-font-body" font-size="10.5" fill="#f8fafc">Used only as corroboration, never as the sole basis for a change</text>
+
+  <!-- Right-side callouts -->
+  <text x="620" y="118" class="stp-font-body" font-size="10.5" font-weight="700" fill="#334155">Weight in ranking decisions</text>
+  <text x="620" y="134" class="stp-font-body" font-size="10" fill="#64748b">Higher tiers weight higher; lower-tier claims never move a status alone.</text>
+
+  <text x="620" y="196" class="stp-font-body" font-size="10.5" font-weight="700" fill="#334155">Human-gated for status changes</text>
+  <text x="620" y="212" class="stp-font-body" font-size="10" fill="#64748b">Any label move (banned / restricted / pending) needs Tier 1 or 2 plus editorial sign-off.</text>
+
+  <text x="620" y="272" class="stp-font-body" font-size="10.5" font-weight="700" fill="#334155">Trade press requires corroboration</text>
+  <text x="620" y="288" class="stp-font-body" font-size="10" fill="#64748b">Directional signal only; must map back to a Tier 1 or 2 source before publish.</text>
+
+  <text x="620" y="342" class="stp-font-body" font-size="10.5" font-weight="700" fill="#334155">Community reports are context</text>
+  <text x="620" y="358" class="stp-font-body" font-size="10" fill="#64748b">Aggregated player reports and forum threads never flip a label on their own.</text>
+
+  <!-- Bottom row: verification workflow -->
+  <text x="24" y="412" class="stp-font-display" font-size="13" font-weight="800" fill="#0a1628">How a new source becomes a status change</text>
+
+  <g transform="translate(24,428)">
+    <rect width="212" height="76" rx="9" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1.5"/>
+    <text x="106" y="24" text-anchor="middle" class="stp-font-display" font-size="11" font-weight="700" fill="#0a1628">1. Ingest</text>
+    <text x="106" y="42" text-anchor="middle" class="stp-font-body" font-size="10" fill="#475569">Automated daily pipeline pulls</text>
+    <text x="106" y="56" text-anchor="middle" class="stp-font-body" font-size="10" fill="#475569">LegiScan bills + vetted feeds</text>
+    <text x="106" y="70" text-anchor="middle" class="stp-font-body" font-size="9.5" font-style="italic" fill="#94a3b8">confidence score assigned</text>
+  </g>
+  <line x1="238" y1="466" x2="256" y2="466" stroke="#0a1628" stroke-width="2" marker-end="url(#stpArrow)"/>
+
+  <g transform="translate(258,428)">
+    <rect width="212" height="76" rx="9" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1.5"/>
+    <text x="106" y="24" text-anchor="middle" class="stp-font-display" font-size="11" font-weight="700" fill="#0a1628">2. Classify + flag</text>
+    <text x="106" y="42" text-anchor="middle" class="stp-font-body" font-size="10" fill="#475569">Low-confidence items and any</text>
+    <text x="106" y="56" text-anchor="middle" class="stp-font-body" font-size="10" fill="#475569">candidate label change flagged</text>
+    <text x="106" y="70" text-anchor="middle" class="stp-font-body" font-size="9.5" font-style="italic" fill="#94a3b8">for editorial review</text>
+  </g>
+  <line x1="472" y1="466" x2="490" y2="466" stroke="#0a1628" stroke-width="2" marker-end="url(#stpArrow)"/>
+
+  <g transform="translate(492,428)">
+    <rect width="212" height="76" rx="9" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1.5"/>
+    <text x="106" y="24" text-anchor="middle" class="stp-font-display" font-size="11" font-weight="700" fill="#0a1628">3. Human sign-off</text>
+    <text x="106" y="42" text-anchor="middle" class="stp-font-body" font-size="10" fill="#475569">Editor confirms Tier 1 or 2</text>
+    <text x="106" y="56" text-anchor="middle" class="stp-font-body" font-size="10" fill="#475569">source before any label move</text>
+    <text x="106" y="70" text-anchor="middle" class="stp-font-body" font-size="9.5" font-style="italic" fill="#94a3b8">always gated - no automation</text>
+  </g>
+  <line x1="706" y1="466" x2="724" y2="466" stroke="#0a1628" stroke-width="2" marker-end="url(#stpArrow)"/>
+
+  <g transform="translate(726,428)">
+    <rect width="212" height="76" rx="9" fill="#0a1628" stroke="#fbbf24" stroke-width="1.5"/>
+    <text x="106" y="24" text-anchor="middle" class="stp-font-display" font-size="11" font-weight="700" fill="#ffffff">4. Publish + timestamp</text>
+    <text x="106" y="42" text-anchor="middle" class="stp-font-body" font-size="10" fill="#fbbf24">Auto-updated + last-reviewed</text>
+    <text x="106" y="56" text-anchor="middle" class="stp-font-body" font-size="10" fill="#fbbf24">timestamps on each state row</text>
+    <text x="106" y="70" text-anchor="middle" class="stp-font-body" font-size="9.5" font-style="italic" fill="#cbd5e1">70%+ jurisdictions per 7 days</text>
+  </g>
+
+  <text x="480" y="536" text-anchor="middle" class="stp-font-body" font-size="10" fill="#64748b">Source: SweepstakesWiz Tracker Methodology, July 2026. Dataset licensed CC-BY 4.0. Editorial analysis; not legal advice.</text>
+</svg>
