@@ -1,0 +1,61 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 320" role="img" aria-labelledby="stateHero-california-title stateHero-california-desc">
+  <title id="stateHero-california-title">California sweepstakes casino legality status (2026)</title>
+  <desc id="stateHero-california-desc">Sweepstakes casino legality status for California in 2026. Legal status is banned. Key statute or posture is AB-831. Effective Jan 1, 2026. Sweepstakes Wiz site status is information only with no affiliate offers shown, and 3 of 13 reviewed operators list the state but the site still suppresses all offers. Every legitimate sweepstakes operator provides a mandatory no-purchase AMOE entry method regardless of state.</desc>
+  <defs>
+    <style>
+      .sh-font-display { font-family: 'Sora', system-ui, sans-serif; }
+      .sh-font-body { font-family: 'DM Sans', system-ui, sans-serif; }
+    </style>
+  </defs>
+  <rect width="960" height="320" rx="14" fill="#ffffff" stroke="#e2e8f0" stroke-width="1"/>
+
+  <!-- Left column: identity -->
+  <g transform="translate(24,24)">
+    <rect x="0" y="0" width="6" height="120" rx="3" fill="#dc2626"/>
+    <text x="20" y="30" class="sh-font-body" font-size="11" font-weight="700" fill="#64748b">SWEEPSTAKES CASINO LEGALITY</text>
+    <text x="20" y="72" class="sh-font-display" font-size="36" font-weight="800" fill="#0a1628">California</text>
+    <text x="20" y="98" class="sh-font-body" font-size="12" fill="#475569">State code CA</text>
+
+    <rect x="20" y="118" width="140" height="30" rx="6" fill="#dc2626"/>
+    <text x="90" y="138" text-anchor="middle" class="sh-font-display" font-size="13" font-weight="800" fill="#ffffff">BANNED</text>
+  </g>
+
+  <!-- Statute band (bottom-left) -->
+  <g transform="translate(24,180)">
+    <rect width="440" height="100" rx="10" fill="#fef2f2" stroke="#fecaca" stroke-width="1.5"/>
+    <text x="18" y="26" class="sh-font-body" font-size="10.5" font-weight="700" fill="#7f1d1d">KEY STATUTE / POSTURE</text>
+    <text x="18" y="52" class="sh-font-display" font-size="15" font-weight="800" fill="#0a1628">AB-831</text>
+    <text x="18" y="72" class="sh-font-body" font-size="11" fill="#7f1d1d">Effective Jan 1, 2026</text>
+    <text x="18" y="90" class="sh-font-body" font-size="10" font-style="italic" fill="#7f1d1d">Affiliate promotion carries statutory exposure.</text>
+  </g>
+
+  <!-- Right column: availability -->
+  <g transform="translate(496,24)">
+    <text x="0" y="18" class="sh-font-body" font-size="11" font-weight="700" fill="#64748b">SWEEPSTAKES WIZ SITE STATUS</text>
+
+    <rect x="0" y="30" width="160" height="30" rx="6" fill="#0a1628"/>
+    <text x="80" y="50" text-anchor="middle" class="sh-font-display" font-size="13" font-weight="800" fill="#ffffff">Info only</text>
+
+    <text x="0" y="86" class="sh-font-body" font-size="11" fill="#475569">Sweepstakes Wiz suppresses all affiliate offers for residents.</text>
+  </g>
+
+  <!-- Partner availability card -->
+  <g transform="translate(496,116)">
+    <rect width="440" height="70" rx="10" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1.5"/>
+    <text x="18" y="24" class="sh-font-body" font-size="10.5" font-weight="700" fill="#64748b">PARTNER AVAILABILITY</text>
+    <text x="18" y="52" class="sh-font-display" font-size="22" font-weight="800" fill="#0a1628">3 of 13</text>
+    <text x="130" y="52" class="sh-font-body" font-size="11" fill="#475569">reviewed operators</text>
+    <text x="18" y="66" class="sh-font-body" font-size="9.5" fill="#94a3b8">3 of 13 reviewed operators list this state; the site suppresses all.</text>
+  </g>
+
+  <!-- AMOE reminder -->
+  <g transform="translate(496,196)">
+    <rect width="440" height="82" rx="10" fill="#eff6ff" stroke="#bfdbfe" stroke-width="1.5"/>
+    <text x="18" y="24" class="sh-font-display" font-size="12" font-weight="800" fill="#1e3a8a">AMOE always applies</text>
+    <text x="18" y="42" class="sh-font-body" font-size="10.5" fill="#1a56db">Every legitimate operator publishes a free mail-in entry route,</text>
+    <text x="18" y="56" class="sh-font-body" font-size="10.5" fill="#1a56db">independent of state law. If a brand hides it, treat it as a red flag.</text>
+    <text x="18" y="72" class="sh-font-body" font-size="9.5" font-style="italic" fill="#334155">See our red-flag scorecard for the full eight checks.</text>
+  </g>
+
+  <text x="480" y="308" text-anchor="middle" class="sh-font-body" font-size="9.5" fill="#94a3b8">Source: SweepstakesWiz Legality Tracker, July 2026. Editorial illustration; not legal advice.</text>
+</svg>
