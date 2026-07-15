@@ -1,0 +1,121 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 520" role="img" aria-labelledby="dcaTitle dcaDesc">
+  <title id="dcaTitle">The dual-currency sweepstakes casino architecture</title>
+  <desc id="dcaDesc">System diagram of how a sweepstakes casino works. Gold Coins are an entertainment-only wallet that you can top up by optional purchase or free signup and daily bonuses; Gold Coins never redeem. Sweeps Coins are the promotional entry wallet obtained three ways: as a free bonus bundled with an optional Gold Coin purchase, through daily login bonuses and social promotions, or through the mandatory free mail-in AMOE method. Only Sweeps Coins can be redeemed, and only after passing the three redemption gates: identity verification (KYC), minimum threshold, and one-time playthrough on bonus SC. Redemption pays out to cash by bank or e-wallet, or to gift cards.</desc>
+  <defs>
+    <style>
+      .dca-font-display { font-family: 'Sora', system-ui, sans-serif; }
+      .dca-font-body { font-family: 'DM Sans', system-ui, sans-serif; }
+    </style>
+    <marker id="dcaArrowNeutral" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#94a3b8"/>
+    </marker>
+    <marker id="dcaArrowGold" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#f59e0b"/>
+    </marker>
+    <marker id="dcaArrowGreen" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#10b981"/>
+    </marker>
+    <marker id="dcaArrowBlue" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#1a56db"/>
+    </marker>
+  </defs>
+  <rect width="960" height="520" rx="14" fill="#ffffff" stroke="#e2e8f0" stroke-width="1"/>
+
+  <text x="480" y="34" text-anchor="middle" class="dca-font-display" font-size="17" font-weight="800" fill="#0a1628">How a sweepstakes casino works, in one diagram</text>
+  <text x="480" y="55" text-anchor="middle" class="dca-font-body" font-size="11.5" fill="#64748b">Two wallets, three ways in, one gated way out: the legal architecture behind the model</text>
+
+  <!-- Inputs column (left) -->
+  <text x="140" y="98" text-anchor="middle" class="dca-font-display" font-size="12" font-weight="800" fill="#334155">Inputs</text>
+
+  <!-- Purchase input (leads to GC and bonus SC) -->
+  <rect x="30" y="112" width="220" height="66" rx="8" fill="#fffbeb" stroke="#fde68a"/>
+  <text x="140" y="134" text-anchor="middle" class="dca-font-display" font-size="12" font-weight="800" fill="#78350f">Optional Gold Coin purchase</text>
+  <text x="140" y="152" text-anchor="middle" class="dca-font-body" font-size="10" fill="#78350f">Coin packs from ~$5 upward</text>
+  <text x="140" y="168" text-anchor="middle" class="dca-font-body" font-size="10" fill="#78350f">Includes a free SC bonus per rules</text>
+
+  <!-- Daily bonus / signup -->
+  <rect x="30" y="196" width="220" height="66" rx="8" fill="#eff6ff" stroke="#bfdbfe"/>
+  <text x="140" y="218" text-anchor="middle" class="dca-font-display" font-size="12" font-weight="800" fill="#1e3a8a">Daily bonuses + signup</text>
+  <text x="140" y="236" text-anchor="middle" class="dca-font-body" font-size="10" fill="#1a56db">Free GC + SC on registration</text>
+  <text x="140" y="252" text-anchor="middle" class="dca-font-body" font-size="10" fill="#1a56db">Daily login, social promos, referrals</text>
+
+  <!-- AMOE mail-in -->
+  <rect x="30" y="280" width="220" height="66" rx="8" fill="#ecfdf5" stroke="#a7f3d0"/>
+  <text x="140" y="302" text-anchor="middle" class="dca-font-display" font-size="12" font-weight="800" fill="#047857">Mail-in AMOE (mandatory)</text>
+  <text x="140" y="320" text-anchor="middle" class="dca-font-body" font-size="10" fill="#065f46">Free no-purchase entry method</text>
+  <text x="140" y="336" text-anchor="middle" class="dca-font-body" font-size="10" fill="#065f46">Legal backbone of the sweepstakes</text>
+
+  <!-- Wallet column (middle) -->
+  <!-- GC wallet -->
+  <rect x="330" y="112" width="240" height="106" rx="10" fill="#fef3c7" stroke="#f59e0b" stroke-width="1.75"/>
+  <text x="450" y="138" text-anchor="middle" class="dca-font-display" font-size="14" font-weight="800" fill="#78350f">Gold Coins (GC)</text>
+  <text x="450" y="158" text-anchor="middle" class="dca-font-body" font-size="10.5" fill="#78350f">Entertainment-only currency</text>
+  <text x="450" y="176" text-anchor="middle" class="dca-font-body" font-size="10.5" fill="#78350f">No cash value, never redeems</text>
+  <text x="450" y="200" text-anchor="middle" class="dca-font-body" font-size="10" font-style="italic" fill="#a16207">Used for play across slots and table games</text>
+
+  <!-- SC wallet -->
+  <rect x="330" y="242" width="240" height="106" rx="10" fill="#dcfce7" stroke="#10b981" stroke-width="1.75"/>
+  <text x="450" y="268" text-anchor="middle" class="dca-font-display" font-size="14" font-weight="800" fill="#065f46">Sweeps Coins (SC)</text>
+  <text x="450" y="288" text-anchor="middle" class="dca-font-body" font-size="10.5" fill="#065f46">Promotional entry currency</text>
+  <text x="450" y="306" text-anchor="middle" class="dca-font-body" font-size="10.5" fill="#065f46">Never sold directly, redeemable per rules</text>
+  <text x="450" y="330" text-anchor="middle" class="dca-font-body" font-size="10" font-style="italic" fill="#047857">Bonus SC clears playthrough before redemption</text>
+
+  <!-- Inbound arrows -->
+  <!-- Purchase -> GC (top) and Purchase -> SC (bonus) -->
+  <line x1="250" y1="140" x2="325" y2="150" stroke="#f59e0b" stroke-width="2" marker-end="url(#dcaArrowGold)"/>
+  <text x="288" y="132" text-anchor="middle" class="dca-font-body" font-size="9" fill="#78350f">Buys GC pack</text>
+  <line x1="250" y1="160" x2="325" y2="270" stroke="#f59e0b" stroke-width="1.5" stroke-dasharray="4,3" marker-end="url(#dcaArrowGold)"/>
+  <text x="292" y="222" text-anchor="middle" class="dca-font-body" font-size="9" fill="#78350f">Free SC bonus (bundled)</text>
+
+  <!-- Daily/signup -> both -->
+  <line x1="250" y1="222" x2="325" y2="180" stroke="#1a56db" stroke-width="1.5" stroke-dasharray="4,3" marker-end="url(#dcaArrowBlue)"/>
+  <line x1="250" y1="232" x2="325" y2="278" stroke="#1a56db" stroke-width="2" marker-end="url(#dcaArrowBlue)"/>
+  <text x="290" y="255" text-anchor="middle" class="dca-font-body" font-size="9" fill="#1a56db">Free GC + SC</text>
+
+  <!-- AMOE -> SC only -->
+  <line x1="250" y1="310" x2="325" y2="308" stroke="#10b981" stroke-width="2.25" marker-end="url(#dcaArrowGreen)"/>
+  <text x="290" y="300" text-anchor="middle" class="dca-font-body" font-size="9" fill="#047857">Free SC only</text>
+
+  <!-- Redemption gates (right) -->
+  <text x="770" y="98" text-anchor="middle" class="dca-font-display" font-size="12" font-weight="800" fill="#334155">Three redemption gates</text>
+
+  <rect x="640" y="112" width="260" height="52" rx="8" fill="#f8fafc" stroke="#e2e8f0"/>
+  <circle cx="662" cy="138" r="12" fill="#0a1628"/>
+  <text x="662" y="142" text-anchor="middle" class="dca-font-display" font-size="10" font-weight="800" fill="#fbbf24">1</text>
+  <text x="682" y="134" class="dca-font-display" font-size="11" font-weight="700" fill="#0a1628">KYC identity verification</text>
+  <text x="682" y="150" class="dca-font-body" font-size="9.5" fill="#475569">Photo ID + address before payout</text>
+
+  <rect x="640" y="176" width="260" height="52" rx="8" fill="#f8fafc" stroke="#e2e8f0"/>
+  <circle cx="662" cy="202" r="12" fill="#0a1628"/>
+  <text x="662" y="206" text-anchor="middle" class="dca-font-display" font-size="10" font-weight="800" fill="#fbbf24">2</text>
+  <text x="682" y="198" class="dca-font-display" font-size="11" font-weight="700" fill="#0a1628">Minimum threshold</text>
+  <text x="682" y="214" class="dca-font-body" font-size="9.5" fill="#475569">Typical 50 SC gift cards, 100 SC cash</text>
+
+  <rect x="640" y="240" width="260" height="52" rx="8" fill="#f8fafc" stroke="#e2e8f0"/>
+  <circle cx="662" cy="266" r="12" fill="#0a1628"/>
+  <text x="662" y="270" text-anchor="middle" class="dca-font-display" font-size="10" font-weight="800" fill="#fbbf24">3</text>
+  <text x="682" y="262" class="dca-font-display" font-size="11" font-weight="700" fill="#0a1628">1x playthrough on bonus SC</text>
+  <text x="682" y="278" class="dca-font-body" font-size="9.5" fill="#475569">Free SC from gameplay is direct-redeem</text>
+
+  <!-- Payout outcome -->
+  <rect x="640" y="308" width="260" height="60" rx="8" fill="#0a1628" stroke="#fbbf24" stroke-width="1.5"/>
+  <text x="770" y="332" text-anchor="middle" class="dca-font-display" font-size="12" font-weight="800" fill="#ffffff">Redeem for prize</text>
+  <text x="770" y="352" text-anchor="middle" class="dca-font-body" font-size="10" fill="#fbbf24">Cash by bank or e-wallet, or gift cards</text>
+
+  <!-- SC -> gates arrow -->
+  <line x1="572" y1="290" x2="635" y2="290" stroke="#10b981" stroke-width="2.25" marker-end="url(#dcaArrowGreen)"/>
+  <line x1="770" y1="292" x2="770" y2="305" stroke="#10b981" stroke-width="2" marker-end="url(#dcaArrowGreen)"/>
+
+  <!-- GC dead-end note -->
+  <line x1="572" y1="170" x2="620" y2="170" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="3,3"/>
+  <text x="628" y="164" class="dca-font-body" font-size="9.5" font-style="italic" fill="#94a3b8">GC never</text>
+  <text x="628" y="176" class="dca-font-body" font-size="9.5" font-style="italic" fill="#94a3b8">redeems</text>
+
+  <!-- Footer notes -->
+  <rect x="24" y="392" width="912" height="46" rx="8" fill="#f8fafc" stroke="#e2e8f0"/>
+  <text x="480" y="412" text-anchor="middle" class="dca-font-body" font-size="10.5" fill="#334155">Every legitimate operator must offer the mail-in AMOE path. Removing it turns the promotional sweepstakes into an unlicensed gambling product under state law.</text>
+  <text x="480" y="430" text-anchor="middle" class="dca-font-body" font-size="10" fill="#64748b">Editorial illustration; typical minimums and playthrough shown, exact terms vary per operator.</text>
+
+  <text x="480" y="472" text-anchor="middle" class="dca-font-body" font-size="10" fill="#64748b">Source: SweepstakesWiz analysis of published operator terms and US promotional sweepstakes law framework, July 2026.</text>
+  <text x="480" y="490" text-anchor="middle" class="dca-font-body" font-size="9" fill="#94a3b8">Redemption is never guaranteed and requires completing all three gates. This is not legal or tax advice.</text>
+</svg>

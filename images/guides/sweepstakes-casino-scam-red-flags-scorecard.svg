@@ -1,0 +1,137 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 620" role="img" aria-labelledby="rfsTitle rfsDesc">
+  <title id="rfsTitle">Eight red flags of a scam sweepstakes casino, scored</title>
+  <desc id="rfsDesc">Editorial scorecard listing the eight scam warning signs SweepstakesWiz screens against on every review, each labelled with a severity rating. Legitimate operators clear all eight. The flags are: no free AMOE path, redemptions slower than purchases, games from studios that never licensed them, bonuses that make no commercial sense, single opaque banking channel, signup that leaves the website, accepting players from banned states, and no identifiable operator behind the brand. Any one Avoid-severity flag is enough to disqualify a brand from review.</desc>
+  <defs>
+    <style>
+      .rfs-font-display { font-family: 'Sora', system-ui, sans-serif; }
+      .rfs-font-body { font-family: 'DM Sans', system-ui, sans-serif; }
+    </style>
+  </defs>
+  <rect width="960" height="620" rx="14" fill="#ffffff" stroke="#e2e8f0" stroke-width="1"/>
+
+  <text x="480" y="34" text-anchor="middle" class="rfs-font-display" font-size="17" font-weight="800" fill="#0a1628">Eight red flags of a scam sweepstakes casino</text>
+  <text x="480" y="55" text-anchor="middle" class="rfs-font-body" font-size="11.5" fill="#64748b">Every review passes through this scorecard. One Avoid-severity flag disqualifies the brand from listing.</text>
+
+  <!-- Legend -->
+  <g transform="translate(240,74)">
+    <rect x="0" y="0" width="14" height="14" rx="3" fill="#dc2626"/>
+    <text x="20" y="12" class="rfs-font-body" font-size="10.5" fill="#334155">Avoid: instant disqualification</text>
+    <rect x="220" y="0" width="14" height="14" rx="3" fill="#f59e0b"/>
+    <text x="240" y="12" class="rfs-font-body" font-size="10.5" fill="#334155">Caution: score penalty applies</text>
+    <rect x="450" y="0" width="14" height="14" rx="3" fill="#10b981"/>
+    <text x="470" y="12" class="rfs-font-body" font-size="10.5" fill="#334155">Safe: legitimate operators clear this</text>
+  </g>
+
+  <!-- Row template: 8 cards in a 2x4 grid. Card size: 440 wide x 108 tall, gap 20. Origin x=24, y=112. -->
+
+  <!-- Row 1: flags 1 (Avoid), 2 (Avoid) -->
+  <g transform="translate(24,112)">
+    <rect width="440" height="108" rx="10" fill="#fef2f2" stroke="#fecaca" stroke-width="1.5"/>
+    <rect x="0" y="0" width="6" height="108" rx="3" fill="#dc2626"/>
+    <circle cx="30" cy="30" r="12" fill="#dc2626"/>
+    <text x="30" y="34" text-anchor="middle" class="rfs-font-display" font-size="12" font-weight="800" fill="#ffffff">1</text>
+    <text x="50" y="34" class="rfs-font-display" font-size="12.5" font-weight="800" fill="#7f1d1d">No free AMOE path</text>
+    <rect x="330" y="18" width="94" height="20" rx="4" fill="#dc2626"/>
+    <text x="377" y="32" text-anchor="middle" class="rfs-font-display" font-size="10" font-weight="800" fill="#ffffff">AVOID</text>
+    <text x="18" y="60" class="rfs-font-body" font-size="10.5" fill="#7f1d1d">A real no-purchase route to SC is the legal backbone of the</text>
+    <text x="18" y="74" class="rfs-font-body" font-size="10.5" fill="#7f1d1d">model. If it is missing, hidden, or broken, the operation is</text>
+    <text x="18" y="88" class="rfs-font-body" font-size="10.5" fill="#7f1d1d">functioning as unlicensed gambling.</text>
+  </g>
+
+  <g transform="translate(496,112)">
+    <rect width="440" height="108" rx="10" fill="#fef2f2" stroke="#fecaca" stroke-width="1.5"/>
+    <rect x="0" y="0" width="6" height="108" rx="3" fill="#dc2626"/>
+    <circle cx="30" cy="30" r="12" fill="#dc2626"/>
+    <text x="30" y="34" text-anchor="middle" class="rfs-font-display" font-size="12" font-weight="800" fill="#ffffff">2</text>
+    <text x="50" y="34" class="rfs-font-display" font-size="12.5" font-weight="800" fill="#7f1d1d">No identifiable operator</text>
+    <rect x="330" y="18" width="94" height="20" rx="4" fill="#dc2626"/>
+    <text x="377" y="32" text-anchor="middle" class="rfs-font-display" font-size="10" font-weight="800" fill="#ffffff">AVOID</text>
+    <text x="18" y="60" class="rfs-font-body" font-size="10.5" fill="#7f1d1d">No company name, registered business address, or contact in</text>
+    <text x="18" y="74" class="rfs-font-body" font-size="10.5" fill="#7f1d1d">the footer or terms means no accountability, no recourse,</text>
+    <text x="18" y="88" class="rfs-font-body" font-size="10.5" fill="#7f1d1d">and no path to resolve a stalled redemption.</text>
+  </g>
+
+  <!-- Row 2: flags 3 (Avoid), 4 (Caution) -->
+  <g transform="translate(24,232)">
+    <rect width="440" height="108" rx="10" fill="#fef2f2" stroke="#fecaca" stroke-width="1.5"/>
+    <rect x="0" y="0" width="6" height="108" rx="3" fill="#dc2626"/>
+    <circle cx="30" cy="30" r="12" fill="#dc2626"/>
+    <text x="30" y="34" text-anchor="middle" class="rfs-font-display" font-size="12" font-weight="800" fill="#ffffff">3</text>
+    <text x="50" y="34" class="rfs-font-display" font-size="12.5" font-weight="800" fill="#7f1d1d">Accepts players from banned states</text>
+    <rect x="330" y="18" width="94" height="20" rx="4" fill="#dc2626"/>
+    <text x="377" y="32" text-anchor="middle" class="rfs-font-display" font-size="10" font-weight="800" fill="#ffffff">AVOID</text>
+    <text x="18" y="60" class="rfs-font-body" font-size="10.5" fill="#7f1d1d">A brand that lets residents of CA, NY, MT, CT and the other</text>
+    <text x="18" y="74" class="rfs-font-body" font-size="10.5" fill="#7f1d1d">banned states register without geo-checks is signalling it</text>
+    <text x="18" y="88" class="rfs-font-body" font-size="10.5" fill="#7f1d1d">will not honour any regulator boundary.</text>
+  </g>
+
+  <g transform="translate(496,232)">
+    <rect width="440" height="108" rx="10" fill="#fffbeb" stroke="#fde68a" stroke-width="1.5"/>
+    <rect x="0" y="0" width="6" height="108" rx="3" fill="#f59e0b"/>
+    <circle cx="30" cy="30" r="12" fill="#f59e0b"/>
+    <text x="30" y="34" text-anchor="middle" class="rfs-font-display" font-size="12" font-weight="800" fill="#ffffff">4</text>
+    <text x="50" y="34" class="rfs-font-display" font-size="12.5" font-weight="800" fill="#78350f">Redemptions slower than purchases</text>
+    <rect x="322" y="18" width="102" height="20" rx="4" fill="#f59e0b"/>
+    <text x="373" y="32" text-anchor="middle" class="rfs-font-display" font-size="10" font-weight="800" fill="#ffffff">CAUTION</text>
+    <text x="18" y="60" class="rfs-font-body" font-size="10.5" fill="#78350f">Instant to take your money, weeks to pay it out. Payout</text>
+    <text x="18" y="74" class="rfs-font-body" font-size="10.5" fill="#78350f">windows should be published and consistent across bank,</text>
+    <text x="18" y="88" class="rfs-font-body" font-size="10.5" fill="#78350f">e-wallet and gift-card rails.</text>
+  </g>
+
+  <!-- Row 3: flags 5 (Caution), 6 (Caution) -->
+  <g transform="translate(24,352)">
+    <rect width="440" height="108" rx="10" fill="#fffbeb" stroke="#fde68a" stroke-width="1.5"/>
+    <rect x="0" y="0" width="6" height="108" rx="3" fill="#f59e0b"/>
+    <circle cx="30" cy="30" r="12" fill="#f59e0b"/>
+    <text x="30" y="34" text-anchor="middle" class="rfs-font-display" font-size="12" font-weight="800" fill="#ffffff">5</text>
+    <text x="50" y="34" class="rfs-font-display" font-size="12.5" font-weight="800" fill="#78350f">Games from unlicensed studios</text>
+    <rect x="322" y="18" width="102" height="20" rx="4" fill="#f59e0b"/>
+    <text x="373" y="32" text-anchor="middle" class="rfs-font-display" font-size="10" font-weight="800" fill="#ffffff">CAUTION</text>
+    <text x="18" y="60" class="rfs-font-body" font-size="10.5" fill="#78350f">Cloned or spoofed slots that mimic real studios (Pragmatic,</text>
+    <text x="18" y="74" class="rfs-font-body" font-size="10.5" fill="#78350f">Hacksaw, Play&#39;n GO) but were never licensed. Legitimate</text>
+    <text x="18" y="88" class="rfs-font-body" font-size="10.5" fill="#78350f">providers publish operator lists.</text>
+  </g>
+
+  <g transform="translate(496,352)">
+    <rect width="440" height="108" rx="10" fill="#fffbeb" stroke="#fde68a" stroke-width="1.5"/>
+    <rect x="0" y="0" width="6" height="108" rx="3" fill="#f59e0b"/>
+    <circle cx="30" cy="30" r="12" fill="#f59e0b"/>
+    <text x="30" y="34" text-anchor="middle" class="rfs-font-display" font-size="12" font-weight="800" fill="#ffffff">6</text>
+    <text x="50" y="34" class="rfs-font-display" font-size="12.5" font-weight="800" fill="#78350f">Bonuses that make no commercial sense</text>
+    <rect x="322" y="18" width="102" height="20" rx="4" fill="#f59e0b"/>
+    <text x="373" y="32" text-anchor="middle" class="rfs-font-display" font-size="10" font-weight="800" fill="#ffffff">CAUTION</text>
+    <text x="18" y="60" class="rfs-font-body" font-size="10.5" fill="#78350f">Impossibly large sign-up offers usually hide heavy playthrough</text>
+    <text x="18" y="74" class="rfs-font-body" font-size="10.5" fill="#78350f">or narrow redemption windows. Compare the redeemable SC</text>
+    <text x="18" y="88" class="rfs-font-body" font-size="10.5" fill="#78350f">component, not the headline GC number.</text>
+  </g>
+
+  <!-- Row 4: flags 7 (Caution), 8 (Caution) -->
+  <g transform="translate(24,472)">
+    <rect width="440" height="108" rx="10" fill="#fffbeb" stroke="#fde68a" stroke-width="1.5"/>
+    <rect x="0" y="0" width="6" height="108" rx="3" fill="#f59e0b"/>
+    <circle cx="30" cy="30" r="12" fill="#f59e0b"/>
+    <text x="30" y="34" text-anchor="middle" class="rfs-font-display" font-size="12" font-weight="800" fill="#ffffff">7</text>
+    <text x="50" y="34" class="rfs-font-display" font-size="12.5" font-weight="800" fill="#78350f">Single opaque banking channel</text>
+    <rect x="322" y="18" width="102" height="20" rx="4" fill="#f59e0b"/>
+    <text x="373" y="32" text-anchor="middle" class="rfs-font-display" font-size="10" font-weight="800" fill="#ffffff">CAUTION</text>
+    <text x="18" y="60" class="rfs-font-body" font-size="10.5" fill="#78350f">Payments that route through one unbranded processor or</text>
+    <text x="18" y="74" class="rfs-font-body" font-size="10.5" fill="#78350f">off-site to a third party. Legitimate operators publish</text>
+    <text x="18" y="88" class="rfs-font-body" font-size="10.5" fill="#78350f">multiple named rails with fee terms.</text>
+  </g>
+
+  <g transform="translate(496,472)">
+    <rect width="440" height="108" rx="10" fill="#fffbeb" stroke="#fde68a" stroke-width="1.5"/>
+    <rect x="0" y="0" width="6" height="108" rx="3" fill="#f59e0b"/>
+    <circle cx="30" cy="30" r="12" fill="#f59e0b"/>
+    <text x="30" y="34" text-anchor="middle" class="rfs-font-display" font-size="12" font-weight="800" fill="#ffffff">8</text>
+    <text x="50" y="34" class="rfs-font-display" font-size="12.5" font-weight="800" fill="#78350f">Signup that leaves the website</text>
+    <rect x="322" y="18" width="102" height="20" rx="4" fill="#f59e0b"/>
+    <text x="373" y="32" text-anchor="middle" class="rfs-font-display" font-size="10" font-weight="800" fill="#ffffff">CAUTION</text>
+    <text x="18" y="60" class="rfs-font-body" font-size="10.5" fill="#78350f">Registration that redirects to an unbranded domain or a</text>
+    <text x="18" y="74" class="rfs-font-body" font-size="10.5" fill="#78350f">bare form breaks the audit trail. The signup, KYC and</text>
+    <text x="18" y="88" class="rfs-font-body" font-size="10.5" fill="#78350f">cashier should share one branded domain.</text>
+  </g>
+
+  <!-- Footer -->
+  <text x="480" y="606" text-anchor="middle" class="rfs-font-body" font-size="10" fill="#64748b">Source: SweepstakesWiz editorial rating methodology, July 2026. Editorial illustration; not legal advice. See /how-we-rate/ for the full scoring model.</text>
+</svg>
