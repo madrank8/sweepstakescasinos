@@ -9,6 +9,7 @@
 import { getCollection, render } from 'astro:content';
 import ContentLayout from '../../layouts/ContentLayout.astro';
 import { ORG_ID, AUTHOR_ID } from '../../lib/schema';
+import { imageDimensions } from '../../lib/svgDimensions';
 
 export const prerender = true;
 
@@ -57,12 +58,46 @@ const wordCount = entry.body
       .filter(Boolean).length
   : undefined;
 
-// Every guide image currently shipped is 1376x768 (verified against the
-// actual files in public/images/guides/) — same size as the hub hero image.
+// Hero image dimensions are read from the file bytes at build time so we
+// never lie in JSON-LD — SVGs use viewBox / width+height, PNGs use IHDR.
+// Legacy 1376x768 remains as the last-resort fallback for PNGs that predate
+// the reader (kept intentionally small; new content should always resolve).
+const heroDims = entry.data.image ? await imageDimensions(entry.data.image) : null;
 const image = entry.data.image
-  ? { '@type': 'ImageObject', url: `${ORIGIN}${entry.data.image}`, width: 1376, height: 768 }
+  ? {
+      '@type': 'ImageObject',
+      url: `${ORIGIN}${entry.data.image}`,
+      ...(heroDims ?? { width: 1376, height: 768 }),
+    }
   : undefined;
 const citations = entry.data.citations ?? [];
+
+// Inline figures declared in MDX frontmatter -> one ImageObject per figure.
+// Dimensions are resolved from the file first; frontmatter-declared dims are
+// the fallback. Each figure gets a stable @id so it can be linked from the
+// Article body and referenced by external consumers.
+const rawFigures = entry.data.figures ?? [];
+const figureNodes = await Promise.all(
+  rawFigures.map(async (f, i) => {
+    const dims = (await imageDimensions(f.src)) ?? {
+      width: f.width ?? 960,
+      height: f.height ?? 540,
+    };
+    return {
+      '@type': 'ImageObject',
+      '@id': `${canonical}#figure-${f.id ?? i + 1}`,
+      contentUrl: f.src.startsWith('http') ? f.src : `${ORIGIN}${f.src}`,
+      url: f.src.startsWith('http') ? f.src : `${ORIGIN}${f.src}`,
+      width: dims.width,
+      height: dims.height,
+      description: f.alt,
+      ...(f.caption ? { caption: f.caption } : {}),
+      creator: { '@id': ORG_ID },
+      creditText: 'SweepstakesWiz',
+      isPartOf: { '@id': `${canonical}#article` },
+    };
+  }),
+);
 
 // Article: the page's content entity. Author/publisher are @id refs — the
 // full Person node is auto-appended to the on-page graph by buildPageGraph.
@@ -135,6 +170,7 @@ const jsonLd = [
   ...(faqLd ? [faqLd] : []),
   ...(howToLd ? [howToLd] : []),
   ...(itemListLd ? [itemListLd] : []),
+  ...figureNodes,
 ];
 ---
 <ContentLayout

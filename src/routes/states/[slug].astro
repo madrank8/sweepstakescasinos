@@ -22,6 +22,7 @@ import { isPartnerAvailableInState, isStateBannedSitewide } from '../../data/geo
 import { stateName, isUsStateCode, type UsStateCode } from '../../data/usStates';
 import { ORG_ID, AUTHOR_ID } from '../../lib/schema';
 import { pngDimensions } from '../../lib/pngDimensions';
+import { svgDimensions } from '../../lib/svgDimensions';
 import { brandEntityId, getBrandEntity } from '../../data/brandEntities';
 import { getTrackerData, legislationForState } from '../../lib/tracker/data';
 import { SWEEPS_STATUS_META } from '../../lib/tracker/types';
@@ -130,6 +131,27 @@ const brandMentions = availablePartners
 const stateImagePath = `/images/states/${code.toLowerCase()}.png`;
 const stateImageDims = pngDimensions(stateImagePath);
 
+// Second-wave state-hero dashboard SVG (data-driven per-state legality card).
+// Only exists for the 8 hand-authored MDX states — the 43 tracker-only
+// templates don't ship this hero yet, so we probe for it before wiring the
+// ImageObject to avoid emitting a broken URL in JSON-LD.
+const stateHeroSvgPath = `/images/states/${slug}-legality-status.svg`;
+const stateHeroSvgDims = svgDimensions(stateHeroSvgPath);
+const stateHeroImageNode = stateHeroSvgDims
+  ? {
+      '@type': 'ImageObject',
+      '@id': `${canonical}#hero-legality-card`,
+      contentUrl: `${ORIGIN}${stateHeroSvgPath}`,
+      url: `${ORIGIN}${stateHeroSvgPath}`,
+      ...stateHeroSvgDims,
+      description: `${name} sweepstakes casino legality-status card: legal status, key statute, site status, and reviewed-operator availability.`,
+      caption: `${name} sweepstakes casino legality status at a glance. Source: SweepstakesWiz Legality Tracker, July 2026.`,
+      creator: { '@id': ORG_ID },
+      creditText: 'SweepstakesWiz',
+      isPartOf: { '@id': `${canonical}#article` },
+    }
+  : null;
+
 const articleLd = {
   '@type': 'Article',
   '@id': `${canonical}#article`,
@@ -155,7 +177,11 @@ const articleLd = {
   author: { '@id': AUTHOR_ID },
   publisher: { '@id': ORG_ID },
 };
-const jsonLd = faqLd ? [articleLd, faqLd] : [articleLd];
+const jsonLd = [
+  articleLd,
+  ...(faqLd ? [faqLd] : []),
+  ...(stateHeroImageNode ? [stateHeroImageNode] : []),
+];
 
 // All-state cross-links (the 51-state cluster).
 const bundle2 = await getTrackerData();

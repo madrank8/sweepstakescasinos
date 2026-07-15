@@ -34,6 +34,26 @@ const guides = defineCollection({
     cardSummary: z.string().optional(),
     /** Hero/inline image path for Article.image (must exist under public/). */
     image: z.string().optional(),
+    /**
+     * Optional inline visuals rendered by the MDX body. Each entry emits its
+     * own ImageObject JSON-LD node in the page @graph and is anchored back to
+     * the Article via `#article` -> `image` (multi-image arrays are valid on
+     * schema.org). Width/height are used only as a fallback — the slug
+     * renderer prefers the real dims read from the file at build time via
+     * svgDimensions / pngDimensions.
+     */
+    figures: z
+      .array(
+        z.object({
+          src: z.string(),
+          width: z.number().int().positive().optional(),
+          height: z.number().int().positive().optional(),
+          alt: z.string().min(20).max(160),
+          caption: z.string().optional(),
+          id: z.string().optional(),
+        }),
+      )
+      .default([]),
     /** Primary-source URLs cited in the visible text (Article.citation). */
     citations: z.array(z.string().url()).default([]),
     /**
