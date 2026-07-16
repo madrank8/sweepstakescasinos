@@ -289,37 +289,97 @@ const regulated: Array<[string, string]> = [
     <Content />
   ) : (
     <>
-      <p>{trackerState.sweeps_status_full_text}</p>
-      <h2>What else is regulated in {name}</h2>
-      <ul class="reg-list">
-        {regulated.map(([label, val]) => (
-          <li><strong>{label}:</strong> {pretty(val)}</li>
-        ))}
-      </ul>
+      <section aria-label="Quick answer">
+        <h2>Quick answer</h2>
+        <p>{trackerState.sweeps_status_full_text}</p>
+      </section>
+
+      <section aria-label="Regulatory specifics">
+        <h2>Regulatory specifics</h2>
+        <p>
+          {name} is tracked as <strong>{meta.label}</strong>
+          {trackerState.sweeps_status_confidence
+            ? ` (confidence: ${trackerState.sweeps_status_confidence})`
+            : ''}
+          . {trackerState.sweeps_status_summary}
+        </p>
+        <h3>What else is regulated in {name}</h3>
+        <ul class="reg-list">
+          {regulated.map(([label, val]) => (
+            <li><strong>{label}:</strong> {pretty(val)}</li>
+          ))}
+        </ul>
+        {bills.length > 0 && (
+          <>
+            <h3>Pending legislation in {name}</h3>
+            <ul class="bills-list">
+              {bills.map((b) => (
+                <li>
+                  <a href={b.bill_url} rel="nofollow noopener" target="_blank">{b.bill_number}</a>
+                  {' '}&mdash; {b.title}
+                  <span class="bill-status"> ({b.status_label || b.status})</span>
+                </li>
+              ))}
+            </ul>
+            <p><a href="/sweepstakes-tracker/legislation/">See all tracked bills &rarr;</a></p>
+          </>
+        )}
+        {trackerState.sources_json.length > 0 && (
+          <>
+            <h3>Sources</h3>
+            <ul class="src-list">
+              {trackerState.sources_json.map((url) => (
+                <li><a href={url} rel="nofollow noopener" target="_blank">{url}</a></li>
+              ))}
+            </ul>
+          </>
+        )}
+      </section>
     </>
   )}
 
-  <h2>Available sweepstakes casinos in {name}</h2>
-  {banned ? (
-    <div class="notice-box">
+  {/* Operators listing: MDX guides already have an Operators H2; keep a compact list. */}
+  <section id="operators" aria-label={`Operators in ${name}`}>
+    {Content ? (
+      <h3>Reviewed operators listing</h3>
+    ) : (
+      <h2>Operators in {name}</h2>
+    )}
+    {banned ? (
+      <div class="notice-box">
+        <p>
+          Because of {name}&rsquo;s rules on marketing sweepstakes casinos, we show
+          informational content only here and do not promote affiliate offers.
+          Please review the law and each operator&rsquo;s official rules before
+          playing.
+        </p>
+      </div>
+    ) : availablePartners.length > 0 ? (
+      <ul>
+        {availablePartners.map((p) => (
+          <li><a href={`/reviews/${p.slug}/`}>{p.name} review</a></li>
+        ))}
+      </ul>
+    ) : (
+      <p>No reviewed operators currently list availability in {name}.</p>
+    )}
+  </section>
+
+  {!Content && (
+    <section aria-label="Practical guidance">
+      <h2>Practical guidance</h2>
       <p>
-        Because of {name}&rsquo;s rules on marketing sweepstakes casinos, we show
-        informational content only here and do not promote affiliate offers.
-        Please review the law and each operator&rsquo;s official rules before
-        playing.
+        Confirm age and residency in each operator&rsquo;s official rules before
+        registering. Prize redemptions usually require KYC and a minimum Sweeps Coin
+        balance. For legitimacy checks beyond {name}, read
+        <a href="/guides/are-sweepstakes-casinos-legit/"> are sweepstakes casinos legit?</a>
+        {' '}and the national <a href="/state-legality/">state legality hub</a>.
       </p>
-    </div>
-  ) : availablePartners.length > 0 ? (
-    <ul>
-      {availablePartners.map((p) => (
-        <li><a href={`/reviews/${p.slug}/`}>{p.name} review</a></li>
-      ))}
-    </ul>
-  ) : (
-    <p>No reviewed operators currently list availability in {name}.</p>
+    </section>
   )}
 
-  {bills.length > 0 && (
+  {/* MDX states: pending bills + sources still useful when not folded into tracker template */}
+  {Content && bills.length > 0 && (
     <section aria-label="Pending legislation">
       <h2>Pending legislation in {name}</h2>
       <ul class="bills-list">
@@ -335,7 +395,7 @@ const regulated: Array<[string, string]> = [
     </section>
   )}
 
-  {trackerState.sources_json.length > 0 && (
+  {Content && trackerState.sources_json.length > 0 && (
     <section aria-label="Sources">
       <h2>Sources</h2>
       <ul class="src-list">
@@ -348,7 +408,7 @@ const regulated: Array<[string, string]> = [
 
   {faq.length > 0 && (
     <section aria-label="Frequently asked questions">
-      <h2>Frequently asked questions</h2>
+      <h2>FAQs</h2>
       {faq.map((f) => (
         <>
           <h3>{f.q}</h3>

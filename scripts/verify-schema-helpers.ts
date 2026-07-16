@@ -66,6 +66,18 @@ assert.match(badged, /Legal status last verified/);
 assert.match(badged, new RegExp(`datetime="${SITE_LEGAL_STATUS_VERIFIED_ON}"`));
 assert.equal(injectLegalStatusBadge(badged), badged, 'badge inject is idempotent');
 
+// Chrome-light reviews: prefer verdict-box over dumping the badge at <body>
+const light = `<body><nav>n</nav><main><div class="verdict-box"><div class="vtext">v</div></div></main></body>`;
+const lightBadged = injectLegalStatusBadge(light);
+assert.ok(
+  lightBadged.indexOf('sc-legal-verified') < lightBadged.indexOf('class="verdict-box"'),
+  'badge should sit immediately before verdict-box',
+);
+assert.ok(
+  !/^<body[^>]*>\s*<!--sc-legal-verified-->/.test(lightBadged),
+  'must not fall back to body-start when verdict-box exists',
+);
+
 // --- NCPG link on trust ribbon ---
 import { complianceRibbonMarkup } from '../src/lib/pageChrome';
 const ribbon = complianceRibbonMarkup();

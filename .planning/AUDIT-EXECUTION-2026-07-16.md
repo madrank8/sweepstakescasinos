@@ -18,7 +18,7 @@
 | **8.2** Connected 4-layer schema graph | Org/WebSite/@id + Review wiring | **DONE** (core) | `src/lib/schema.ts`, `pageChrome.ts`; AggregateRating nesting still follow reader-report gate |
 | **8.3** FAQPage null-on-empty | Skip empty `mainEntity: []` | **DONE** (pass 1) | `faqPageNode()` in `schema.ts`; wired on news/guides/states/best |
 | **8.4** Author Person E-E-A-T | Person + knowsAbout/sameAs | **DONE** (honest scope) | `/author/ilija-milosevic/#person`; no fake `hasCredential` / Wikidata |
-| **8.5** State spokes + verification badges + Legislation | 50-state template, badges, Legislation nodes | **PARTIAL → improved** | Legislation on news + key state spokes; review badges via `SITE_LEGAL_STATUS_VERIFIED_ON`; full 5-section enrichment still deferred |
+| **8.5** State spokes + verification badges + Legislation | 50-state template, badges, Legislation nodes | **IMPROVED** (pass 3) | 8 MDX states on 5-section canonical; tracker-only states get same shell; badge mid-page anchors for chrome-light reviews |
 | **8.6** Footer RG / NCPG / NPN / CCPA | Persistent compliance chrome | **DONE** (pass 2) | Trust ribbon + NCPG; CCPA “Do Not Sell” footer + `/legal/do-not-sell/` opt-out page |
 
 ---
@@ -40,7 +40,7 @@
 
 ---
 
-## Pass 2 (this session) — CCPA / Card Crush / non-partner geo / overclaim gate
+## Pass 2 (committed `b44d1b1`) — CCPA / Card Crush / non-partner geo / overclaim gate
 
 | Item | Status | Evidence |
 | --- | --- | --- |
@@ -59,16 +59,35 @@
 
 ---
 
+## Pass 3 (this session) — State 5-section + badge polish + crawl interlinks
+
+| Item | Status | Evidence |
+| --- | --- | --- |
+| 5-section canonical on 8 MDX state spokes | **DONE** | Quick answer → Regulatory specifics → Operators → Practical guidance → FAQs (template); Texas reordered to match |
+| Tracker-only state shell aligned | **DONE** | `src/routes/states/[slug].astro` emits same section order for non-MDX states |
+| Legality badge mid-page for chrome-light reviews | **DONE** | `legalStatusBadge.ts` fallbacks: restricted-box → author-eeat → verdict-box → answer-capsule → offer-card → main → body; CSS contrast polish |
+| `/guides/are-sweepstakes-casinos-legit/` discovery | **DONE** | Already in `sitemap.xml`; footer Guides col; guides hub “next”; state-legality intro; how-to-redeem; RoxyMoxy compare block |
+| RoxyMoxy cluster interlinks | **DONE** | Title/meta already strong; reciprocal compare links from Splash Coins + Spree; footer Top Reviews (site + 15 review footers); legit guide link on review |
+
+### Still out of scope
+- McLuck / partner firsthand testing evidence
+- Clearing `overclaimFlag` without evidence
+- SweepDogs widgets
+- Full CMP / cookie-consent UI (skipped — larger than this pass)
+- Inventing 50 new deep state guides
+
+---
+
 ## Remaining backlog
 
 | Priority | Item | Notes |
 | --- | --- | --- |
 | P1 | McLuck / partner firsthand testing evidence | Needs human auth/tester — do not start in agents |
 | P1 | Clear or re-test `overclaimFlag` after real evidence | Gate enforces language; flags still mark testing priority |
-| P2 | Deeper state spoke template (operators CPT, practical guidance) | Audit 8.5 steps 1–2; do not expand all 50 states yet |
 | P2 | Dataset schema polish on state-legality hub if gaps remain | Mostly done on tracker |
 | P3 | AI citation tracking table | Competitor feature; not required |
 | P3 | Cookie consent CMP UI | Optional beyond CCPA request page |
+| P3 | Remaining review footers without Top Reviews col | 13 chrome-light reviews still lack sf-col Top Reviews; SSR badge now anchors on verdict-box |
 
 ---
 
@@ -82,5 +101,3 @@ npm run content:lint
 npm run tracker:lint
 # Optional if time: npm run build
 ```
-
-Do **not** push unless explicitly asked.
