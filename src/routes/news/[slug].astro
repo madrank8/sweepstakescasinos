@@ -1,11 +1,17 @@
 ---
 /**
  * News article pages (MDX `news` collection -> /news/<slug>/).
- * NewsArticle JSON-LD + optional FAQPage for AEO/PAA extraction.
+ * NewsArticle JSON-LD + optional FAQPage + Legislation nodes for AEO/PAA.
  */
 import { getCollection, render } from 'astro:content';
 import ContentLayout from '../../layouts/ContentLayout.astro';
-import { AUTHOR_ID } from '../../lib/schema';
+import { keyLegislationForNewsSlug } from '../../data/keyLegislation';
+import { isUsStateCode, stateName } from '../../data/usStates';
+import {
+  AUTHOR_ID,
+  faqPageNode,
+  legislationNode,
+} from '../../lib/schema';
 
 export const prerender = true;
 
@@ -28,21 +34,55 @@ const breadcrumbs = [
 ];
 
 const faq = entry.data.faq ?? [];
-const faqLd =
-  faq.length > 0
-    ? {
-        '@type': 'FAQPage',
-        '@id': `${canonical}#faq`,
-        mainEntity: faq.map((f) => ({
-          '@type': 'Question',
-          name: f.q,
-          acceptedAnswer: { '@type': 'Answer', text: f.a },
-        })),
-      }
-    : undefined;
+const faqLd = faqPageNode(canonical, faq);
 
 const publishedIso = entry.data.published.toISOString();
 const updatedIso = (entry.data.updated ?? entry.data.published).toISOString();
+
+const curated = keyLegislationForNewsSlug(entry.id);
+const fmLeg = entry.data.legislation;
+const legSource = fmLeg
+  ? {
+      fragmentId:
+        fmLeg.fragmentId ??
+        fmLeg.billNumber.toLowerCase().replace(/[^a-z0-9]+/g, ''),
+      billNumber: fmLeg.billNumber,
+      name: fmLeg.name,
+      legislationDate: fmLeg.legislationDate,
+      legislationDateOfApplicability: fmLeg.legislationDateOfApplicability,
+      legalForce: fmLeg.legalForce,
+      url: entry.data.sourceUrl ?? curated?.url,
+      stateCode: entry.data.stateCode ?? curated?.stateCode,
+    }
+  : curated
+    ? {
+        fragmentId: curated.fragmentId,
+        billNumber: curated.billNumber,
+        name: curated.name,
+        legislationDate: curated.legislationDate,
+        legislationDateOfApplicability: curated.legislationDateOfApplicability,
+        legalForce: curated.legalForce,
+        url: entry.data.sourceUrl ?? curated.url,
+        stateCode: curated.stateCode,
+      }
+    : null;
+
+const legStateCode =
+  legSource?.stateCode && isUsStateCode(legSource.stateCode) ? legSource.stateCode : null;
+const legLd =
+  legSource && legStateCode
+    ? legislationNode({
+        pageUrl: canonical,
+        fragmentId: legSource.fragmentId,
+        name: legSource.name,
+        alternateName: legSource.billNumber,
+        legislationDate: legSource.legislationDate,
+        legislationDateOfApplicability: legSource.legislationDateOfApplicability,
+        legalForce: legSource.legalForce,
+        jurisdictionName: stateName(legStateCode),
+        url: legSource.url,
+      })
+    : null;
 
 const newsLd = {
   '@type': 'NewsArticle',
@@ -57,10 +97,13 @@ const newsLd = {
   author: { '@id': AUTHOR_ID },
   publisher: { '@id': `${ORIGIN}/#organization` },
   ...(entry.data.sourceUrl ? { citation: entry.data.sourceUrl } : {}),
-  ...(entry.data.citations.length > 0 ? { mentions: entry.data.citations.map((u) => ({ '@type': 'WebPage', url: u })) } : {}),
+  ...(entry.data.citations.length > 0
+    ? { mentions: entry.data.citations.map((u) => ({ '@type': 'WebPage', url: u })) }
+    : {}),
+  ...(legLd ? { about: [{ '@id': legLd['@id'] as string }] } : {}),
 };
 
-const jsonLd = faqLd ? [newsLd, faqLd] : [newsLd];
+const jsonLd = [newsLd, ...(faqLd ? [faqLd] : []), ...(legLd ? [legLd] : [])];
 ---
 
 <ContentLayout

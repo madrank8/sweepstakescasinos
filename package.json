@@ -22,7 +22,7 @@
     "testing:apply": "tsx scripts/apply-testing-results.ts",
     "testing:anchors": "tsx scripts/add-testing-anchors.ts",
     "content:lint": "tsx scripts/lint-experience-claims.ts",
-    "schema:verify": "tsx scripts/verify-schema.ts",
+    "schema:verify": "tsx scripts/verify-schema.ts && tsx scripts/verify-schema-helpers.ts",
     "methodology:check": "tsx scripts/verify-methodology-consistency.ts",
     "reader-reports:aggregate": "tsx scripts/aggregate-reader-reports.ts",
     "seo:extract": "python3 scripts/seo/extract_guides.py",

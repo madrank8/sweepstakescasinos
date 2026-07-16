@@ -1,0 +1,37 @@
+---
+description: Always invoke Superpowers skills before acting
+alwaysApply: true
+---
+
+# Always Use Superpowers
+
+Before ANY response or action (including clarifying questions, exploration, or quick checks), check whether a Superpowers skill applies. If there is even a small chance it applies, you MUST read and follow that skill.
+
+## Bootstrap
+
+1. Read and follow:
+   `~/.cursor/plugins/cache/cursor-public/superpowers/*/skills/using-superpowers/SKILL.md`
+2. Announce: `Using [skill] to [purpose]`
+3. Follow the skill exactly (checklists → track via `bd`, not TodoWrite)
+
+## Skill routing
+
+| Situation | Superpowers skill |
+|---|---|
+| Build / new feature / "let's make X" | `brainstorming` → `writing-plans` → `subagent-driven-development` or `executing-plans` |
+| Bug / unexpected behavior / fix | `systematic-debugging` |
+| Implementation work | `test-driven-development` |
+| About to say done / ship | `verification-before-completion` |
+| Finish / merge / PR decision | `finishing-a-development-branch` |
+| Need review | `requesting-code-review` |
+| Parallel investigation | `dispatching-parallel-agents` |
+| Isolated git workspace | `using-git-worktrees` |
+
+Skills live under:
+`~/.cursor/plugins/cache/cursor-public/superpowers/*/skills/<skill-name>/SKILL.md`
+
+## Non-negotiable
+
+- Do not rationalize skipping ("simple question", "just a quick check", "overkill").
+- Process skills first, then implementation skills.
+- User instructions override skills only when the user explicitly says to skip Superpowers.

@@ -8,7 +8,7 @@
  */
 import { getCollection, render } from 'astro:content';
 import ContentLayout from '../../layouts/ContentLayout.astro';
-import { ORG_ID, AUTHOR_ID } from '../../lib/schema';
+import { ORG_ID, AUTHOR_ID, faqPageNode } from '../../lib/schema';
 import { imageDimensions } from '../../lib/svgDimensions';
 
 export const prerender = true;
@@ -31,18 +31,7 @@ const breadcrumbs = [
 ];
 
 const faq = entry.data.faq ?? [];
-const faqLd =
-  faq.length > 0
-    ? {
-        '@type': 'FAQPage',
-        '@id': `${canonical}#faq`,
-        mainEntity: faq.map((f) => ({
-          '@type': 'Question',
-          name: f.q,
-          acceptedAnswer: { '@type': 'Answer', text: f.a },
-        })),
-      }
-    : undefined;
+const faqLd = faqPageNode(canonical, faq);
 
 const toIso = (d: unknown) => (d instanceof Date ? d.toISOString() : undefined);
 const publishedIso = toIso(entry.data.published) ?? toIso(entry.data.updated);

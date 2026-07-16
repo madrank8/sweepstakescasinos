@@ -13,6 +13,7 @@ import AffiliateLink from '../../components/AffiliateLink.astro';
 import { getPartner, AFFILIATE_PARTNERS } from '../../data/affiliates';
 import { shouldRenderAffiliateCta } from '../../data/geo';
 import { brandEntityId, getBrandEntity } from '../../data/brandEntities';
+import { faqPageNode } from '../../lib/schema';
 
 const ORIGIN = 'https://sweepstakeswiz.com';
 
@@ -62,18 +63,7 @@ const itemListLd = {
   })),
 };
 const faq = entry.data.faq ?? [];
-const faqLd =
-  faq.length > 0
-    ? {
-        '@type': 'FAQPage',
-        '@id': `${canonical}#faq`,
-        mainEntity: faq.map((f) => ({
-          '@type': 'Question',
-          name: f.q,
-          acceptedAnswer: { '@type': 'Answer', text: f.a },
-        })),
-      }
-    : null;
+const faqLd = faqPageNode(canonical, faq);
 const jsonLd = faqLd ? [itemListLd, faqLd] : [itemListLd];
 ---
 <ContentLayout

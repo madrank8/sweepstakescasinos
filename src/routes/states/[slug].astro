@@ -20,10 +20,11 @@ import ContentLayout from '../../layouts/ContentLayout.astro';
 import { AFFILIATE_PARTNERS } from '../../data/affiliates';
 import { isPartnerAvailableInState, isStateBannedSitewide } from '../../data/geo';
 import { stateName, isUsStateCode, type UsStateCode } from '../../data/usStates';
-import { ORG_ID, AUTHOR_ID } from '../../lib/schema';
+import { ORG_ID, AUTHOR_ID, faqPageNode, legislationNode } from '../../lib/schema';
 import { pngDimensions } from '../../lib/pngDimensions';
 import { svgDimensions } from '../../lib/svgDimensions';
 import { brandEntityId, getBrandEntity } from '../../data/brandEntities';
+import { keyLegislationForState } from '../../data/keyLegislation';
 import { getTrackerData, legislationForState } from '../../lib/tracker/data';
 import { SWEEPS_STATUS_META } from '../../lib/tracker/types';
 import type { StateRecord, PendingLegislation } from '../../lib/tracker/types';
@@ -110,18 +111,61 @@ const faq =
         },
       ];
 
-const faqLd =
-  faq.length > 0
-    ? {
-        '@type': 'FAQPage',
-        '@id': `${canonical}#faq`,
-        mainEntity: faq.map((f) => ({
-          '@type': 'Question',
-          name: f.q,
-          acceptedAnswer: { '@type': 'Answer', text: f.a },
-        })),
-      }
-    : undefined;
+const faqLd = faqPageNode(canonical, faq);
+
+const trackerForce = (status: PendingLegislation['status']) => {
+  if (status === 'signed') return 'InForce' as const;
+  if (status === 'dead') return 'NotInForce' as const;
+  return 'NotInForce' as const;
+};
+
+const curatedLegs = keyLegislationForState(code).map((b) =>
+  legislationNode({
+    pageUrl: canonical,
+    fragmentId: b.fragmentId,
+    name: b.name,
+    alternateName: b.billNumber,
+    legislationDate: b.legislationDate,
+    legislationDateOfApplicability: b.legislationDateOfApplicability,
+    legalForce: b.legalForce,
+    jurisdictionName: name,
+    url: b.url,
+    ...(trackerState.wikidata_id
+      ? { jurisdictionSameAs: `https://www.wikidata.org/wiki/${trackerState.wikidata_id}` }
+      : {}),
+  }),
+);
+
+const trackerLegs = bills
+  .filter((b) => b.status !== 'dead')
+  .map((b) => {
+    const frag = b.bill_number.toLowerCase().replace(/[^a-z0-9]+/g, '-') || b.bill_id;
+    return legislationNode({
+      pageUrl: canonical,
+      fragmentId: `bill-${frag}`,
+      name: b.title || `${name} ${b.bill_number}`,
+      alternateName: b.bill_number,
+      legislationDate: b.introduced_date || undefined,
+      legalForce: trackerForce(b.status),
+      jurisdictionName: name,
+      url: b.state_bill_url || b.bill_url || undefined,
+      ...(trackerState.wikidata_id
+        ? { jurisdictionSameAs: `https://www.wikidata.org/wiki/${trackerState.wikidata_id}` }
+        : {}),
+    });
+  });
+
+// Prefer curated enacted statutes; append tracker bills whose bill numbers aren't already covered.
+const curatedAlts = new Set(
+  keyLegislationForState(code).map((b) => b.billNumber.toLowerCase().replace(/\s+/g, '')),
+);
+const extraTrackerLegs = trackerLegs.filter((node) => {
+  const alt = String(node.alternateName ?? '')
+    .toLowerCase()
+    .replace(/\s+/g, '');
+  return alt && !curatedAlts.has(alt);
+});
+const legislationLd = [...curatedLegs, ...extraTrackerLegs];
 
 // Compliance guardrail: on banned states the Article carries NO brand mentions.
 const brandMentions = availablePartners
@@ -168,6 +212,7 @@ const articleLd = {
   about: [
     { '@type': 'Thing', name: `Sweepstakes casino legality in ${name}` },
     { '@type': 'Thing', name: 'Sweepstake', sameAs: 'https://en.wikipedia.org/wiki/Sweepstake' },
+    ...legislationLd.map((n) => ({ '@id': n['@id'] as string })),
   ],
   spatialCoverage: { '@type': 'State', name, addressCountry: 'US' },
   ...(brandMentions.length > 0 ? { mentions: brandMentions } : {}),
@@ -180,6 +225,7 @@ const articleLd = {
 const jsonLd = [
   articleLd,
   ...(faqLd ? [faqLd] : []),
+  ...legislationLd,
   ...(stateHeroImageNode ? [stateHeroImageNode] : []),
 ];
 

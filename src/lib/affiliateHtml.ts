@@ -1,6 +1,7 @@
 import { getPartner } from '../data/affiliates';
 import { shouldRenderAffiliateCta } from '../data/geo';
 import { stampUpdatedDate } from './htmlStamp';
+import { injectLegalStatusBadge } from './legalStatusBadge';
 import { decorateChrome } from './pageChrome';
 import { injectReaderReports } from './readerReportsDisplay';
 import type { UsStateCode } from '../data/usStates';
@@ -81,5 +82,8 @@ export function prepareSsrAffiliateReviewHtml(
   slug: string,
   placement?: string,
 ): string {
-  return injectReaderReports(prepareSsrAffiliateHtml(rawHtml, state, placement), slug);
+  const withBadge = injectLegalStatusBadge(
+    prepareSsrAffiliateHtml(rawHtml, state, placement),
+  );
+  return injectReaderReports(withBadge, slug);
 }

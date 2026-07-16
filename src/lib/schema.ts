@@ -196,6 +196,80 @@ export function datasetNode(opts: DatasetNodeOptions): Node {
   };
 }
 
+export type FaqItem = { q: string; a: string };
+
+/**
+ * FAQPage JSON-LD — null-on-empty so we never emit `mainEntity: []`
+ * (GSC / AI extraction hygiene; audit §8.3).
+ */
+export function faqPageNode(
+  pageUrl: string,
+  faqs: FaqItem[] | null | undefined,
+): Node | null {
+  if (!faqs || faqs.length === 0) return null;
+  return {
+    '@type': 'FAQPage',
+    '@id': `${pageUrl}#faq`,
+    mainEntity: faqs.map((f) => ({
+      '@type': 'Question',
+      name: f.q,
+      acceptedAnswer: { '@type': 'Answer', text: f.a },
+    })),
+  };
+}
+
+export type LegislationLegalForce = 'InForce' | 'NotInForce' | 'PartiallyInForce';
+
+export interface LegislationNodeOptions {
+  /** Absolute page URL that hosts the Legislation node (trailing slash). */
+  pageUrl: string;
+  /** Fragment suffix after `#` (e.g. `ab831`). */
+  fragmentId: string;
+  name: string;
+  alternateName?: string;
+  /** ISO date the legislation was signed / enacted (YYYY-MM-DD). */
+  legislationDate?: string;
+  /** ISO date the legislation becomes applicable (YYYY-MM-DD). */
+  legislationDateOfApplicability?: string;
+  legalForce?: LegislationLegalForce;
+  jurisdictionName: string;
+  /** Official bill / statute URL only — never invent identifiers. */
+  url?: string;
+  /**
+   * Optional Wikidata Q-id URL for the jurisdiction (e.g. California Q99).
+   * Only pass values that exist in our data layer — never invent.
+   */
+  jurisdictionSameAs?: string;
+}
+
+/**
+ * Schema.org Legislation node for ban/bill explainers and state spokes.
+ * Uses legislationLegalForce (schema.org), not the audit's nonstandard
+ * `legislationStatus` field.
+ */
+export function legislationNode(opts: LegislationNodeOptions): Node {
+  const jurisdiction: Node = {
+    '@type': 'AdministrativeArea',
+    name: opts.jurisdictionName,
+    ...(opts.jurisdictionSameAs ? { sameAs: opts.jurisdictionSameAs } : {}),
+  };
+  return {
+    '@type': 'Legislation',
+    '@id': `${opts.pageUrl}#${opts.fragmentId}`,
+    name: opts.name,
+    ...(opts.alternateName ? { alternateName: opts.alternateName } : {}),
+    ...(opts.legislationDate ? { legislationDate: opts.legislationDate } : {}),
+    ...(opts.legislationDateOfApplicability
+      ? { legislationDateOfApplicability: opts.legislationDateOfApplicability }
+      : {}),
+    ...(opts.legalForce
+      ? { legislationLegalForce: `https://schema.org/${opts.legalForce}` }
+      : {}),
+    legislationJurisdiction: jurisdiction,
+    ...(opts.url ? { url: opts.url } : {}),
+  };
+}
+
 export interface Crumb {
   name: string;
   path: string;

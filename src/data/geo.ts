@@ -58,6 +58,13 @@ export const SITE_BANNED_STATES: readonly UsStateCode[] = [
   'TN',
 ];
 
+/**
+ * ISO date (YYYY-MM-DD) when SITE_BANNED_STATES was last human-verified against
+ * state legislatures + industry press (see comment block above: checked 2026-07-09).
+ * Used for visible "Legal status last verified" badges — do not invent newer dates.
+ */
+export const SITE_LEGAL_STATUS_VERIFIED_ON = '2026-07-09';
+
 const SITE_BANNED_SET = new Set<UsStateCode>(SITE_BANNED_STATES);
 
 /**

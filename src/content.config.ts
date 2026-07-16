@@ -147,6 +147,27 @@ const news = defineCollection({
     /** Primary source URL (statute, regulator, operator notice). */
     sourceUrl: z.string().url().optional(),
     citations: z.array(z.string().url()).default([]),
+    /**
+     * Optional Legislation JSON-LD fields for ban/bill explainers.
+     * Prefer also registering the bill in src/data/keyLegislation.ts so state
+     * spokes can share the same facts. Never invent Wikidata / credentials.
+     */
+    legislation: z
+      .object({
+        billNumber: z.string(),
+        name: z.string(),
+        /** ISO YYYY-MM-DD signed / enacted. */
+        legislationDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
+        /** ISO YYYY-MM-DD applicability / effective date. */
+        legislationDateOfApplicability: z
+          .string()
+          .regex(/^\d{4}-\d{2}-\d{2}$/)
+          .optional(),
+        legalForce: z.enum(['InForce', 'NotInForce', 'PartiallyInForce']).default('InForce'),
+        /** Fragment id for @id (defaults derived from billNumber). */
+        fragmentId: z.string().optional(),
+      })
+      .optional(),
   }),
 });
 

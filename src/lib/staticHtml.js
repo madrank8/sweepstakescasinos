@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { stampUpdatedDate } from './htmlStamp.ts';
+import { injectLegalStatusBadge } from './legalStatusBadge.ts';
 import { decorateChrome } from './pageChrome.ts';
 import { injectReaderReports } from './readerReportsDisplay.ts';
 
@@ -24,5 +25,5 @@ export function getStaticHtml(relativePath) {
  * section (aggregated player-reported data + submission form) for `slug`.
  */
 export function getStaticReviewHtml(relativePath, slug) {
-  return injectReaderReports(getStaticHtml(relativePath), slug);
+  return injectReaderReports(injectLegalStatusBadge(getStaticHtml(relativePath)), slug);
 }

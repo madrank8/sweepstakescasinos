@@ -27,7 +27,7 @@ const RIBBON = `${RIBBON_MARKER}
   <span>Sweepstakes play &middot; no real-money gambling</span>
   <span class="sc-tr-sep">&middot;</span>
   <a href="/responsible-gaming/">Play responsibly</a>
-  <a href="tel:18004262537">1-800-GAMBLER</a>
+  <a href="https://www.ncpgambling.org/" rel="noopener noreferrer" target="_blank">1-800-GAMBLER</a>
   <span class="sc-tr-sep">&middot;</span>
   <a href="/legal/affiliate-disclosure/">Affiliate disclosure</a>
   <span class="sc-tr-sep">&middot;</span>
