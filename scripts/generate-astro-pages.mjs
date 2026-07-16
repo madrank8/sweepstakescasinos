@@ -1,6 +1,5 @@
 import { copyFileSync, cpSync, mkdirSync, readdirSync, readFileSync, rmSync, statSync, writeFileSync, existsSync } from 'node:fs';
 import { dirname, join, relative } from 'node:path';
-import { AFFILIATE_PARTNERS } from '../src/data/affiliates.ts';
 import { SITE } from '../src/data/site.ts';
 import { US_STATES } from '../src/data/usStates.ts';
 
@@ -14,9 +13,9 @@ const pagesDir = join(root, 'src', 'pages');
 const publicDir = join(root, 'public');
 const ORIGIN = SITE.origin;
 
-// The 13 affiliate partners are served by the SSR gateway (src/pages/bonuses/[slug].astro),
-// NOT as static interstitials. Skip generating static pages for their bonus slugs.
-const PARTNER_SLUGS = new Set(AFFILIATE_PARTNERS.map((p) => p.slug));
+// All /bonuses/<slug>/ destinations are served by the SSR gateway
+// (src/pages/bonuses/[slug].astro) — partners AND non-partner editorial outbound.
+// Skip generating static pages from bonuses/*.html so geo can never be bypassed.
 
 // Directories that are assets/system, not content pages.
 const ignoreDirs = new Set([
@@ -69,21 +68,18 @@ function placementLabel(sourcePath) {
   return noExt.replace(/[^a-z0-9-]+/gi, '-').replace(/^-+|-+$/g, '').toLowerCase() || 'site';
 }
 
-/** A page is "affiliate" if it embeds at least one /bonuses/<partner-slug>/ CTA. */
+/** A page needs SSR geo if it embeds any /bonuses/<slug>/ CTA (partner or editorial). */
 function isAffiliatePage(sourcePath) {
   const html = readFileSync(join(root, sourcePath), 'utf8');
-  for (const slug of PARTNER_SLUGS) {
-    if (html.includes(`/bonuses/${slug}/`) || html.includes(`/bonuses/${slug}"`)) return true;
-  }
-  return false;
+  return /href="\/bonuses\/[a-z0-9-]+\/?"/i.test(html);
 }
 
 // With build.format: 'directory', `src/pages/reviews/crown-coins.astro`
 // is emitted as `/reviews/crown-coins/index.html` -> clean URL `/reviews/crown-coins/`.
 function writePage(sourcePath) {
-  // The partner bonus interstitials are replaced by the SSR gateway route.
+  // All bonus interstitials are replaced by the SSR gateway route.
   const bonusMatch = sourcePath.match(/^bonuses\/([a-z0-9-]+)\.html$/);
-  if (bonusMatch && PARTNER_SLUGS.has(bonusMatch[1])) return;
+  if (bonusMatch) return;
 
   const noExt = sourcePath.replace(/\.html$/, '');
   const destination = noExt === 'index'
@@ -143,8 +139,8 @@ function writePage(sourcePath) {
   writeFileSync(destination, content);
 }
 
-// SSR gateway: the single chokepoint where the Gemified link is emitted, and
-// only after the geo check passes. Replaces the 13 static bonus interstitials.
+// SSR gateway: chokepoint for partner Gemified links AND non-partner editorial
+// outbound. Replaces all static bonuses/*.html interstitials after geo check.
 function writeBonusGateway() {
   const destination = join(pagesDir, 'bonuses', '[slug].astro');
   mkdirSync(dirname(destination), { recursive: true });

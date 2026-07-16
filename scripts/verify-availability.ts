@@ -149,16 +149,26 @@ check('unknown slug -> not-found', resolveBonusGateway('not-a-brand', 'TX').stat
 // Card Crush -> blocked everywhere (only CA/NY, both banned).
 check('Card Crush gateway blocked in CA', resolveBonusGateway('card-crush', 'CA').status === 'blocked', true);
 check('Card Crush gateway blocked in NY', resolveBonusGateway('card-crush', 'NY').status === 'blocked', true);
+// Non-partner editorial outbound: geo-gated (no static interstitial bypass).
+const rollaTX = resolveBonusGateway('rolla', 'TX');
+check('Rolla (non-partner) redirects in TX', rollaTX.status === 'redirect', true);
+if (rollaTX.status === 'redirect') {
+  check('Rolla TX target is rolla.com (not WOW Vegas)', /rolla\.com/i.test(rollaTX.url), true);
+}
+check('Rolla (non-partner) blocked in CA', resolveBonusGateway('rolla', 'CA').status === 'blocked', true);
+check('Rolla (non-partner) blocked when region unknown', resolveBonusGateway('rolla', null).status === 'blocked', true);
 
 console.log('\n=== 7. HTML CTA suppression transform ===');
 const sampleHtml =
   '<a href="/bonuses/mcluck/" class="btn-claim" rel="nofollow noopener">Claim Bonus</a>' +
   '<a href="/bonuses/zula/" class="btn-claim">Claim Zula</a>' +
+  '<a href="/bonuses/rolla/" class="btn-claim">Claim Rolla</a>' +
   '<a href="/reviews/mcluck/">Read review</a>';
 const inTX = suppressAffiliateCtas(sampleHtml, 'TX', 'homepage');
 check('TX keeps McLuck CTA', inTX.includes('/bonuses/mcluck/'), true);
 check('TX stamps clickId placement on surviving CTA', inTX.includes('/bonuses/mcluck/?clickId=homepage'), true);
 check('TX stamps clickId on Zula CTA too', inTX.includes('/bonuses/zula/?clickId=homepage'), true);
+check('TX keeps non-partner Rolla CTA (no clickId)', inTX.includes('/bonuses/rolla/"'), true);
 check('TX keeps editorial link untouched (no clickId)', inTX.includes('/reviews/mcluck/"'), true);
 // No placement -> hrefs left as-is (back-compat).
 const inTXNoPlacement = suppressAffiliateCtas(sampleHtml, 'TX');
@@ -166,6 +176,7 @@ check('no placement -> CTA href unchanged', inTXNoPlacement.includes('/bonuses/m
 const inCA = suppressAffiliateCtas(sampleHtml, 'CA', 'homepage');
 check('CA removes McLuck affiliate CTA', !inCA.includes('/bonuses/mcluck/'), true);
 check('CA removes Zula affiliate CTA', !inCA.includes('/bonuses/zula/'), true);
+check('CA removes non-partner Rolla CTA', !inCA.includes('/bonuses/rolla/'), true);
 check('CA keeps editorial (non-affiliate) link', inCA.includes('/reviews/mcluck/'), true);
 check('CA shows unavailable note', inCA.includes('affiliate-unavailable'), true);
 

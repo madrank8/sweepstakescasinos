@@ -1,24 +1,30 @@
 import { getPartner } from '../data/affiliates';
+import { getEditorialOutbound } from '../data/editorialOutbound';
 import {
+  isStateBannedSitewide,
   shouldRenderAffiliateCta,
+  SUPPRESS_WHEN_REGION_UNKNOWN,
   suppressionReason,
   type SuppressionReason,
 } from '../data/geo';
 import type { UsStateCode } from '../data/usStates';
-import type { AffiliatePartner } from '../data/affiliates';
 
 /**
  * Server-side decision for the /bonuses/<slug>/ affiliate gateway.
  *
- * This is the ONLY place the raw Gemified tracking link is ever emitted, and it
- * only happens after the geo check passes. In suppressed states we return a
- * `blocked` result and the page renders an informational notice instead of
- * redirecting — the affiliate URL is never sent to the client.
+ * Partner slugs: Gemified tracking URL only after geo check passes.
+ * Non-partner editorial slugs: official/outbound URL from editorialOutbound,
+ * still blocked in SITE_BANNED_STATES (and when region is unknown).
+ *
+ * In suppressed states we return `blocked` — the outbound URL is never sent
+ * to the client.
  */
+export type BonusSubject = { slug: string; name: string };
+
 export type BonusGatewayResult =
   | { status: 'not-found' }
-  | { status: 'redirect'; url: string; partner: AffiliatePartner }
-  | { status: 'blocked'; reason: SuppressionReason; partner: AffiliatePartner };
+  | { status: 'redirect'; url: string; partner: BonusSubject }
+  | { status: 'blocked'; reason: SuppressionReason; partner: BonusSubject };
 
 /**
  * Sanitize a caller-supplied clickId before it is appended to the outbound
@@ -35,25 +41,44 @@ export function sanitizeClickId(raw: string | null | undefined): string | null {
   return raw;
 }
 
+function regionAllowsOutbound(state: UsStateCode | null | undefined): boolean {
+  if (!state) return !SUPPRESS_WHEN_REGION_UNKNOWN;
+  return !isStateBannedSitewide(state);
+}
+
 export function resolveBonusGateway(
   slug: string | undefined,
   state: UsStateCode | null | undefined,
   clickId?: string | null,
 ): BonusGatewayResult {
   if (!slug) return { status: 'not-found' };
-  const partner = getPartner(slug);
-  if (!partner) return { status: 'not-found' };
 
-  if (shouldRenderAffiliateCta(partner, state)) {
-    const safeId = sanitizeClickId(clickId);
-    // Gemified's tracker expects the clickId appended with a literal `&`, even
-    // though the base URL has no query string (see publisher.gemified.io/offers).
-    const url = safeId ? `${partner.trackingLink}&clickId=${safeId}` : partner.trackingLink;
-    return { status: 'redirect', url, partner };
+  const partner = getPartner(slug);
+  if (partner) {
+    if (shouldRenderAffiliateCta(partner, state)) {
+      const safeId = sanitizeClickId(clickId);
+      // Gemified's tracker expects the clickId appended with a literal `&`, even
+      // though the base URL has no query string (see publisher.gemified.io/offers).
+      const url = safeId ? `${partner.trackingLink}&clickId=${safeId}` : partner.trackingLink;
+      return { status: 'redirect', url, partner: { slug: partner.slug, name: partner.name } };
+    }
+    return {
+      status: 'blocked',
+      reason: suppressionReason(partner, state),
+      partner: { slug: partner.slug, name: partner.name },
+    };
   }
-  return {
-    status: 'blocked',
-    reason: suppressionReason(partner, state),
-    partner,
-  };
+
+  const editorial = getEditorialOutbound(slug);
+  if (!editorial) return { status: 'not-found' };
+
+  const subject: BonusSubject = { slug: editorial.slug, name: editorial.name };
+  if (!regionAllowsOutbound(state)) {
+    return {
+      status: 'blocked',
+      reason: !state ? 'region-unknown' : 'state-banned-sitewide',
+      partner: subject,
+    };
+  }
+  return { status: 'redirect', url: editorial.url, partner: subject };
 }
