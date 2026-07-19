@@ -19,3 +19,8 @@ evidence/*
 !evidence/README.md
 !evidence/testing-results.template.csv
 !evidence/brands.json
+
+# Beads / Dolt files (added by bd init)
+.dolt/
+*.db
+.beads-credential-key
