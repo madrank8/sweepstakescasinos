@@ -134,7 +134,7 @@ const FAVICON_MARKER = '<!--sc-favicons-->';
 
 const FAVICONS = `${FAVICON_MARKER}
 <link rel="icon" href="/favicon.ico" sizes="any">
-<link rel="icon" type="image/png" href="${SITE.logo.replace('sweepstakeswiz.png', 'sweepstakeswiz-mark.png')}">
+<link rel="icon" type="image/png" href="${SITE.logo.replace('sweepstakeswiz.png', 'sweepstakeswiz-mark.webp')}">
 <link rel="apple-touch-icon" href="/sweepstakeslogo/apple-touch-icon.png">`;
 
 /**
