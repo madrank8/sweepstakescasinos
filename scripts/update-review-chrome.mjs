@@ -24,7 +24,7 @@ const LEGAL_RE = /<div class="sf-col">\s*<h4>Legal<\/h4>[\s\S]*?<\/div>/;
 const LEGAL_NEW =
   '<div class="sf-col"><h4>Legal</h4>' +
   '<a href="/legal/affiliate-disclosure/">Affiliate Disclosure</a>' +
-  '<a href="/legal/privacy/" rel="nofollow">Privacy Policy</a>' +
+  '<a href="/legal/privacy/">Privacy Policy</a>' +
   '<a href="/legal/do-not-sell/" rel="nofollow">Do Not Sell My Personal Information</a>' +
   '<a href="/legal/terms/" rel="nofollow">Terms of Use</a>' +
   '<a href="/legal/cookie/" rel="nofollow">Cookie Policy</a>' +
