@@ -1,4 +1,5 @@
 import { copyFileSync, cpSync, mkdirSync, readdirSync, readFileSync, rmSync, statSync, writeFileSync, existsSync } from 'node:fs';
+import { execFileSync } from 'node:child_process';
 import { dirname, join, relative } from 'node:path';
 import { SITE } from '../src/data/site.ts';
 import { US_STATES } from '../src/data/usStates.ts';
@@ -215,17 +216,87 @@ function copyPublicAssets() {
 // and editorial info pages are noindex per site policy and excluded.
 function writeSitemapAndRobots() {
   const today = new Date().toISOString().slice(0, 10);
-  const urls = ['/'];
+
+  /** Git content-change date for a tracked file; fall back to today. */
+  function lastmodFor(filePath) {
+    try {
+      const out = execFileSync('git', ['log', '-1', '--format=%cs', '--', filePath], {
+        encoding: 'utf8',
+        cwd: root,
+      }).trim();
+      return out || today;
+    } catch {
+      return today;
+    }
+  }
+
+  /**
+   * Map a public URL to the authored source path(s) used for lastmod.
+   * Prefer content files over shared route shells when both exist.
+   */
+  function sourcePathsForUrl(url) {
+    if (url === '/') return ['index.html'];
+    const review = url.match(/^\/reviews\/([^/]+)\/$/);
+    if (review) return [`reviews/${review[1]}.html`];
+    const author = url.match(/^\/author\/([^/]+)\/$/);
+    if (author) return [`author/${author[1]}.html`];
+    const trustHtml = {
+      '/about/': 'about.html',
+      '/how-we-rate/': 'how-we-rate.html',
+      '/editorial-policy/': 'editorial-policy.html',
+      '/responsible-gaming/': 'responsible-gaming.html',
+      '/legal/affiliate-disclosure/': 'legal/affiliate-disclosure.html',
+    };
+    if (trustHtml[url]) return [trustHtml[url]];
+    const routeExact = {
+      '/report/': 'src/routes/report.astro',
+      '/guides/': 'src/routes/guides/index.astro',
+      '/news/': 'src/routes/news/index.astro',
+      '/new/': 'src/routes/new/index.astro',
+      '/bonuses/no-deposit/': 'src/routes/bonuses/no-deposit/index.astro',
+      '/state-legality/': 'src/routes/state-legality/index.astro',
+      '/sweepstakes-tracker/': 'src/routes/sweepstakes-tracker/index.astro',
+      '/sweepstakes-tracker/methodology/': 'src/routes/sweepstakes-tracker/methodology.astro',
+      '/sweepstakes-tracker/legislation/': 'src/routes/sweepstakes-tracker/legislation/index.astro',
+      '/sweepstakes-tracker/api/': 'src/routes/sweepstakes-tracker/api.astro',
+    };
+    if (routeExact[url]) return [routeExact[url]];
+    const state = url.match(/^\/states\/([^/]+)\/$/);
+    if (state) {
+      const mdx = `src/content/states/${state[1]}.mdx`;
+      const shell = 'src/routes/states/[slug].astro';
+      return existsSync(join(root, mdx)) ? [mdx] : [shell];
+    }
+    const guide = url.match(/^\/guides\/([^/]+)\/$/);
+    if (guide) return [`src/content/guides/${guide[1]}.mdx`];
+    const news = url.match(/^\/news\/([^/]+)\/$/);
+    if (news) return [`src/content/news/${news[1]}.mdx`];
+    const best = url.match(/^\/best\/([^/]+)\/$/);
+    if (best) return [`src/content/comparisons/${best[1]}.mdx`];
+    return [];
+  }
+
+  /** @type {{ url: string, lastmod: string }[]} */
+  const entries = [];
+  const push = (url) => {
+    const sources = sourcePathsForUrl(url).filter((p) => existsSync(join(root, p)));
+    const lastmod = sources.length
+      ? sources.map(lastmodFor).sort().at(-1)
+      : today;
+    entries.push({ url, lastmod });
+  };
+
+  push('/');
   const reviewsDir = join(root, 'reviews');
   if (existsSync(reviewsDir)) {
     for (const f of readdirSync(reviewsDir).sort()) {
-      if (f.endsWith('.html')) urls.push(`/reviews/${f.replace(/\.html$/, '')}/`);
+      if (f.endsWith('.html')) push(`/reviews/${f.replace(/\.html$/, '')}/`);
     }
   }
   const authorDir = join(root, 'author');
   if (existsSync(authorDir)) {
     for (const f of readdirSync(authorDir).sort()) {
-      if (f.endsWith('.html')) urls.push(`/author/${f.replace(/\.html$/, '')}/`);
+      if (f.endsWith('.html')) push(`/author/${f.replace(/\.html$/, '')}/`);
     }
   }
 
@@ -237,28 +308,28 @@ function writeSitemapAndRobots() {
     'legal/affiliate-disclosure.html',
   ];
   for (const rel of trustPages) {
-    if (existsSync(join(root, rel))) urls.push(`/${rel.replace(/\.html$/, '')}/`);
+    if (existsSync(join(root, rel))) push(`/${rel.replace(/\.html$/, '')}/`);
   }
 
   // Reader-reports submission page (authored under src/routes/report.astro).
-  if (existsSync(join(root, 'src', 'routes', 'report.astro'))) urls.push('/report/');
+  if (existsSync(join(root, 'src', 'routes', 'report.astro'))) push('/report/');
 
   // Guides hub / index (authored under src/routes/guides/index.astro).
-  if (existsSync(join(root, 'src', 'routes', 'guides', 'index.astro'))) urls.push('/guides/');
+  if (existsSync(join(root, 'src', 'routes', 'guides', 'index.astro'))) push('/guides/');
 
   // News hub (legislation / enforcement updates).
-  if (existsSync(join(root, 'src', 'routes', 'news', 'index.astro'))) urls.push('/news/');
+  if (existsSync(join(root, 'src', 'routes', 'news', 'index.astro'))) push('/news/');
 
   // New-sweepstakes-casinos freshness hub (authored under src/routes/new/index.astro).
-  if (existsSync(join(root, 'src', 'routes', 'new', 'index.astro'))) urls.push('/new/');
+  if (existsSync(join(root, 'src', 'routes', 'new', 'index.astro'))) push('/new/');
 
   // No-deposit / free Sweeps Coins bonus tracker (authored under
   // src/routes/bonuses/no-deposit/index.astro). Indexable content hub that lives
   // under /bonuses/ — see the robots Allow exception below.
-  if (existsSync(join(root, 'src', 'routes', 'bonuses', 'no-deposit', 'index.astro'))) urls.push('/bonuses/no-deposit/');
+  if (existsSync(join(root, 'src', 'routes', 'bonuses', 'no-deposit', 'index.astro'))) push('/bonuses/no-deposit/');
 
   // State legality hub (data-driven route replacing the old static HTML).
-  if (existsSync(join(root, 'src', 'routes', 'state-legality', 'index.astro'))) urls.push('/state-legality/');
+  if (existsSync(join(root, 'src', 'routes', 'state-legality', 'index.astro'))) push('/state-legality/');
 
   // Sweepstakes Legality Tracker hub + support pages (authored under src/routes).
   const trackerPages = [
@@ -268,12 +339,12 @@ function writeSitemapAndRobots() {
     ['sweepstakes-tracker/api.astro', '/sweepstakes-tracker/api/'],
   ];
   for (const [rel, url] of trackerPages) {
-    if (existsSync(join(root, 'src', 'routes', rel))) urls.push(url);
+    if (existsSync(join(root, 'src', 'routes', rel))) push(url);
   }
 
   // All 51 state pages (data-driven via src/routes/states/[slug].astro).
   if (existsSync(join(root, 'src', 'routes', 'states', '[slug].astro'))) {
-    for (const name of Object.values(US_STATES)) urls.push(`/states/${stateSlug(name)}/`);
+    for (const name of Object.values(US_STATES)) push(`/states/${stateSlug(name)}/`);
   }
 
   // MDX content collections (skip drafts). comparisons render under /best/.
@@ -286,12 +357,12 @@ function writeSitemapAndRobots() {
       if (!f.endsWith('.mdx')) continue;
       const fm = readFileSync(join(dir, f), 'utf8').slice(0, 600);
       if (/\bdraft:\s*true\b/.test(fm)) continue;
-      urls.push(`${prefix}/${f.replace(/\.mdx$/, '')}/`);
+      push(`${prefix}/${f.replace(/\.mdx$/, '')}/`);
     }
   }
 
-  const body = urls.map((u) =>
-    `  <url>\n    <loc>${ORIGIN}${u}</loc>\n    <lastmod>${today}</lastmod>\n    <changefreq>weekly</changefreq>\n    <priority>${u === '/' ? '1.0' : '0.8'}</priority>\n  </url>`
+  const body = entries.map(({ url: u, lastmod }) =>
+    `  <url>\n    <loc>${ORIGIN}${u}</loc>\n    <lastmod>${lastmod}</lastmod>\n    <changefreq>weekly</changefreq>\n    <priority>${u === '/' ? '1.0' : '0.8'}</priority>\n  </url>`
   ).join('\n');
   const sitemap = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${body}\n</urlset>\n`;
 
