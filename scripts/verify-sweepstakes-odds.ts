@@ -29,6 +29,11 @@ import {
   repeatProbability,
   validateCalculatorInput,
 } from '../src/lib/sweepstakesOdds';
+import {
+  ODDS_FAQ,
+  ODDS_MAIN_ENTITY_ID,
+  ODDS_SCHEMA_NODES,
+} from '../src/lib/oddsPageSchema';
 
 interface ParsedSendEventCall {
   eventRef: string;
@@ -602,11 +607,24 @@ const routeSource = readFileSync(
 assert.match(routeSource, /export const prerender = false/);
 assert.match(routeSource, /getEntry\('comparisons', 'sweepstakes-casinos'\)/);
 assert.match(routeSource, /partnerSlugs\.slice\(0, 3\)/);
-assert.match(routeSource, /applicationCategory: 'UtilitiesApplication'/);
-assert.match(routeSource, /browserRequirements: 'Requires JavaScript'/);
-assert.match(routeSource, /mainEntityId=\{`\$\{canonical\}#app`\}/);
-assert.match(routeSource, /faqPageNode/);
-assert.doesNotMatch(routeSource, /Offer|AggregateRating|expected winnings|real odds/i);
+assert.match(routeSource, /from '\.\.\/\.\.\/\.\.\/lib\/oddsPageSchema'/);
+assert.match(routeSource, /mainEntityId=\{ODDS_MAIN_ENTITY_ID\}/);
+assert.match(routeSource, /jsonLd=\{ODDS_SCHEMA_NODES\}/);
+assert.match(routeSource, /\{ODDS_FAQ\.map/);
+const webApplicationSchema = ODDS_SCHEMA_NODES.find(
+  (node) => node['@type'] === 'WebApplication',
+);
+assert.ok(webApplicationSchema);
+assert.equal(webApplicationSchema['@id'], ODDS_MAIN_ENTITY_ID);
+assert.equal(webApplicationSchema.applicationCategory, 'UtilitiesApplication');
+assert.equal(webApplicationSchema.browserRequirements, 'Requires JavaScript');
+const faqSchema = ODDS_SCHEMA_NODES.find((node) => node['@type'] === 'FAQPage');
+assert.ok(faqSchema);
+assert.equal((faqSchema.mainEntity as unknown[]).length, ODDS_FAQ.length);
+assert.doesNotMatch(
+  JSON.stringify(ODDS_SCHEMA_NODES),
+  /"@type":"(?:Offer|Product|Review|AggregateRating)"|expected winnings|real odds/i,
+);
 
 const toolsHubSource = readFileSync(
   new URL('../src/routes/tools/index.astro', import.meta.url),

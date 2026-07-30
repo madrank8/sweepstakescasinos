@@ -6,14 +6,17 @@ import ContentLayout from '../../../layouts/ContentLayout.astro';
 import OddsCalculator from '../../../components/odds/OddsCalculator.astro';
 import OddsCasinoRecommendations from '../../../components/odds/OddsCasinoRecommendations.astro';
 import { getPartner, type AffiliatePartner } from '../../../data/affiliates';
-import { faqPageNode, ORG_ID } from '../../../lib/schema';
-
-const ORIGIN = 'https://sweepstakeswiz.com';
-const canonicalPath = '/tools/sweepstakes-odds-calculator/';
-const canonical = `${ORIGIN}${canonicalPath}`;
-const title = 'Sweepstakes Odds Calculator: Exact Odds & Multiple Prizes | SweepstakesWiz';
-const description =
-  'Calculate exact sweepstakes odds without replacement, estimate an unknown entry pool, compare free versus paid entries, and check multiple independent drawings.';
+import {
+  ODDS_BREADCRUMBS,
+  ODDS_CANONICAL_PATH,
+  ODDS_DATE_MODIFIED,
+  ODDS_DATE_PUBLISHED,
+  ODDS_DESCRIPTION,
+  ODDS_FAQ,
+  ODDS_MAIN_ENTITY_ID,
+  ODDS_SCHEMA_NODES,
+  ODDS_TITLE,
+} from '../../../lib/oddsPageSchema';
 
 const ranking = await getEntry('comparisons', 'sweepstakes-casinos');
 if (!ranking || ranking.data.draft) {
@@ -28,68 +31,20 @@ if (resolvedPartners.some((partner) => !partner)) {
   throw new Error(`Odds calculator ranking contains an unknown partner: ${topSlugs.join(', ')}`);
 }
 const topPartners = resolvedPartners as [AffiliatePartner, AffiliatePartner, AffiliatePartner];
-
-const breadcrumbs = [
-  { name: 'Home', path: '/' },
-  { name: 'Tools', path: '/tools/' },
-  { name: 'Sweepstakes Odds Calculator', path: canonicalPath },
-];
-
-const faq = [
-  {
-    q: 'How does this sweepstakes odds calculator work?',
-    a: 'It calculates the chance that at least one of your entries is selected when a stated number of unique winning entries is drawn without replacement from a known total. It evaluates the exact combinatorial model numerically in log space; it does not run a simulation.',
-  },
-  {
-    q: 'What if I do not know the total number of entries?',
-    a: 'Enter your best estimate of the total, including your own entries. The calculator shows an estimated range using 0.8 times the estimate, the entered estimate, and 1.25 times the estimate. Those are transparent product assumptions, not a confidence interval or operator data.',
-  },
-  {
-    q: 'How do multiple prizes change my odds?',
-    a: 'More unique prizes increase the chance that at least one of your entries is selected, provided winners are drawn without replacement. The calculator rejects a prize count greater than the total number of entries.',
-  },
-  {
-    q: 'How are free and purchase-associated entries compared?',
-    a: 'The calculator shows combined odds in the current pool, free-only odds while leaving the current pool unchanged, and a no-purchase counterfactual that removes your purchase-associated entries from both your entry count and the pool total.',
-  },
-  {
-    q: 'Can this calculator reveal an operator’s actual odds?',
-    a: 'No. It can calculate exact odds only when the total entry pool and prize count are known. If an operator does not disclose the pool, the estimate mode remains an assumption and does not override the operator’s official rules.',
-  },
-  {
-    q: 'Do more entries guarantee a win?',
-    a: 'No. More entries can increase the calculated probability, but they do not guarantee a win unless the mathematical result is exactly 100 percent under the stated inputs and assumptions. The calculator does not recommend spending or compare purchase value.',
-  },
-];
-
-const webApplicationLd = {
-  '@type': 'WebApplication',
-  '@id': `${canonical}#app`,
-  name: 'SweepstakesWiz Sweepstakes Odds Calculator',
-  url: canonical,
-  description,
-  applicationCategory: 'UtilitiesApplication',
-  operatingSystem: 'Any',
-  browserRequirements: 'Requires JavaScript',
-  isAccessibleForFree: true,
-  publisher: { '@id': ORG_ID },
-};
-const faqLd = faqPageNode(canonical, faq);
-if (!faqLd) throw new Error('Odds calculator FAQ schema must not be empty.');
 ---
 
 <ContentLayout
-  title={title}
-  description={description}
-  canonicalPath={canonicalPath}
-  breadcrumbs={breadcrumbs}
+  title={ODDS_TITLE}
+  description={ODDS_DESCRIPTION}
+  canonicalPath={ODDS_CANONICAL_PATH}
+  breadcrumbs={ODDS_BREADCRUMBS}
   heroTitle={'Sweepstakes <span class="accent">Odds Calculator</span>'}
   heroSubtitle="Calculate exact without-replacement odds, or explore a clearly labeled range when the total entry pool is unknown."
   pageType="WebPage"
-  datePublished="2026-07-30"
-  dateModified="2026-07-30"
-  mainEntityId={`${canonical}#app`}
-  jsonLd={[webApplicationLd, faqLd]}
+  datePublished={ODDS_DATE_PUBLISHED}
+  dateModified={ODDS_DATE_MODIFIED}
+  mainEntityId={ODDS_MAIN_ENTITY_ID}
+  jsonLd={ODDS_SCHEMA_NODES}
 >
   <OddsCalculator />
   <OddsCasinoRecommendations partners={topPartners} />
@@ -223,7 +178,7 @@ if (!faqLd) throw new Error('Odds calculator FAQ schema must not be empty.');
 
   <section aria-labelledby="calculator-faq">
     <h2 id="calculator-faq">Frequently asked questions</h2>
-    {faq.map((item) => (
+    {ODDS_FAQ.map((item) => (
       <>
         <h3>{item.q}</h3>
         <p>{item.a}</p>

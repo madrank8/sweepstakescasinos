@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
 import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
+import { getPartner } from '../src/data/affiliates';
 
 const root = process.cwd();
 const read = (path: string) => readFileSync(join(root, path), 'utf8');
@@ -21,6 +22,7 @@ assert.equal(
 
 for (const path of [
   'src/lib/sweepstakesOdds.ts',
+  'src/lib/oddsPageSchema.ts',
   'src/components/odds/OddsCalculator.astro',
   'src/components/odds/OddsCasinoRecommendations.astro',
   'src/routes/tools/index.astro',
@@ -31,7 +33,19 @@ for (const path of [
   assert.ok(existsSync(join(root, path)), `expected ${path}`);
 }
 
+const {
+  ODDS_CANONICAL,
+  ODDS_FAQ,
+  ODDS_MAIN_ENTITY_ID,
+  buildOddsPageGraph,
+} = await import('../src/lib/oddsPageSchema');
+
 const workflow = read('.github/workflows/ci.yml');
+assert.match(
+  workflow,
+  /uses: actions\/checkout@v4\s+with:\s+fetch-depth: 0/,
+  'CI checkout must fetch full Git history for authoritative authored-source lastmod',
+);
 const buildStep = workflow.indexOf('- name: Build');
 const integrationStep = workflow.indexOf('- name: Verify sweepstakes odds integration');
 assert.ok(buildStep >= 0, 'CI contains Build step');
@@ -70,6 +84,47 @@ for (const marker of keyboardOrder) {
   const markerIndex = calculator.indexOf(marker);
   assert.ok(markerIndex > previousControlIndex, `keyboard order includes ${marker}`);
   previousControlIndex = markerIndex;
+}
+const formMatch = calculator.match(/<form\b[\s\S]*?<\/form>/);
+assert.ok(formMatch, 'calculator contains one form');
+const formMarkup = formMatch[0];
+const optionsStart = formMarkup.indexOf('<details class="odds-options">');
+const optionsEnd = formMarkup.indexOf('</details>', optionsStart);
+assert.ok(optionsStart >= 0 && optionsEnd > optionsStart, 'More options is a collapsed details block');
+const baseFormMarkup = formMarkup.slice(0, optionsStart);
+const advancedFormMarkup = formMarkup.slice(optionsStart, optionsEnd);
+const inputAttributes = (markup: string) =>
+  [...markup.matchAll(/<input\b[^>]*>/g)].map(([tag]) => {
+    const attributes = Object.fromEntries(
+      [...tag.matchAll(/\b([a-zA-Z:-]+)(?:="([^"]*)")?/g)].map(([, name, value]) => [
+        name,
+        value ?? true,
+      ]),
+    );
+    return { tag, attributes };
+  });
+const baseTextInputs = inputAttributes(baseFormMarkup).filter(
+  ({ attributes }) => attributes.type === 'text',
+);
+assert.deepEqual(
+  baseTextInputs.map(({ attributes }) => attributes.name),
+  ['entries', 'pool', 'prizes'],
+  'exactly three visible base text inputs precede More options',
+);
+assert.equal(baseTextInputs[2].attributes.value, '1', 'prizes defaults to 1');
+for (const { tag } of baseTextInputs) {
+  assert.doesNotMatch(tag, /\b(?:hidden|disabled)\b/, 'base text inputs are visible and enabled');
+}
+const advancedTextInputs = inputAttributes(advancedFormMarkup).filter(
+  ({ attributes }) => attributes.type === 'text',
+);
+assert.deepEqual(
+  advancedTextInputs.map(({ attributes }) => attributes.name),
+  ['freeEntries', 'drawings'],
+  'advanced text inputs remain inside More options',
+);
+for (const { tag } of advancedTextInputs) {
+  assert.match(tag, /\bdisabled\b/, 'advanced text inputs start disabled');
 }
 const calculatorAnalyticsBlocks = [...calculator.matchAll(/sendEvent\(([\s\S]*?)\);/g)]
   .map((match) => match[1])
@@ -115,6 +170,13 @@ const generatedRoutePath = 'src/pages/tools/sweepstakes-odds-calculator/index.as
 const route = read(routePath);
 const generatedRoute = read(generatedRoutePath);
 assert.equal(generatedRoute, route, 'generated calculator route exactly matches authored route');
+const toolsRoutePath = 'src/routes/tools/index.astro';
+const generatedToolsRoutePath = 'src/pages/tools/index.astro';
+assert.equal(
+  read(generatedToolsRoutePath),
+  read(toolsRoutePath),
+  'generated tools hub exactly matches authored route',
+);
 
 const orderedRouteMarkers = [
   '<OddsCalculator />',
@@ -154,27 +216,14 @@ for (const editorialCopy of [
   assert.ok(generatedRoute.includes(editorialCopy), `generated route contains ${editorialCopy}`);
 }
 
-const faqPairs = [...route.matchAll(/\{\s*q: '([^']+)',\s*a: '([^']+)',\s*\}/g)].map(
-  ([, q, a]) => ({ q, a }),
-);
-assert.equal(faqPairs.length, 6, 'route defines six FAQ pairs');
-assert.match(route, /const faqLd = faqPageNode\(canonical, faq\)/);
 assert.match(
   route,
-  /\{faq\.map\(\(item\) => \([\s\S]*?<h3>\{item\.q\}<\/h3>[\s\S]*?<p>\{item\.a\}<\/p>/,
-  'visible FAQ and FAQ schema consume the same faq collection',
+  /from '\.\.\/\.\.\/\.\.\/lib\/oddsPageSchema'/,
+  'production route imports the shared odds-page schema inputs',
 );
-
-assert.ok(route.includes("'@id': `${canonical}#app`"), 'route defines #app');
-assert.match(route, /mainEntityId=\{`\$\{canonical\}#app`\}/, 'WebPage points to #app');
-assert.match(route, /faqPageNode\(canonical, faq\)/, 'shared FAQ helper defines #faq');
-for (const forbiddenType of ['AggregateRating', 'Offer', 'Product', 'Review']) {
-  assert.doesNotMatch(
-    route,
-    new RegExp(`['"]@type['"]\\s*:\\s*['"]${forbiddenType}['"]`),
-    `route schema excludes ${forbiddenType}`,
-  );
-}
+assert.match(route, /\{ODDS_FAQ\.map\(\(item\) => \(/, 'visible FAQ consumes shared FAQ data');
+assert.match(route, /mainEntityId=\{ODDS_MAIN_ENTITY_ID\}/, 'WebPage points to shared #app ID');
+assert.match(route, /jsonLd=\{ODDS_SCHEMA_NODES\}/, 'route consumes shared schema nodes');
 assert.equal((route.match(/href="\/best\/sweepstakes-casinos\/"/g) ?? []).length, 1);
 
 const layout = read('src/layouts/ContentLayout.astro');
@@ -184,17 +233,82 @@ assert.equal(
   'layout emits one consolidated JSON-LD block',
 );
 assert.match(layout, /buildPageGraph\(/);
-const schema = read('src/lib/schema.ts');
-assert.match(schema, /'@id': `\$\{url\}#webpage`/);
-assert.match(schema, /'@id': `\$\{pageUrl\}#breadcrumb`/);
-assert.match(schema, /'@id': `\$\{pageUrl\}#faq`/);
+
+const producedGraph = buildOddsPageGraph() as Record<string, unknown>;
+assert.equal(producedGraph['@context'], 'https://schema.org');
+const graph = producedGraph['@graph'] as Array<Record<string, unknown>>;
+assert.ok(Array.isArray(graph), 'odds page graph is executable output');
+const expectedGraphNodes = [
+  ['WebPage', `${ODDS_CANONICAL}#webpage`],
+  ['BreadcrumbList', `${ODDS_CANONICAL}#breadcrumb`],
+  ['WebApplication', `${ODDS_CANONICAL}#app`],
+  ['FAQPage', `${ODDS_CANONICAL}#faq`],
+] as const;
+for (const [type, id] of expectedGraphNodes) {
+  const matches = graph.filter((node) => node['@type'] === type);
+  assert.equal(matches.length, 1, `graph contains exactly one ${type}`);
+  assert.equal(matches[0]['@id'], id, `${type} uses exact ID ${id}`);
+}
+const webPage = graph.find((node) => node['@type'] === 'WebPage')!;
+assert.deepEqual(webPage.mainEntity, { '@id': ODDS_MAIN_ENTITY_ID });
+const faqPage = graph.find((node) => node['@type'] === 'FAQPage')!;
+assert.deepEqual(
+  (faqPage.mainEntity as Array<Record<string, unknown>>).map((question) => ({
+    q: question.name,
+    a: (question.acceptedAnswer as Record<string, unknown>).text,
+  })),
+  ODDS_FAQ,
+  'visible FAQ data exactly equals produced FAQPage questions and answers',
+);
+const definedIds = new Set<string>();
+const referencedIds = new Set<string>();
+const collectGraphIds = (value: unknown): void => {
+  if (Array.isArray(value)) {
+    value.forEach(collectGraphIds);
+    return;
+  }
+  if (value === null || typeof value !== 'object') return;
+  const node = value as Record<string, unknown>;
+  const keys = Object.keys(node);
+  if (typeof node['@id'] === 'string') {
+    if (keys.length === 1) referencedIds.add(node['@id']);
+    else definedIds.add(node['@id']);
+  }
+  for (const [key, child] of Object.entries(node)) {
+    if (key !== '@id') collectGraphIds(child);
+  }
+};
+collectGraphIds(graph);
+for (const id of referencedIds) {
+  if (id.startsWith('https://sweepstakeswiz.com') && id.includes('#')) {
+    assert.ok(definedIds.has(id), `produced graph resolves internal @id ${id}`);
+  }
+}
+const serializedGraph = JSON.stringify(producedGraph);
+assert.doesNotMatch(
+  serializedGraph,
+  /"@type":"(?:Offer|Product|Review|AggregateRating)"/,
+  'produced graph excludes prohibited schema types',
+);
+assert.doesNotMatch(
+  serializedGraph,
+  /"(?:entries|totalEntries|prizes|freeEntries|drawings|probability|reciprocal)":|123457|7654321/,
+  'produced graph excludes visitor-derived fields and values',
+);
 
 const ranking = read('src/content/comparisons/sweepstakes-casinos.mdx');
-const firstThree = [...ranking.matchAll(/^  - ([a-z0-9-]+)$/gm)].slice(0, 3).map((m) => m[1]);
-assert.deepEqual(firstThree, ['mcluck', 'pulsz', 'crown-coins']);
+const rankingBlock = ranking.match(/^partnerSlugs:\s*\n((?:  - [a-z0-9-]+\n)+)/m);
+assert.ok(rankingBlock, 'ranking contains partnerSlugs frontmatter');
+const rankedSlugs = [...rankingBlock[1].matchAll(/^  - ([a-z0-9-]+)$/gm)].map((m) => m[1]);
+const firstThree = rankedSlugs.slice(0, 3);
+assert.equal(firstThree.length, 3, 'ranking supplies exactly three ordered recommendation slots');
+assert.equal(new Set(firstThree).size, 3, 'top three ranking slugs are unique');
 for (const slug of firstThree) {
   assert.ok(existsSync(join(root, `reviews/${slug}.html`)), `review exists for ${slug}`);
+  assert.equal(getPartner(slug)?.slug, slug, `affiliate partner resolves for ${slug}`);
 }
+assert.match(route, /ranking\.data\.partnerSlugs\.slice\(0, 3\)/, 'route consumes first three rankings');
+assert.match(route, /topSlugs\.map\(\(slug\) => getPartner\(slug\)\)/, 'route resolves ranked partners');
 
 const sitemap = read('sitemap.xml');
 const sitemapEntry = (url: string) => {
@@ -220,28 +334,60 @@ const authoredSitemapPages = [
     source: routePath,
   },
 ];
+assert.equal(
+  execFileSync('git', ['rev-parse', '--is-shallow-repository'], {
+    cwd: root,
+    encoding: 'utf8',
+  }).trim(),
+  'false',
+  'full Git history is required for authoritative authored-source lastmod',
+);
 for (const { url, source } of authoredSitemapPages) {
-  const expectedLastmod = execFileSync(
-    'git',
-    ['log', '-1', '--format=%cs', '--', source],
-    { cwd: root, encoding: 'utf8' },
-  ).trim();
+  let expectedLastmod = '';
+  try {
+    expectedLastmod = execFileSync('git', ['log', '-1', '--format=%cs', '--', source], {
+      cwd: root,
+      encoding: 'utf8',
+    }).trim();
+  } catch (error) {
+    throw new Error(`Git history unavailable for authored-source lastmod: ${source}`, {
+      cause: error,
+    });
+  }
   assert.ok(expectedLastmod, `git provides authored-source lastmod for ${source}`);
   assert.equal(sitemapEntry(url), expectedLastmod, `${url} lastmod comes from ${source}`);
 }
 
-for (const path of [
-  'partials/nav.html',
-  'partials/footer.html',
-  'src/content/guides/dual-currency-sweepstakes-model.mdx',
-  'src/content/guides/amoe-sweepstakes-casinos.mdx',
-  'src/content/guides/sweeps-coins-explained.mdx',
-  'src/routes/bonuses/no-deposit/index.astro',
-  'reviews/mcluck.html',
-  'reviews/pulsz.html',
-  'reviews/crown-coins.html',
-]) {
-  assert.match(read(path), /\/tools\/(?:sweepstakes-odds-calculator\/)?/, `${path} tools link`);
+const requiredToolLinks = [
+  ['partials/nav.html', '/tools/'],
+  ['partials/footer.html', '/tools/'],
+  ['src/content/guides/dual-currency-sweepstakes-model.mdx', '/tools/sweepstakes-odds-calculator/'],
+  ['src/content/guides/amoe-sweepstakes-casinos.mdx', '/tools/sweepstakes-odds-calculator/'],
+  ['src/content/guides/sweeps-coins-explained.mdx', '/tools/sweepstakes-odds-calculator/'],
+  ['src/routes/bonuses/no-deposit/index.astro', '/tools/sweepstakes-odds-calculator/'],
+  ...firstThree.map(
+    (slug) => [`reviews/${slug}.html`, '/tools/sweepstakes-odds-calculator/'] as const,
+  ),
+] as const;
+const authoredLinkDestinations = (path: string) => {
+  const source = read(path);
+  const hrefs = [...source.matchAll(/<a\b[^>]*\bhref\s*=\s*(["'])(.*?)\1/g)].map(
+    (match) => match[2],
+  );
+  const markdownLinks = [...source.matchAll(/\[[^\]]+\]\(([^)\s]+)\)/g)].map(
+    (match) => match[1],
+  );
+  return [...hrefs, ...markdownLinks];
+};
+for (const [path, expectedDestination] of requiredToolLinks) {
+  const toolDestinations = authoredLinkDestinations(path).filter((href) =>
+    href.startsWith('/tools/'),
+  );
+  assert.deepEqual(
+    toolDestinations,
+    [expectedDestination],
+    `${path} has exactly the expected authored tool link`,
+  );
 }
 
 const trustCss = read('partials/trust.css');
