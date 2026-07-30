@@ -1,0 +1,369 @@
+---
+// All behavior is bundled below; this component has no server props.
+---
+<section class="odds-calculator" data-odds-calculator aria-labelledby="odds-calculator-title">
+  <h2 id="odds-calculator-title">Calculate your sweepstakes odds</h2>
+  <p class="odds-intro">
+    This calculates the chance that at least one of your entries is selected when unique winning
+    entries are drawn without replacement.
+  </p>
+
+  <div class="odds-error-summary" data-error-summary tabindex="-1" role="alert" hidden>
+    <h3>Check the highlighted fields</h3>
+    <ul data-error-list></ul>
+  </div>
+
+  <form data-odds-form novalidate>
+    <div class="odds-grid">
+      <div class="odds-field" data-field-wrap="entries">
+        <label for="odds-entries">Your entries</label>
+        <input id="odds-entries" name="entries" type="text" inputmode="numeric"
+          pattern="[0-9]*" autocomplete="off" aria-describedby="odds-entries-hint odds-entries-error" />
+        <p id="odds-entries-hint" class="odds-hint">Include free and purchase-associated entries.</p>
+        <p id="odds-entries-error" class="odds-field-error" data-error-for="entries" hidden></p>
+      </div>
+
+      <fieldset class="odds-field odds-pool-field">
+        <legend>Entry pool</legend>
+        <label for="odds-pool" data-pool-label>Total entries</label>
+        <input id="odds-pool" name="pool" type="text" inputmode="numeric"
+          pattern="[0-9]*" autocomplete="off" aria-describedby="odds-pool-hint odds-pool-error" />
+        <p id="odds-pool-hint" class="odds-hint" data-pool-hint>
+          Include your entries in the drawing total.
+        </p>
+        <p id="odds-pool-error" class="odds-field-error" data-error-for="pool" hidden></p>
+        <label class="odds-mode-toggle">
+          <input type="checkbox" data-estimated-toggle />
+          I don’t know the total
+        </label>
+      </fieldset>
+
+      <div class="odds-field" data-field-wrap="prizes">
+        <label for="odds-prizes">Number of prizes</label>
+        <input id="odds-prizes" name="prizes" type="text" inputmode="numeric"
+          pattern="[0-9]*" autocomplete="off" value="1"
+          aria-describedby="odds-prizes-hint odds-prizes-error" />
+        <p id="odds-prizes-hint" class="odds-hint">Each prize selects one unique winning entry.</p>
+        <p id="odds-prizes-error" class="odds-field-error" data-error-for="prizes" hidden></p>
+      </div>
+    </div>
+
+    <details class="odds-options">
+      <summary>More options</summary>
+      <div class="odds-option">
+        <label>
+          <input type="checkbox" data-entry-mix-toggle />
+          Compare free vs paid entries
+        </label>
+        <div data-entry-mix-fields hidden>
+          <label for="odds-free-entries">How many of your entries were free/AMOE?</label>
+          <input id="odds-free-entries" name="freeEntries" type="text" inputmode="numeric"
+            pattern="[0-9]*" autocomplete="off" disabled
+            aria-describedby="odds-free-entries-hint odds-free-entries-error" />
+          <p id="odds-free-entries-hint" class="odds-hint">
+            Purchase-associated entries are derived as your entries minus free entries.
+          </p>
+          <p id="odds-free-entries-error" class="odds-field-error"
+            data-error-for="freeEntries" hidden></p>
+        </div>
+      </div>
+
+      <div class="odds-option">
+        <label>
+          <input type="checkbox" data-drawings-toggle />
+          Multiple drawings
+        </label>
+        <div data-drawings-fields hidden>
+          <label for="odds-drawings">Number of independent drawings</label>
+          <input id="odds-drawings" name="drawings" type="text" inputmode="numeric"
+            pattern="[0-9]*" autocomplete="off" disabled
+            aria-describedby="odds-drawings-hint odds-drawings-error" />
+          <p id="odds-drawings-hint" class="odds-hint">
+            Assumes each drawing is independent with the same pool and probability.
+          </p>
+          <p id="odds-drawings-error" class="odds-field-error"
+            data-error-for="drawings" hidden></p>
+        </div>
+      </div>
+    </details>
+
+    <p class="odds-assumption">Unique winning entries · drawn without replacement</p>
+    <button class="odds-submit" type="submit">Calculate my odds</button>
+  </form>
+
+  <section class="odds-result" data-result aria-live="polite" hidden>
+    <h2 tabindex="-1" data-result-heading></h2>
+    <p class="odds-result-percent" data-result-percent></p>
+    <p data-result-assumption></p>
+    <div data-entry-mix-result hidden>
+      <h3>Free and purchase-associated entry comparison</h3>
+      <dl>
+        <div><dt>Combined current-pool odds</dt><dd data-mix-combined></dd></div>
+        <div><dt>Free-only odds in the same current pool</dt><dd data-mix-free-current></dd></div>
+        <div><dt>No-purchase counterfactual</dt><dd data-mix-no-purchase></dd></div>
+      </dl>
+    </div>
+    <p data-drawings-result hidden></p>
+  </section>
+
+  <noscript>
+    <p class="odds-noscript">
+      The calculator needs JavaScript to calculate a result. The methodology, examples, FAQ,
+      disclosures, casino reviews, and related guides below remain available.
+    </p>
+  </noscript>
+</section>
+
+<script>
+  import {
+    entryMixProbabilities,
+    estimateProbabilityRange,
+    estimatedEntryMixProbabilities,
+    exactWinProbability,
+    formatChance,
+    repeatProbability,
+    validateCalculatorInput,
+    type OddsField,
+    type ValidationIssue,
+  } from '../../lib/sweepstakesOdds';
+
+  declare global {
+    interface Window {
+      gtag?: (...args: unknown[]) => void;
+    }
+  }
+
+  function sendEvent(name: string, params: Record<string, string | boolean>): void {
+    try {
+      window.gtag?.('event', name, params);
+    } catch {
+      // Analytics is optional and must never block calculation.
+    }
+  }
+
+  function initialize(root: HTMLElement): void {
+    const form = root.querySelector<HTMLFormElement>('[data-odds-form]')!;
+    const pool = root.querySelector<HTMLInputElement>('#odds-pool')!;
+    const poolLabel = root.querySelector<HTMLElement>('[data-pool-label]')!;
+    const poolHint = root.querySelector<HTMLElement>('[data-pool-hint]')!;
+    const estimatedToggle = root.querySelector<HTMLInputElement>('[data-estimated-toggle]')!;
+    const entryMixToggle = root.querySelector<HTMLInputElement>('[data-entry-mix-toggle]')!;
+    const drawingsToggle = root.querySelector<HTMLInputElement>('[data-drawings-toggle]')!;
+    const opened = new Set<'entry_mix' | 'multiple_drawings'>();
+
+    const fieldId: Record<OddsField, string> = {
+      entries: 'odds-entries',
+      pool: 'odds-pool',
+      prizes: 'odds-prizes',
+      freeEntries: 'odds-free-entries',
+      drawings: 'odds-drawings',
+    };
+
+    function clearErrors(): void {
+      root.querySelector<HTMLElement>('[data-error-summary]')!.hidden = true;
+      root.querySelector<HTMLElement>('[data-error-list]')!.replaceChildren();
+      root.querySelectorAll<HTMLElement>('[data-error-for]').forEach((node) => {
+        node.hidden = true;
+        node.textContent = '';
+      });
+      Object.values(fieldId).forEach((id) => {
+        root.querySelector<HTMLElement>(`#${id}`)?.removeAttribute('aria-invalid');
+      });
+    }
+
+    function showErrors(issues: ValidationIssue[]): void {
+      clearErrors();
+      const summary = root.querySelector<HTMLElement>('[data-error-summary]')!;
+      const list = root.querySelector<HTMLUListElement>('[data-error-list]')!;
+      for (const issue of issues) {
+        const input = root.querySelector<HTMLElement>(`#${fieldId[issue.field]}`);
+        const inline = root.querySelector<HTMLElement>(`[data-error-for="${issue.field}"]`);
+        input?.setAttribute('aria-invalid', 'true');
+        if (inline) {
+          inline.textContent = `Error: ${issue.message}`;
+          inline.hidden = false;
+        }
+        const item = document.createElement('li');
+        const link = document.createElement('a');
+        link.href = `#${fieldId[issue.field]}`;
+        link.textContent = issue.message;
+        item.append(link);
+        list.append(item);
+      }
+      summary.hidden = false;
+      summary.focus();
+    }
+
+    function setAdvanced(
+      toggle: HTMLInputElement,
+      selector: string,
+      option: 'entry_mix' | 'multiple_drawings',
+    ): void {
+      const fields = root.querySelector<HTMLElement>(selector)!;
+      fields.hidden = !toggle.checked;
+      fields.querySelectorAll<HTMLInputElement>('input').forEach((input) => {
+        input.disabled = !toggle.checked;
+      });
+      if (toggle.checked && !opened.has(option)) {
+        opened.add(option);
+        sendEvent('odds_options_opened', { option_name: option });
+      }
+      clearErrors();
+    }
+
+    estimatedToggle.addEventListener('change', () => {
+      pool.value = '';
+      poolLabel.textContent = estimatedToggle.checked
+        ? 'Your best estimate of total entries'
+        : 'Total entries';
+      poolHint.textContent = estimatedToggle.checked
+        ? 'Include your entries; the calculator applies stated 0.8× and 1.25× assumptions.'
+        : 'Include your entries in the drawing total.';
+      clearErrors();
+    });
+    entryMixToggle.addEventListener('change', () =>
+      setAdvanced(entryMixToggle, '[data-entry-mix-fields]', 'entry_mix'));
+    drawingsToggle.addEventListener('change', () =>
+      setAdvanced(drawingsToggle, '[data-drawings-fields]', 'multiple_drawings'));
+
+    form.addEventListener('submit', (event) => {
+      event.preventDefault();
+      const data = new FormData(form);
+      const result = validateCalculatorInput({
+        poolMode: estimatedToggle.checked ? 'estimated' : 'known',
+        entries: String(data.get('entries') ?? ''),
+        pool: String(data.get('pool') ?? ''),
+        prizes: String(data.get('prizes') ?? ''),
+        entryMixActive: entryMixToggle.checked,
+        freeEntries: entryMixToggle.checked ? String(data.get('freeEntries') ?? '') : undefined,
+        multipleDrawingsActive: drawingsToggle.checked,
+        drawings: drawingsToggle.checked ? String(data.get('drawings') ?? '') : undefined,
+      });
+      if (!result.ok) {
+        showErrors(result.issues);
+        return;
+      }
+      clearErrors();
+
+      const scenario = result.value;
+      const resultRegion = root.querySelector<HTMLElement>('[data-result]')!;
+      const heading = root.querySelector<HTMLElement>('[data-result-heading]')!;
+      const percent = root.querySelector<HTMLElement>('[data-result-percent]')!;
+      const assumption = root.querySelector<HTMLElement>('[data-result-assumption]')!;
+      let singleProbability: number;
+
+      if (scenario.poolMode === 'known') {
+        singleProbability = exactWinProbability({
+          entries: scenario.entries,
+          totalEntries: scenario.pool,
+          prizes: scenario.prizes,
+        });
+        const display = formatChance(singleProbability);
+        heading.textContent = display.headline.startsWith('No chance') ||
+          display.headline.startsWith('Certain')
+          ? display.headline
+          : `Your calculated chance is ${display.reciprocal}.`;
+        percent.textContent = `Calculated probability: ${display.percent}.`;
+        assumption.textContent =
+          'Known-pool calculation: unique winning entries drawn without replacement.';
+      } else {
+        const range = estimateProbabilityRange({
+          entries: scenario.entries,
+          estimate: scenario.pool,
+          prizes: scenario.prizes,
+        });
+        singleProbability = range.baseChance;
+        const reciprocalOnly = (probability: number) =>
+          formatChance(probability).reciprocal.replace(/^about /, '');
+        if (scenario.entries === 0) {
+          heading.textContent = 'No chance with zero entries.';
+        } else if (range.worst === 1) {
+          heading.textContent = 'Certain under these inputs (100%).';
+        } else if (range.best === 1) {
+          heading.textContent =
+            `Your estimated chance ranges from certainty under the low-pool assumption to ` +
+            `${reciprocalOnly(range.worst)} (base estimate: ` +
+            `${range.baseChance === 1 ? 'certainty' : reciprocalOnly(range.baseChance)}).`;
+        } else {
+          heading.textContent =
+            `Your estimated chance is about ${reciprocalOnly(range.best)}` +
+            ` to ${reciprocalOnly(range.worst)}` +
+            ` (base estimate: ${reciprocalOnly(range.baseChance)}).`;
+        }
+        percent.textContent =
+          `Estimated probability range: ${formatChance(range.worst).percent} to ` +
+          `${formatChance(range.best).percent}; base assumption ${formatChance(range.baseChance).percent}.`;
+        assumption.textContent =
+          'Estimate assumptions only: 0.8×, entered total, and 1.25× total entries. This is not a confidence interval or operator data.';
+      }
+
+      const mixRegion = root.querySelector<HTMLElement>('[data-entry-mix-result]')!;
+      mixRegion.hidden = !scenario.entryMixActive;
+      if (scenario.entryMixActive && scenario.freeEntries !== undefined) {
+        const mix = scenario.poolMode === 'known'
+          ? entryMixProbabilities({
+              entries: scenario.entries,
+              totalEntries: scenario.pool,
+              prizes: scenario.prizes,
+              freeEntries: scenario.freeEntries,
+            })
+          : estimatedEntryMixProbabilities({
+              entries: scenario.entries,
+              estimate: scenario.pool,
+              prizes: scenario.prizes,
+              freeEntries: scenario.freeEntries,
+            }).base;
+        root.querySelector<HTMLElement>('[data-mix-combined]')!.textContent =
+          `${formatChance(mix.combined).reciprocal} (${formatChance(mix.combined).percent})`;
+        root.querySelector<HTMLElement>('[data-mix-free-current]')!.textContent =
+          `${formatChance(mix.freeOnlyCurrentPool).reciprocal} (${formatChance(mix.freeOnlyCurrentPool).percent})`;
+        root.querySelector<HTMLElement>('[data-mix-no-purchase]')!.textContent =
+          `${formatChance(mix.noPurchase).reciprocal} (${formatChance(mix.noPurchase).percent})`;
+      }
+
+      const drawingsResult = root.querySelector<HTMLElement>('[data-drawings-result]')!;
+      drawingsResult.hidden = !scenario.multipleDrawingsActive;
+      if (scenario.multipleDrawingsActive && scenario.drawings !== undefined) {
+        const repeated = repeatProbability(singleProbability, scenario.drawings);
+        drawingsResult.textContent =
+          `Across the entered number of independent drawings: ${formatChance(repeated).reciprocal} ` +
+          `(${formatChance(repeated).percent}). This requires a stable pool and probability; it does not apply if entries roll over or draws are linked.`;
+      }
+
+      resultRegion.hidden = false;
+      heading.focus();
+      sendEvent('odds_calculation_completed', {
+        pool_mode: scenario.poolMode,
+        entry_mix_active: scenario.entryMixActive,
+        multiple_drawings_active: scenario.multipleDrawingsActive,
+      });
+    });
+  }
+
+  document.querySelectorAll<HTMLElement>('[data-odds-calculator]').forEach(initialize);
+</script>
+
+<style>
+  .odds-calculator{border:1px solid #dbe3ee;border-radius:16px;background:#fff;padding:24px;margin:0 0 26px;box-shadow:0 4px 18px rgba(10,22,40,.08)}
+  .odds-intro,.odds-hint,.odds-assumption{color:#475569}
+  .odds-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+  .odds-field{min-width:0;border:0;padding:0;margin:0}
+  .odds-field label,.odds-field legend,.odds-option label{display:block;font-weight:800;color:#0a1628}
+  .odds-field input,.odds-option input[type="text"]{width:100%;min-height:44px;border:1px solid #94a3b8;border-radius:9px;padding:9px 11px;font:inherit;background:#fff;color:#0f172a}
+  .odds-field input:focus-visible,.odds-option input:focus-visible,.odds-submit:focus-visible,summary:focus-visible,.odds-mode-toggle input:focus-visible{outline:3px solid #fbbf24;outline-offset:2px}
+  [aria-invalid="true"]{border-color:#b91c1c!important;box-shadow:0 0 0 1px #b91c1c}
+  .odds-field-error{color:#991b1b;font-weight:700}
+  .odds-error-summary{border:2px solid #b91c1c;border-radius:10px;background:#fef2f2;padding:14px 16px;margin:16px 0}
+  .odds-error-summary h3{margin:0 0 8px}.odds-error-summary ul{margin:0 0 0 20px}
+  .odds-mode-toggle{display:flex!important;align-items:center;gap:8px;min-height:44px;margin-top:8px;font-weight:600!important}
+  .odds-options{border-top:1px solid #e2e8f0;border-bottom:1px solid #e2e8f0;padding:12px 0;margin:18px 0}
+  .odds-options summary{min-height:44px;display:flex;align-items:center;font-weight:800;cursor:pointer}
+  .odds-option{padding:10px 0}.odds-option>label{display:flex;align-items:center;gap:10px;min-height:44px}
+  .odds-submit{min-height:48px;border:0;border-radius:10px;padding:10px 18px;background:linear-gradient(135deg,#fbbf24,#f59e0b);color:#0a1628;font:800 1rem 'Sora',sans-serif;cursor:pointer}
+  .odds-result{margin-top:22px;border-left:4px solid #10b981;background:#f0fdf4;border-radius:10px;padding:18px}
+  .odds-result h2{margin-top:0}.odds-result dl>div{padding:8px 0;border-top:1px solid #bbf7d0}
+  .odds-result dt{font-weight:800}.odds-result dd{margin:2px 0 0}
+  .odds-noscript{border-left:4px solid #1a56db;background:#eff6ff;padding:12px 14px}
+  @media(max-width:700px){.odds-grid{grid-template-columns:1fr}.odds-calculator{padding:18px}}
+  @media(prefers-reduced-motion:reduce){.odds-calculator *{scroll-behavior:auto!important;transition:none!important}}
+</style>

@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
 import {
   deriveEstimatedPools,
   entryMixProbabilities,
@@ -237,5 +238,17 @@ if (!mixedCrossFieldOrder.ok) {
     ['drawings', 'pool', 'prizes'],
   );
 }
+
+const calculatorSource = readFileSync(
+  new URL('../src/components/odds/OddsCalculator.astro', import.meta.url),
+  'utf8',
+);
+assert.match(calculatorSource, /<form\b/);
+assert.match(calculatorSource, /aria-live="polite"/);
+assert.match(calculatorSource, /data-error-summary/);
+assert.match(calculatorSource, /validateCalculatorInput/);
+assert.match(calculatorSource, /textContent/);
+assert.doesNotMatch(calculatorSource, /localStorage|sessionStorage|fetch\(|XMLHttpRequest/);
+assert.doesNotMatch(calculatorSource, /innerHTML/);
 
 console.log('verify-sweepstakes-odds: OK');
