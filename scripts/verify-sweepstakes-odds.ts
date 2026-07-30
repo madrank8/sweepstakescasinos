@@ -206,6 +206,17 @@ assert.ok(Number.isFinite(exactWinProbability({
   totalEntries: 1_000_000_000,
   prizes: 1,
 })));
+assert.throws(
+  () => exactWinProbability({
+    entries: 2_000_000,
+    totalEntries: 4_000_000,
+    prizes: 2_000_000,
+  }),
+  (error: unknown) =>
+    error instanceof RangeError &&
+    /1,000,000 iteration limit/.test(error.message),
+  'direct exact calculations above the product-iteration cap must fail fast',
+);
 
 const pools = deriveEstimatedPools({ entries: 1, estimate: 5_000, prizes: 10 });
 assert.deepEqual(pools, { low: 4_000, base: 5_000, high: 6_250 });
@@ -247,6 +258,18 @@ assert.equal(formatChance(0).headline, 'No chance with zero entries.');
 assert.equal(formatChance(1).headline, 'Certain under these inputs (100%).');
 assert.equal(formatChance(1 / 1_234).reciprocal, 'about 1 in 1,230');
 assert.equal(formatChance(1e-10).percent, '<0.000001%');
+assert.equal(formatChance(3.456e-8).percent, '0.00000346%');
+for (const nearCertain of [0.9996, 1 - 1e-12]) {
+  const display = formatChance(nearCertain);
+  assert.equal(display.headline, 'Almost certain');
+  assert.equal(display.reciprocal, 'Almost certain');
+  assert.equal(display.percent, '>99.9%');
+  assert.equal(display.approximate, true);
+  assert.doesNotMatch(
+    `${display.headline} ${display.reciprocal} ${display.percent}`,
+    /100%|Certain|1 in 1/,
+  );
+}
 
 const invalidExactInputs = [
   { entries: '1.5', pool: '100', prizes: '1', expected: 'Use a whole number of entries.' },
@@ -269,6 +292,56 @@ for (const c of invalidExactInputs) {
   });
   assert.equal(result.ok, false);
   if (!result.ok) assert.ok(result.issues.some((issue) => issue.message === c.expected));
+}
+
+const acceptedLargePoolSmallLoop = validateCalculatorInput({
+  poolMode: 'known',
+  entries: '1',
+  pool: '1000000000',
+  prizes: '1',
+  entryMixActive: false,
+  multipleDrawingsActive: false,
+});
+assert.equal(acceptedLargePoolSmallLoop.ok, true, 'billion-entry pools remain valid for short products');
+
+const tooLargeMessage =
+  'Use a smaller combination of entries and prizes so the calculation stays instant.';
+for (const input of [
+  {
+    poolMode: 'known' as const,
+    entries: '2000000',
+    pool: '4000000',
+    prizes: '2000000',
+    entryMixActive: false,
+    multipleDrawingsActive: false,
+  },
+  {
+    poolMode: 'estimated' as const,
+    entries: '2000000',
+    pool: '4000000',
+    prizes: '2000000',
+    entryMixActive: false,
+    multipleDrawingsActive: false,
+  },
+  {
+    poolMode: 'known' as const,
+    entries: '3000000',
+    pool: '5000000',
+    prizes: '2000001',
+    entryMixActive: true,
+    freeEntries: '1500000',
+    multipleDrawingsActive: false,
+  },
+]) {
+  const result = validateCalculatorInput(input);
+  assert.equal(result.ok, false, `${input.poolMode} oversized calculation must fail validation`);
+  if (!result.ok) {
+    assert.ok(
+      result.issues.some(
+        (issue) => issue.code === 'calculation_too_large' && issue.message === tooLargeMessage,
+      ),
+    );
+  }
 }
 
 const missingPool = validateCalculatorInput({

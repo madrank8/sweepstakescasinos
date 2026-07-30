@@ -27,6 +27,7 @@ export interface ValidationIssue {
     | 'estimate_overflow'
     | 'free_entries_range'
     | 'counterfactual_impossible'
+    | 'calculation_too_large'
     | 'drawings_below_one';
   message: string;
 }
@@ -100,6 +101,7 @@ export interface ChanceDisplay {
 }
 
 const MAX_SAFE_BIGINT = BigInt(Number.MAX_SAFE_INTEGER);
+const MAX_EXACT_PRODUCT_ITERATIONS = 1_000_000;
 const INTEGER_TEXT = /^-?\d+$/;
 
 function assertSafeInteger(name: string, value: number): void {
@@ -115,8 +117,22 @@ function assertExactInput({ entries, totalEntries, prizes }: ExactOddsInput): vo
   }
 }
 
+function exactProductIterations({ entries, totalEntries, prizes }: ExactOddsInput): number {
+  if (entries === 0 || prizes > totalEntries - entries) return 0;
+  return Math.min(entries, prizes);
+}
+
+function assertCalculationSize(input: ExactOddsInput): void {
+  if (exactProductIterations(input) > MAX_EXACT_PRODUCT_ITERATIONS) {
+    throw new RangeError(
+      `Exact odds calculation exceeds the ${MAX_EXACT_PRODUCT_ITERATIONS.toLocaleString('en-US')} iteration limit`,
+    );
+  }
+}
+
 export function exactWinProbability(input: ExactOddsInput): number {
   assertExactInput(input);
+  assertCalculationSize(input);
   const { entries: m, totalEntries: n, prizes: k } = input;
   if (m === 0) return 0;
   if (k > n - m) return 1;
@@ -226,6 +242,10 @@ export function repeatProbability(probability: number, drawings: number): number
 }
 
 const numberFormat = new Intl.NumberFormat('en-US', { maximumFractionDigits: 6 });
+const percentFormat = new Intl.NumberFormat('en-US', {
+  maximumFractionDigits: 12,
+  useGrouping: false,
+});
 
 export function formatChance(probability: number): ChanceDisplay {
   if (!Number.isFinite(probability) || probability < 0 || probability > 1) {
@@ -250,15 +270,24 @@ export function formatChance(probability: number): ChanceDisplay {
 
   const rawReciprocal = 1 / probability;
   const roundedReciprocal = Number(rawReciprocal.toPrecision(3));
+  const rawPercent = probability * 100;
+  const roundedPercent = Number(rawPercent.toPrecision(3));
+  if (roundedReciprocal <= 1 || roundedPercent >= 100) {
+    return {
+      headline: 'Almost certain',
+      reciprocal: 'Almost certain',
+      percent: '>99.9%',
+      approximate: true,
+    };
+  }
   const approximate =
     Math.abs(rawReciprocal - roundedReciprocal) >
     Number.EPSILON * Math.max(1, Math.abs(rawReciprocal)) * 8;
   const reciprocal = `${approximate ? 'about ' : ''}1 in ${numberFormat.format(roundedReciprocal)}`;
-  const rawPercent = probability * 100;
   const percent =
     rawPercent < 0.000001
       ? '<0.000001%'
-      : `${numberFormat.format(Number(rawPercent.toPrecision(3)))}%`;
+      : `${percentFormat.format(roundedPercent)}%`;
   return { headline: reciprocal, reciprocal, percent, approximate };
 }
 
@@ -404,6 +433,31 @@ export function validateCalculatorInput(raw: RawCalculatorInput): ValidationResu
             message: 'Without your paid entries, this scenario would have more prizes than entries. Adjust the entry split or prize count.',
           });
         }
+      }
+    }
+
+    if (fieldLevelIssueCount === 0 && crossFieldIssues.length === 0) {
+      const exactInputs: ExactOddsInput[] = raw.poolMode === 'known'
+        ? [{ entries, totalEntries: pool, prizes }]
+        : Object.values(deriveEstimatedPools({ entries, estimate: pool, prizes })).map(
+            (totalEntries) => ({ entries, totalEntries, prizes }),
+          );
+      if (raw.entryMixActive && freeEntries !== undefined) {
+        const paidEntries = entries - freeEntries;
+        exactInputs.push(
+          { entries: freeEntries, totalEntries: pool, prizes },
+          { entries: freeEntries, totalEntries: pool - paidEntries, prizes },
+        );
+      }
+      if (exactInputs.some(
+        (input) => exactProductIterations(input) > MAX_EXACT_PRODUCT_ITERATIONS
+      )) {
+        crossFieldIssues.push({
+          field: 'pool',
+          code: 'calculation_too_large',
+          message:
+            'Use a smaller combination of entries and prizes so the calculation stays instant.',
+        });
       }
     }
   }
