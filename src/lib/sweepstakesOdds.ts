@@ -308,26 +308,39 @@ function parseInteger(
 }
 
 export function validateCalculatorInput(raw: RawCalculatorInput): ValidationResult {
-  const issues: ValidationIssue[] = [];
-  const entries = parseInteger('entries', raw.entries, issues, raw.poolMode);
-  const pool = parseInteger('pool', raw.pool, issues, raw.poolMode);
-  const prizes = parseInteger('prizes', raw.prizes, issues, raw.poolMode);
+  const entriesIssues: ValidationIssue[] = [];
+  const poolIssues: ValidationIssue[] = [];
+  const prizesIssues: ValidationIssue[] = [];
+  const freeEntriesIssues: ValidationIssue[] = [];
+  const drawingsIssues: ValidationIssue[] = [];
+  const crossFieldIssues: ValidationIssue[] = [];
+
+  const entries = parseInteger('entries', raw.entries, entriesIssues, raw.poolMode);
+  const pool = parseInteger('pool', raw.pool, poolIssues, raw.poolMode);
+  const prizes = parseInteger('prizes', raw.prizes, prizesIssues, raw.poolMode);
   const freeEntries = raw.entryMixActive
-    ? parseInteger('freeEntries', raw.freeEntries, issues, raw.poolMode)
+    ? parseInteger('freeEntries', raw.freeEntries, freeEntriesIssues, raw.poolMode)
     : undefined;
   const drawings = raw.multipleDrawingsActive
-    ? parseInteger('drawings', raw.drawings, issues, raw.poolMode)
+    ? parseInteger('drawings', raw.drawings, drawingsIssues, raw.poolMode)
     : undefined;
 
   if (entries !== undefined && entries < 0) {
-    issues.push({ field: 'entries', code: 'negative', message: 'Your entries can’t be negative.' });
+    entriesIssues.push({ field: 'entries', code: 'negative', message: 'Your entries can’t be negative.' });
   }
   if (prizes !== undefined && prizes < 1) {
-    issues.push({ field: 'prizes', code: 'prizes_below_one', message: 'Enter at least one prize.' });
+    prizesIssues.push({ field: 'prizes', code: 'prizes_below_one', message: 'Enter at least one prize.' });
   }
   if (drawings !== undefined && drawings < 1) {
-    issues.push({ field: 'drawings', code: 'drawings_below_one', message: 'Enter at least one whole drawing.' });
+    drawingsIssues.push({ field: 'drawings', code: 'drawings_below_one', message: 'Enter at least one whole drawing.' });
   }
+
+  const fieldLevelIssueCount =
+    entriesIssues.length +
+    poolIssues.length +
+    prizesIssues.length +
+    (raw.entryMixActive ? freeEntriesIssues.length : 0) +
+    (raw.multipleDrawingsActive ? drawingsIssues.length : 0);
 
   if (
     entries !== undefined && pool !== undefined && prizes !== undefined &&
@@ -335,14 +348,14 @@ export function validateCalculatorInput(raw: RawCalculatorInput): ValidationResu
   ) {
     if (raw.poolMode === 'known') {
       if (entries > pool) {
-        issues.push({
+        crossFieldIssues.push({
           field: 'pool',
           code: 'entries_exceed_pool',
           message: 'Total entries must include your entries, so it can’t be smaller than your entries.',
         });
       }
       if (prizes > pool) {
-        issues.push({
+        crossFieldIssues.push({
           field: 'prizes',
           code: 'prizes_exceed_pool',
           message: 'The number of prizes can’t be greater than the total entries.',
@@ -350,21 +363,21 @@ export function validateCalculatorInput(raw: RawCalculatorInput): ValidationResu
       }
     } else {
       if (pool < entries) {
-        issues.push({
+        crossFieldIssues.push({
           field: 'pool',
           code: 'estimate_below_entries',
           message: 'Your estimated total must include your entries.',
         });
       }
       if (pool < prizes) {
-        issues.push({
+        crossFieldIssues.push({
           field: 'pool',
           code: 'estimate_below_prizes',
           message: 'Your estimated total can’t be smaller than the number of prizes.',
         });
       }
       if (pool >= 0 && BigInt(pool) * 5n > MAX_SAFE_BIGINT * 4n) {
-        issues.push({
+        crossFieldIssues.push({
           field: 'pool',
           code: 'estimate_overflow',
           message: 'Use a smaller estimated total so the full range can be calculated.',
@@ -374,18 +387,18 @@ export function validateCalculatorInput(raw: RawCalculatorInput): ValidationResu
 
     if (raw.entryMixActive && freeEntries !== undefined) {
       if (freeEntries < 0 || freeEntries > entries) {
-        issues.push({
+        freeEntriesIssues.push({
           field: 'freeEntries',
           code: 'free_entries_range',
           message: 'Free entries must be between 0 and your total entries.',
         });
-      } else if (issues.length === 0) {
+      } else if (fieldLevelIssueCount === 0 && crossFieldIssues.length === 0) {
         const paidEntries = entries - freeEntries;
         const totals = raw.poolMode === 'known'
           ? [pool]
           : Object.values(deriveEstimatedPools({ entries, estimate: pool, prizes }));
         if (totals.some((total) => prizes > total - paidEntries)) {
-          issues.push({
+          crossFieldIssues.push({
             field: 'freeEntries',
             code: 'counterfactual_impossible',
             message: 'Without your paid entries, this scenario would have more prizes than entries. Adjust the entry split or prize count.',
@@ -394,6 +407,15 @@ export function validateCalculatorInput(raw: RawCalculatorInput): ValidationResu
       }
     }
   }
+
+  const issues = [
+    ...entriesIssues,
+    ...poolIssues,
+    ...prizesIssues,
+    ...(raw.entryMixActive ? freeEntriesIssues : []),
+    ...(raw.multipleDrawingsActive ? drawingsIssues : []),
+    ...crossFieldIssues,
+  ];
 
   if (issues.length > 0 || entries === undefined || pool === undefined || prizes === undefined) {
     return { ok: false, issues };

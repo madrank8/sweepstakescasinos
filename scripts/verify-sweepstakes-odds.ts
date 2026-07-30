@@ -203,4 +203,39 @@ for (const drawings of ['0', '1.5']) {
   }
 }
 
+const mixedFieldOrder = validateCalculatorInput({
+  poolMode: 'known',
+  entries: '-1',
+  pool: '1.5',
+  prizes: '0',
+  entryMixActive: true,
+  freeEntries: 'bad',
+  multipleDrawingsActive: true,
+  drawings: '0',
+});
+assert.equal(mixedFieldOrder.ok, false);
+if (!mixedFieldOrder.ok) {
+  assert.deepEqual(
+    mixedFieldOrder.issues.map((issue) => issue.field),
+    ['entries', 'pool', 'prizes', 'freeEntries', 'drawings'],
+  );
+}
+
+const mixedCrossFieldOrder = validateCalculatorInput({
+  poolMode: 'known',
+  entries: '101',
+  pool: '100',
+  prizes: '101',
+  entryMixActive: false,
+  multipleDrawingsActive: true,
+  drawings: '0',
+});
+assert.equal(mixedCrossFieldOrder.ok, false);
+if (!mixedCrossFieldOrder.ok) {
+  assert.deepEqual(
+    mixedCrossFieldOrder.issues.map((issue) => issue.field),
+    ['drawings', 'pool', 'prizes'],
+  );
+}
+
 console.log('verify-sweepstakes-odds: OK');
