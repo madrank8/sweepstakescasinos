@@ -303,3 +303,69 @@ Observed custom event list:
 2. The Vercel adapter rejects `astro preview`, so browser QA ran against generated Astro dev output rather than the built adapter artifact.
 3. gstack denied `Emulation.setScriptExecutionDisabled`, `Emulation.setPageScaleFactor`, and `Emulation.setEmulatedMedia`. Browser-level JavaScript-disabled, actual 200% browser zoom, and emulated reduced-motion runs remain unexecuted. Server HTML proves no-JS content, standard 320px proves narrow reflow, and the verifier proves the reduced-motion CSS contract.
 4. The build retains its pre-existing empty `src/content/reviews` glob warning.
+
+## Review Fix 1
+
+Status: **DONE_WITH_CONCERNS**
+Implementation commit: `0ec31c1` (`fix: strengthen odds acceptance verifier`)
+
+### Red/green evidence
+
+Focused assertions were added before each implementation change:
+
+```text
+npm run verify:odds:integration
+AssertionError: CI checkout must fetch full Git history for authoritative authored-source lastmod
+
+npm run verify:odds:integration
+AssertionError: expected src/lib/oddsPageSchema.ts
+
+npm run verify:odds:integration
+AssertionError: generated calculator route exactly matches authored route
+```
+
+The extraction also correctly exposed one stale Task 1-5 source assertion:
+
+```text
+npm run build
+AssertionError: input did not match /applicationCategory: 'UtilitiesApplication'/
+```
+
+That assertion now executes against the shared production schema nodes instead of route source text.
+Final exact success endings:
+
+```text
+npm run verify:odds
+verify-sweepstakes-odds: OK
+
+npm run build
+[build] Complete!
+
+npm run verify:odds:integration
+verify-sweepstakes-odds-integration: OK
+
+npm run ci
+[build] Complete!
+verify-sweepstakes-odds-integration: OK
+```
+
+All four final commands exited `0`.
+
+### Changed files
+
+- `.github/workflows/ci.yml`: checkout now uses `fetch-depth: 0`.
+- `src/lib/oddsPageSchema.ts`: shared production metadata, FAQ, WebApplication nodes, and executable full-page graph factory.
+- `src/routes/tools/sweepstakes-odds-calculator/index.astro`: consumes the shared page/schema inputs for layout, visible FAQ, and JSON-LD.
+- `scripts/verify-sweepstakes-odds.ts`: preserves the pure verifier coverage through the shared production schema path.
+- `scripts/verify-sweepstakes-odds-integration.ts`: verifies full Git history, actual graph output, both generated-route byte contracts, form structure, parsed authored links, dynamic rankings, and authored-source sitemap dates.
+
+### Self-review
+
+- The graph verifier counts each required type independently, asserts its exact canonical ID, verifies `WebPage.mainEntity`, resolves every internal fragment reference, compares FAQ graph output to the same data rendered visibly, and rejects prohibited types and visitor-derived fields/fixtures.
+- The route must import and consume the verified module; duplicated dead schema/FAQ fixtures cannot satisfy the source contracts.
+- Link checks parse HTML `href` attributes (and authored MDX link destinations) and require exactly one expected tools destination, so comments or unrelated text cannot pass.
+- Ranking slugs are parsed from current `partnerSlugs`; review paths, partner resolution, ordering, and route consumption are verified without expected slug literals.
+- The verifier rejects shallow repositories before sitemap assertions and reports missing per-source history explicitly; CI provides full history.
+- `git diff --check`, focused verification, build, and complete CI passed. No dependencies, beads, SDD ledgers/briefs, compliance data, or ranking data changed.
+
+The existing external concerns remain unchanged: no remote preview was available; the Vercel adapter does not support local `astro preview`; and true JavaScript-disabled, browser-level 200% zoom, and emulated reduced-motion modes remain external acceptance.
