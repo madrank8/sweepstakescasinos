@@ -13,6 +13,13 @@
     <ul data-error-list></ul>
   </div>
 
+  <noscript>
+    <p class="odds-noscript">
+      The calculator needs JavaScript to calculate a result. The methodology, examples, FAQ,
+      disclosures, casino reviews, and related guides below remain available.
+    </p>
+  </noscript>
+
   <form data-odds-form method="dialog" novalidate>
     <div class="odds-grid">
       <div class="odds-field" data-field-wrap="entries">
@@ -49,7 +56,7 @@
         <span>
           I don’t know the total
           <span id="odds-estimated-instructions" class="odds-mode-instructions">
-            Changes the total-entry field to an estimate and announces the new assumption.
+            Use this when the total entry pool is unknown; enter your best estimate including your entries.
           </span>
         </span>
       </label>
@@ -114,12 +121,6 @@
     <p data-drawings-result hidden></p>
   </section>
 
-  <noscript>
-    <p class="odds-noscript">
-      The calculator needs JavaScript to calculate a result. The methodology, examples, FAQ,
-      disclosures, casino reviews, and related guides below remain available.
-    </p>
-  </noscript>
 </section>
 
 <script>
@@ -127,7 +128,9 @@
     entryMixDisplayLabels,
     formatDrawingsResult,
     formatEntryMixValue,
+    formatEstimatedChanceHeadline,
     formatEstimatedProbabilityRange,
+    formatKnownChanceHeadline,
     ODDS_EVENT_CALCULATION_COMPLETED,
     ODDS_EVENT_OPTIONS_OPENED,
     RESULT_INVALIDATING_INPUT_IDS,
@@ -305,10 +308,7 @@
           prizes: scenario.prizes,
         });
         const display = formatChance(singleProbability);
-        heading.textContent = display.headline.startsWith('No chance') ||
-          display.headline.startsWith('Certain')
-          ? display.headline
-          : `Your calculated chance is ${display.reciprocal}.`;
+        heading.textContent = formatKnownChanceHeadline(display);
         percent.textContent = `Calculated probability: ${display.percent}.`;
         assumption.textContent =
           'Known-pool calculation: unique winning entries drawn without replacement.';
@@ -319,36 +319,28 @@
           prizes: scenario.prizes,
         });
         singleProbability = range.baseChance;
-        const reciprocalOnly = (probability: number) =>
-          formatChance(probability).reciprocal.replace(/^about /, '');
-        if (scenario.entries === 0) {
-          heading.textContent = 'No chance with zero entries.';
-        } else if (range.worst === 1) {
-          heading.textContent = 'Certain under these inputs (100%).';
-        } else if (range.best === 1) {
-          heading.textContent =
-            `Your estimated chance ranges from certainty under the low-pool assumption to ` +
-            `${reciprocalOnly(range.worst)} (base estimate: ` +
-            `${range.baseChance === 1 ? 'certainty' : reciprocalOnly(range.baseChance)}).`;
-        } else {
-          heading.textContent =
-            `Your estimated chance is about ${reciprocalOnly(range.best)}` +
-            ` to ${reciprocalOnly(range.worst)}` +
-            ` (base estimate: ${reciprocalOnly(range.baseChance)}).`;
-        }
+        heading.textContent = formatEstimatedChanceHeadline(range);
         percent.textContent = formatEstimatedProbabilityRange(range);
         assumption.textContent =
           'Estimate assumptions only: 0.8×, entered total, and 1.25× total entries. This is not a confidence interval or operator data.';
       }
 
       const mixRegion = root.querySelector<HTMLElement>('[data-entry-mix-result]')!;
+      const mixCombined = root.querySelector<HTMLElement>('[data-mix-combined]')!;
+      const mixFreeCurrent = root.querySelector<HTMLElement>('[data-mix-free-current]')!;
+      const mixNoPurchase = root.querySelector<HTMLElement>('[data-mix-no-purchase]')!;
+      const mixNote = root.querySelector<HTMLElement>('[data-entry-mix-note]')!;
       mixRegion.hidden = !scenario.entryMixActive;
+      mixCombined.textContent = '';
+      mixFreeCurrent.textContent = '';
+      mixNoPurchase.textContent = '';
+      mixNote.hidden = true;
+      mixNote.textContent = '';
       if (scenario.entryMixActive && scenario.freeEntries !== undefined) {
         const labels = entryMixDisplayLabels(scenario.poolMode);
         root.querySelector<HTMLElement>('[data-mix-label-combined]')!.textContent = labels.combined;
         root.querySelector<HTMLElement>('[data-mix-label-free-current]')!.textContent = labels.freeCurrent;
         root.querySelector<HTMLElement>('[data-mix-label-no-purchase]')!.textContent = labels.noPurchase;
-        const mixNote = root.querySelector<HTMLElement>('[data-entry-mix-note]')!;
         if (labels.sectionNote) {
           mixNote.textContent = labels.sectionNote;
           mixNote.hidden = false;
@@ -367,14 +359,14 @@
           const formatted = formatChance(probability);
           return formatEntryMixValue(scenario.poolMode, formatted.reciprocal, formatted.percent);
         };
-        root.querySelector<HTMLElement>('[data-mix-combined]')!.textContent = formatMix(mix.combined);
-        root.querySelector<HTMLElement>('[data-mix-free-current]')!.textContent =
-          formatMix(mix.freeOnlyCurrentPool);
-        root.querySelector<HTMLElement>('[data-mix-no-purchase]')!.textContent = formatMix(mix.noPurchase);
+        mixCombined.textContent = formatMix(mix.combined);
+        mixFreeCurrent.textContent = formatMix(mix.freeOnlyCurrentPool);
+        mixNoPurchase.textContent = formatMix(mix.noPurchase);
       }
 
       const drawingsResult = root.querySelector<HTMLElement>('[data-drawings-result]')!;
       drawingsResult.hidden = !scenario.multipleDrawingsActive;
+      drawingsResult.textContent = '';
       if (scenario.multipleDrawingsActive && scenario.drawings !== undefined) {
         const repeated = repeatProbability(singleProbability, scenario.drawings);
         const repeatedFormatted = formatChance(repeated);

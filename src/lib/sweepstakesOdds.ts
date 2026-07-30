@@ -98,6 +98,7 @@ export interface ChanceDisplay {
   reciprocal: string;
   percent: string;
   approximate: boolean;
+  certainty: 'zero' | 'normal' | 'almost' | 'exact';
 }
 
 const MAX_SAFE_BIGINT = BigInt(Number.MAX_SAFE_INTEGER);
@@ -257,6 +258,7 @@ export function formatChance(probability: number): ChanceDisplay {
       reciprocal: 'No chance with zero entries.',
       percent: '0%',
       approximate: false,
+      certainty: 'zero',
     };
   }
   if (probability === 1) {
@@ -265,6 +267,7 @@ export function formatChance(probability: number): ChanceDisplay {
       reciprocal: 'Certain under these inputs',
       percent: '100%',
       approximate: false,
+      certainty: 'exact',
     };
   }
 
@@ -278,6 +281,7 @@ export function formatChance(probability: number): ChanceDisplay {
       reciprocal: 'Almost certain',
       percent: '>99.9%',
       approximate: true,
+      certainty: 'almost',
     };
   }
   const approximate =
@@ -288,7 +292,7 @@ export function formatChance(probability: number): ChanceDisplay {
     rawPercent < 0.000001
       ? '<0.000001%'
       : `${percentFormat.format(roundedPercent)}%`;
-  return { headline: reciprocal, reciprocal, percent, approximate };
+  return { headline: reciprocal, reciprocal, percent, approximate, certainty: 'normal' };
 }
 
 const missingMessages: Record<OddsField, string> = {
@@ -364,12 +368,14 @@ export function validateCalculatorInput(raw: RawCalculatorInput): ValidationResu
     drawingsIssues.push({ field: 'drawings', code: 'drawings_below_one', message: 'Enter at least one whole drawing.' });
   }
 
-  const fieldLevelIssueCount =
-    entriesIssues.length +
-    poolIssues.length +
-    prizesIssues.length +
-    (raw.entryMixActive ? freeEntriesIssues.length : 0) +
-    (raw.multipleDrawingsActive ? drawingsIssues.length : 0);
+  const hasFieldLevelIssues = () =>
+    (
+      entriesIssues.length +
+      poolIssues.length +
+      prizesIssues.length +
+      (raw.entryMixActive ? freeEntriesIssues.length : 0) +
+      (raw.multipleDrawingsActive ? drawingsIssues.length : 0)
+    ) > 0;
 
   if (
     entries !== undefined && pool !== undefined && prizes !== undefined &&
@@ -421,7 +427,7 @@ export function validateCalculatorInput(raw: RawCalculatorInput): ValidationResu
           code: 'free_entries_range',
           message: 'Free entries must be between 0 and your total entries.',
         });
-      } else if (fieldLevelIssueCount === 0 && crossFieldIssues.length === 0) {
+      } else if (!hasFieldLevelIssues() && crossFieldIssues.length === 0) {
         const paidEntries = entries - freeEntries;
         const totals = raw.poolMode === 'known'
           ? [pool]
@@ -436,7 +442,7 @@ export function validateCalculatorInput(raw: RawCalculatorInput): ValidationResu
       }
     }
 
-    if (fieldLevelIssueCount === 0 && crossFieldIssues.length === 0) {
+    if (!hasFieldLevelIssues() && crossFieldIssues.length === 0) {
       const exactInputs: ExactOddsInput[] = raw.poolMode === 'known'
         ? [{ entries, totalEntries: pool, prizes }]
         : Object.values(deriveEstimatedPools({ entries, estimate: pool, prizes })).map(

@@ -14,11 +14,36 @@ const read = (path: string) => readFileSync(join(root, path), 'utf8');
 const pkg = JSON.parse(read('package.json')) as { scripts: Record<string, string> };
 const scriptCommands = (name: string) =>
   pkg.scripts[name]!.split('&&').map((command) => command.trim());
+const assertCommandMembership = (commands: string[], expected: string, scriptName: string) => {
+  assert.ok(commands.includes(expected), `${scriptName} includes exact command ${expected}`);
+};
 const assertCommandOrder = (commands: string[], before: string, after: string) => {
   const beforeIndex = commands.indexOf(before);
   const afterIndex = commands.indexOf(after);
   assert.ok(beforeIndex >= 0, `script includes ${before}`);
   assert.ok(afterIndex > beforeIndex, `${after} runs after ${before}`);
+};
+const cssBlockAfter = (source: string, marker: string) => {
+  const markerIndex = source.indexOf(marker);
+  assert.ok(markerIndex >= 0, `CSS contains ${marker}`);
+  const openBrace = source.indexOf('{', markerIndex);
+  assert.ok(openBrace >= 0, `CSS block opens after ${marker}`);
+  let depth = 0;
+  for (let i = openBrace; i < source.length; i++) {
+    if (source[i] === '{') depth++;
+    else if (source[i] === '}') {
+      depth--;
+      if (depth === 0) return source.slice(openBrace + 1, i);
+    }
+  }
+  throw new Error(`Unbalanced CSS block after ${marker}`);
+};
+const normalizeCssValue = (value: string | undefined) =>
+  value?.replace(/\s+/g, '').toLowerCase();
+const assertDateNotAfter = (earlier: string, later: string, message: string) => {
+  assert.match(earlier, /^\d{4}-\d{2}-\d{2}$/, `${message}: earlier date is ISO`);
+  assert.match(later, /^\d{4}-\d{2}-\d{2}$/, `${message}: later date is ISO`);
+  assert.ok(earlier <= later, message);
 };
 
 assert.equal(
@@ -26,7 +51,8 @@ assert.equal(
   'tsx scripts/verify-sweepstakes-odds-integration.ts',
   'package script verify:odds:integration',
 );
-assert.match(pkg.scripts.prebuild, /npm run verify:odds/);
+const prebuildCommands = scriptCommands('prebuild');
+assertCommandMembership(prebuildCommands, 'npm run verify:odds', 'prebuild');
 const ciCommands = scriptCommands('ci');
 for (const requiredCommand of [
   'npm run verify:availability',
@@ -39,7 +65,7 @@ for (const requiredCommand of [
   'npm run build',
   'npm run verify:odds:integration',
 ]) {
-  assert.ok(ciCommands.includes(requiredCommand), `ci includes ${requiredCommand}`);
+  assertCommandMembership(ciCommands, requiredCommand, 'ci');
 }
 assertCommandOrder(ciCommands, 'npm run verify:odds', 'npm run build');
 assertCommandOrder(ciCommands, 'npm run build', 'npm run verify:odds:integration');
@@ -60,6 +86,7 @@ for (const path of [
 const {
   ODDS_CANONICAL,
   ODDS_DATE_MODIFIED,
+  ODDS_DATE_PUBLISHED,
   ODDS_FAQ,
   ODDS_MAIN_ENTITY_ID,
   buildOddsPageGraph,
@@ -82,6 +109,10 @@ assert.match(
 );
 
 const calculator = read('src/components/odds/OddsCalculator.astro');
+assert.ok(
+  calculator.indexOf('<noscript>') < calculator.indexOf('<form data-odds-form'),
+  'no-JS notice appears before the form',
+);
 assert.match(calculator, /<form\b[^>]*\bnovalidate\b/);
 assert.match(calculator, /aria-live="polite"/);
 assert.match(calculator, /tabindex="-1"/);
@@ -118,6 +149,10 @@ const formTag = formMarkup.match(/^<form\b[^>]*>/)?.[0];
 assert.ok(formTag, 'calculator form has an opening tag');
 assert.match(formTag, /\bmethod="dialog"/);
 assert.doesNotMatch(formTag, /\baction\s*=/);
+const submitButtonTag = formMarkup.match(/<button\b[^>]*type="submit"[^>]*>/)?.[0];
+assert.ok(submitButtonTag, 'calculator has a submit button');
+assert.doesNotMatch(submitButtonTag, /\bformaction\s*=/);
+assert.doesNotMatch(submitButtonTag, /\bformmethod\s*=/);
 const optionsTag = formMarkup.match(/<details\b[^>]*class="odds-options"[^>]*>/);
 assert.ok(optionsTag, 'More options uses a details element');
 assert.doesNotMatch(optionsTag[0], /\bopen\b/, 'More options starts collapsed');
@@ -207,11 +242,16 @@ assert.deepEqual(
   ['odds_calculation_completed', 'odds_casino_cta_clicked', 'odds_options_opened'],
   'only the three approved coarse odds events exist',
 );
-assert.doesNotMatch(
-  calculator,
-  /@media\s*\(prefers-reduced-motion:\s*reduce\)/,
-  'shared html-level reduced-motion behavior is not shadowed by a component descendant rule',
-);
+const componentReducedMotionMarker = calculator.match(
+  /@media\s*\(prefers-reduced-motion\s*:\s*reduce\)/,
+)?.[0];
+if (componentReducedMotionMarker) {
+  assert.doesNotMatch(
+    cssBlockAfter(calculator, componentReducedMotionMarker),
+    /scroll-behavior\s*:/,
+    'component reduced-motion rules must not override shared html scrolling',
+  );
+}
 
 const routePath = 'src/routes/tools/sweepstakes-odds-calculator/index.astro';
 const generatedRoutePath = 'src/pages/tools/sweepstakes-odds-calculator/index.astro';
@@ -437,10 +477,28 @@ for (const { url, source } of authoredSitemapPages) {
   assert.ok(expectedLastmod, `git provides authored-source lastmod for ${source}`);
   assert.equal(sitemapEntry(url), expectedLastmod, `${url} lastmod comes from ${source}`);
 }
-assert.equal(
+assert.match(ODDS_DATE_MODIFIED, /^\d{4}-\d{2}-\d{2}$/, 'dateModified uses ISO date shape');
+assert.ok(
+  ODDS_DATE_MODIFIED >= ODDS_DATE_PUBLISHED,
+  'dateModified is not stale relative to datePublished',
+);
+const calculatorSitemapLastmod = sitemapEntry(
+  'https://sweepstakeswiz.com/tools/sweepstakes-odds-calculator/',
+);
+assertDateNotAfter(
   ODDS_DATE_MODIFIED,
-  sitemapEntry('https://sweepstakeswiz.com/tools/sweepstakes-odds-calculator/'),
-  'page dateModified stays aligned with the generated sitemap lastmod',
+  calculatorSitemapLastmod,
+  'schema dateModified must not be later than authored-source sitemap lastmod',
+);
+const laterGitLastmod = new Date(`${ODDS_DATE_MODIFIED}T00:00:00Z`);
+laterGitLastmod.setUTCDate(laterGitLastmod.getUTCDate() + 1);
+assert.doesNotThrow(
+  () => assertDateNotAfter(
+    ODDS_DATE_MODIFIED,
+    laterGitLastmod.toISOString().slice(0, 10),
+    'a later git-derived lastmod remains valid',
+  ),
+  'a later git-derived sitemap date must not fail schema freshness',
 );
 
 const requiredToolLinks = [
@@ -493,21 +551,6 @@ for (const path of linkedReviewPaths) {
 }
 
 const trustCss = read('partials/trust.css');
-const cssBlockAfter = (source: string, marker: string) => {
-  const markerIndex = source.indexOf(marker);
-  assert.ok(markerIndex >= 0, `CSS contains ${marker}`);
-  const openBrace = source.indexOf('{', markerIndex);
-  assert.ok(openBrace >= 0, `CSS block opens after ${marker}`);
-  let depth = 0;
-  for (let i = openBrace; i < source.length; i++) {
-    if (source[i] === '{') depth++;
-    else if (source[i] === '}') {
-      depth--;
-      if (depth === 0) return source.slice(openBrace + 1, i);
-    }
-  }
-  throw new Error(`Unbalanced CSS block after ${marker}`);
-};
 const cssDeclarations = (ruleBody: string) =>
   new Map(
     ruleBody
@@ -521,13 +564,13 @@ const cssDeclarations = (ruleBody: string) =>
   );
 const reducedMotionBlock = cssBlockAfter(trustCss, '@media(prefers-reduced-motion:reduce)');
 const htmlMotionDeclarations = cssDeclarations(cssBlockAfter(reducedMotionBlock, 'html'));
-assert.equal(htmlMotionDeclarations.get('scroll-behavior'), 'auto !important');
+assert.equal(normalizeCssValue(htmlMotionDeclarations.get('scroll-behavior')), 'auto!important');
 
 const narrowNavBlock = cssBlockAfter(trustCss, '@media(max-width:360px)');
 const brandImageDeclarations = cssDeclarations(cssBlockAfter(narrowNavBlock, '.nav-brand img'));
-assert.equal(brandImageDeclarations.get('width'), '34px!important');
-assert.equal(brandImageDeclarations.get('height'), '34px!important');
+assert.equal(normalizeCssValue(brandImageDeclarations.get('width')), '34px!important');
+assert.equal(normalizeCssValue(brandImageDeclarations.get('height')), '34px!important');
 const brandTextDeclarations = cssDeclarations(cssBlockAfter(narrowNavBlock, '.nav-brand span'));
-assert.equal(brandTextDeclarations.get('font-size'), '.78rem!important');
+assert.equal(normalizeCssValue(brandTextDeclarations.get('font-size')), '.78rem!important');
 
 console.log('verify-sweepstakes-odds-integration: OK');

@@ -5,7 +5,9 @@ import {
   entryMixDisplayLabels,
   formatDrawingsResult,
   formatEntryMixValue,
+  formatEstimatedChanceHeadline,
   formatEstimatedProbabilityRange,
+  formatKnownChanceHeadline,
   ODDS_EVENT_CALCULATION_COMPLETED,
   ODDS_EVENT_OPTIONS_OPENED,
   OPTIONS_OPENED_PAYLOAD_KEYS,
@@ -162,6 +164,14 @@ function callbackBody(source: string, marker: string): string {
   return readBalancedBlock(source, openBrace);
 }
 
+function assertOrder(source: string, before: string, after: string, message: string): void {
+  const beforeIndex = source.indexOf(before);
+  const afterIndex = source.indexOf(after);
+  assert.ok(beforeIndex >= 0, `${message}: missing before statement: ${before}`);
+  assert.ok(afterIndex >= 0, `${message}: missing after statement: ${after}`);
+  assert.ok(afterIndex > beforeIndex, message);
+}
+
 function extractFlatObjectKeys(objectLiteral: string): string[] {
   return [...objectLiteral.matchAll(/\b([a-z_][a-z0-9_]*)\s*:/g)].map((match) => match[1]!);
 }
@@ -219,6 +229,7 @@ assert.deepEqual(formatChance(known), {
   reciprocal: '1 in 500',
   percent: '0.2%',
   approximate: false,
+  certainty: 'normal',
 });
 
 for (const [entries, total] of [[1, 10], [3, 10], [10, 10]] as const) {
@@ -261,6 +272,10 @@ assert.equal(
   formatEstimatedProbabilityRange(estimated),
   'Estimated probability range: 0.25% to 0.16%; base assumption 0.2%.',
 );
+assert.equal(
+  formatEstimatedChanceHeadline(estimated),
+  'Your estimated chance ranges from 1 in 400 to 1 in 625 (base estimate: 1 in 500).',
+);
 
 const mix = entryMixProbabilities({
   entries: 5,
@@ -290,7 +305,9 @@ close(repeatProbability(0.2, 1), 0.2);
 close(repeatProbability(0.2, 4), 1 - (1 - 0.2) ** 4);
 assert.ok(Number.isFinite(repeatProbability(1e-9, 1_000_000)));
 
+assert.equal(formatChance(0).certainty, 'zero');
 assert.equal(formatChance(0).headline, 'No chance with zero entries.');
+assert.equal(formatChance(1).certainty, 'exact');
 assert.equal(formatChance(1).headline, 'Certain under these inputs (100%).');
 assert.equal(formatChance(1 / 1_234).reciprocal, 'about 1 in 1,230');
 assert.equal(formatChance(1e-10).percent, '<0.000001%');
@@ -301,11 +318,46 @@ for (const nearCertain of [0.9996, 1 - 1e-12]) {
   assert.equal(display.reciprocal, 'Almost certain');
   assert.equal(display.percent, '>99.9%');
   assert.equal(display.approximate, true);
+  assert.equal(display.certainty, 'almost');
   assert.doesNotMatch(
     `${display.headline} ${display.reciprocal} ${display.percent}`,
     /100%|Certain|1 in 1/,
   );
 }
+
+const knownNearCertainDisplay = formatChance(
+  exactWinProbability({ entries: 9_996, totalEntries: 10_000, prizes: 1 }),
+);
+assert.equal(
+  formatKnownChanceHeadline(knownNearCertainDisplay),
+  'Almost certain under these inputs (>99.9%).',
+);
+
+const estimatedNearCertain = estimateProbabilityRange({
+  entries: 7_996,
+  estimate: 10_000,
+  prizes: 1,
+});
+assert.equal(
+  formatEstimatedChanceHeadline(estimatedNearCertain),
+  'Your estimated chance ranges from almost certain under the low-pool assumption to 1 in 1.56 (base estimate: 1 in 1.25).',
+);
+for (const headline of [
+  formatKnownChanceHeadline(knownNearCertainDisplay),
+  formatEstimatedChanceHeadline(estimatedNearCertain),
+]) {
+  assert.doesNotMatch(headline, /about Almost|is Almost|1 in 1(?![\d.])/);
+}
+assert.equal(
+  formatKnownChanceHeadline(formatChance(known)),
+  'Your calculated chance is 1 in 500.',
+);
+assert.equal(
+  formatEstimatedChanceHeadline(
+    estimateProbabilityRange({ entries: 10, estimate: 10, prizes: 10 }),
+  ),
+  'Certain under these inputs (100%).',
+);
 
 const invalidExactInputs = [
   { entries: '1.5', pool: '100', prizes: '1', expected: 'Use a whole number of entries.' },
@@ -444,6 +496,23 @@ if (!badFree.ok) {
   assert.ok(badFree.issues.some((i) => i.message === 'Free entries must be between 0 and your total entries.'));
 }
 
+const invalidFreeSuppressesSizeIssue = validateCalculatorInput({
+  poolMode: 'known',
+  entries: '2000000',
+  pool: '4000000',
+  prizes: '2000000',
+  entryMixActive: true,
+  freeEntries: '3000000',
+  multipleDrawingsActive: false,
+});
+assert.equal(invalidFreeSuppressesSizeIssue.ok, false);
+if (!invalidFreeSuppressesSizeIssue.ok) {
+  assert.deepEqual(
+    invalidFreeSuppressesSizeIssue.issues.map((issue) => issue.code),
+    ['free_entries_range'],
+  );
+}
+
 const impossibleCounterfactual = validateCalculatorInput({
   poolMode: 'known',
   entries: '5',
@@ -526,11 +595,25 @@ const calculatorFormTag = calculatorSource.match(/<form\b[^>]*>/)?.[0];
 assert.ok(calculatorFormTag, 'calculator form tag exists');
 assert.match(calculatorFormTag, /\bmethod="dialog"/);
 assert.doesNotMatch(calculatorFormTag, /\baction\s*=/);
+const submitButtonTag = calculatorSource.match(/<button\b[^>]*type="submit"[^>]*>/)?.[0];
+assert.ok(submitButtonTag, 'calculator submit button exists');
+assert.doesNotMatch(submitButtonTag, /\bformaction\s*=/);
+assert.doesNotMatch(submitButtonTag, /\bformmethod\s*=/);
+assertOrder(
+  calculatorSource,
+  '<noscript>',
+  '<form data-odds-form',
+  'no-JS notice appears before the form',
+);
 assert.match(
   calculatorSource,
   /id="odds-estimated-toggle"[^>]*aria-controls="odds-pool"[^>]*aria-describedby="odds-estimated-instructions"/,
 );
 assert.match(calculatorSource, /id="odds-estimated-instructions"/);
+assert.match(
+  calculatorSource,
+  /Use this when the total entry pool is unknown; enter your best estimate including your entries\./,
+);
 assert.match(calculatorSource, /id="odds-pool-hint"[^>]*aria-live="polite"[^>]*role="status"/);
 assert.match(calculatorSource, /<h3 tabindex="-1" data-result-heading>/);
 
@@ -576,15 +659,28 @@ assert.match(calculatorSource, /<section class="odds-result" data-result aria-li
 
 const showErrorsBody = functionBody(calculatorSource, 'showErrors');
 assert.ok(showErrorsBody.includes('hideResult()'));
-assert.ok(
-  showErrorsBody.indexOf('summary.hidden = false') < showErrorsBody.indexOf('list.append(item)'),
+assertOrder(
+  showErrorsBody,
+  'summary.hidden = false',
+  'list.append(item)',
   'error live region must be unhidden before messages are appended',
 );
-assert.ok(
-  showErrorsBody.indexOf("closest('details')") < showErrorsBody.indexOf('summary.focus()'),
+assertOrder(
+  showErrorsBody,
+  "closest('details')",
+  'summary.focus()',
   'errored controls reveal their details ancestor before summary focus',
 );
 assert.match(showErrorsBody, /details\.open = true/);
+assert.throws(
+  () => assertOrder(
+    showErrorsBody.replace('summary.hidden = false', ''),
+    'summary.hidden = false',
+    'list.append(item)',
+    'mutated live-region order',
+  ),
+  /missing before statement/,
+);
 
 const setAdvancedBody = functionBody(calculatorSource, 'setAdvanced');
 assert.ok(setAdvancedBody.includes('hideResult()'));
@@ -594,13 +690,29 @@ const estimatedChangeBody = callbackBody(
 );
 assert.ok(estimatedChangeBody.includes('hideResult()'));
 const submitBody = callbackBody(calculatorSource, "form.addEventListener('submit'");
-assert.ok(
-  submitBody.indexOf('resultRegion.hidden = false') < submitBody.indexOf('heading.textContent'),
+assertOrder(
+  submitBody,
+  'resultRegion.hidden = false',
+  'heading.textContent',
   'result live region must be unhidden before result content is written',
 );
-assert.ok(
-  submitBody.indexOf('hideResult()') < submitBody.indexOf('showErrors(result.issues)'),
+assertOrder(
+  submitBody,
+  'hideResult()',
+  'showErrors(result.issues)',
   'invalid submissions hide stale results before showing errors',
+);
+assertOrder(
+  submitBody,
+  "mixCombined.textContent = '';",
+  'if (scenario.entryMixActive',
+  'successful recalculation clears hidden entry-mix text before optional rendering',
+);
+assertOrder(
+  submitBody,
+  "drawingsResult.textContent = '';",
+  'if (scenario.multipleDrawingsActive',
+  'successful recalculation clears hidden drawings text before optional rendering',
 );
 assert.ok(
   calculatorSource.indexOf('for (const id of RESULT_INVALIDATING_INPUT_IDS)') >= 0,

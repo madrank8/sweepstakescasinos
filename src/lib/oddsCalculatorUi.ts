@@ -1,5 +1,6 @@
 import {
   formatChance,
+  type ChanceDisplay,
   type EstimatedProbabilityRange,
   type PoolMode,
 } from './sweepstakesOdds';
@@ -61,6 +62,47 @@ export function formatEstimatedProbabilityRange(range: EstimatedProbabilityRange
     `Estimated probability range: ${formatChance(range.best).percent} to ` +
     `${formatChance(range.worst).percent}; ` +
     `base assumption ${formatChance(range.baseChance).percent}.`
+  );
+}
+
+export function formatKnownChanceHeadline(display: ChanceDisplay): string {
+  switch (display.certainty) {
+    case 'zero':
+    case 'exact':
+      return display.headline;
+    case 'almost':
+      return `Almost certain under these inputs (${display.percent}).`;
+    case 'normal':
+      return `Your calculated chance is ${display.reciprocal}.`;
+  }
+}
+
+function estimatedChancePhrase(
+  display: ChanceDisplay,
+  position: 'best' | 'base' | 'worst',
+): string {
+  if (display.certainty === 'exact') {
+    return position === 'best' ? 'certainty under the low-pool assumption' : 'certainty';
+  }
+  if (display.certainty === 'almost') {
+    return position === 'best'
+      ? 'almost certain under the low-pool assumption'
+      : 'almost certain';
+  }
+  if (display.certainty === 'zero') return 'no chance';
+  return display.reciprocal.replace(/^about /, '');
+}
+
+export function formatEstimatedChanceHeadline(range: EstimatedProbabilityRange): string {
+  const best = formatChance(range.best);
+  const base = formatChance(range.baseChance);
+  const worst = formatChance(range.worst);
+  if (best.certainty === 'zero') return best.headline;
+  if (worst.certainty === 'exact') return worst.headline;
+  return (
+    `Your estimated chance ranges from ${estimatedChancePhrase(best, 'best')} to ` +
+    `${estimatedChancePhrase(worst, 'worst')} ` +
+    `(base estimate: ${estimatedChancePhrase(base, 'base')}).`
   );
 }
 
