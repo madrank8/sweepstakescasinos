@@ -1,0 +1,259 @@
+---
+export const prerender = false;
+
+import { getEntry } from 'astro:content';
+import ContentLayout from '../../../layouts/ContentLayout.astro';
+import OddsCalculator from '../../../components/odds/OddsCalculator.astro';
+import OddsCasinoRecommendations from '../../../components/odds/OddsCasinoRecommendations.astro';
+import { getPartner, type AffiliatePartner } from '../../../data/affiliates';
+import { faqPageNode, ORG_ID } from '../../../lib/schema';
+
+const ORIGIN = 'https://sweepstakeswiz.com';
+const canonicalPath = '/tools/sweepstakes-odds-calculator/';
+const canonical = `${ORIGIN}${canonicalPath}`;
+const title = 'Sweepstakes Odds Calculator: Exact Odds & Multiple Prizes | SweepstakesWiz';
+const description =
+  'Calculate exact sweepstakes odds without replacement, estimate an unknown entry pool, compare free versus paid entries, and check multiple independent drawings.';
+
+const ranking = await getEntry('comparisons', 'sweepstakes-casinos');
+if (!ranking || ranking.data.draft) {
+  throw new Error('Odds calculator requires the published sweepstakes-casinos comparison entry.');
+}
+const topSlugs = ranking.data.partnerSlugs.slice(0, 3);
+if (topSlugs.length !== 3) {
+  throw new Error('Odds calculator requires three ranked partner slugs.');
+}
+const resolvedPartners = topSlugs.map((slug) => getPartner(slug));
+if (resolvedPartners.some((partner) => !partner)) {
+  throw new Error(`Odds calculator ranking contains an unknown partner: ${topSlugs.join(', ')}`);
+}
+const topPartners = resolvedPartners as [AffiliatePartner, AffiliatePartner, AffiliatePartner];
+
+const breadcrumbs = [
+  { name: 'Home', path: '/' },
+  { name: 'Tools', path: '/tools/' },
+  { name: 'Sweepstakes Odds Calculator', path: canonicalPath },
+];
+
+const faq = [
+  {
+    q: 'How does this sweepstakes odds calculator work?',
+    a: 'It calculates the chance that at least one of your entries is selected when a stated number of unique winning entries is drawn without replacement from a known total. It evaluates the exact combinatorial model numerically in log space; it does not run a simulation.',
+  },
+  {
+    q: 'What if I do not know the total number of entries?',
+    a: 'Enter your best estimate of the total, including your own entries. The calculator shows an estimated range using 0.8 times the estimate, the entered estimate, and 1.25 times the estimate. Those are transparent product assumptions, not a confidence interval or operator data.',
+  },
+  {
+    q: 'How do multiple prizes change my odds?',
+    a: 'More unique prizes increase the chance that at least one of your entries is selected, provided winners are drawn without replacement. The calculator rejects a prize count greater than the total number of entries.',
+  },
+  {
+    q: 'How are free and purchase-associated entries compared?',
+    a: 'The calculator shows combined odds in the current pool, free-only odds while leaving the current pool unchanged, and a no-purchase counterfactual that removes your purchase-associated entries from both your entry count and the pool total.',
+  },
+  {
+    q: 'Can this calculator reveal an operator’s actual odds?',
+    a: 'No. It can calculate exact odds only when the total entry pool and prize count are known. If an operator does not disclose the pool, the estimate mode remains an assumption and does not override the operator’s official rules.',
+  },
+  {
+    q: 'Do more entries guarantee a win?',
+    a: 'No. More entries can increase the calculated probability, but they do not guarantee a win unless the mathematical result is exactly 100 percent under the stated inputs and assumptions. The calculator does not recommend spending or compare purchase value.',
+  },
+];
+
+const webApplicationLd = {
+  '@type': 'WebApplication',
+  '@id': `${canonical}#app`,
+  name: 'SweepstakesWiz Sweepstakes Odds Calculator',
+  url: canonical,
+  description,
+  applicationCategory: 'UtilitiesApplication',
+  operatingSystem: 'Any',
+  browserRequirements: 'Requires JavaScript',
+  isAccessibleForFree: true,
+  publisher: { '@id': ORG_ID },
+};
+const faqLd = faqPageNode(canonical, faq);
+if (!faqLd) throw new Error('Odds calculator FAQ schema must not be empty.');
+---
+
+<ContentLayout
+  title={title}
+  description={description}
+  canonicalPath={canonicalPath}
+  breadcrumbs={breadcrumbs}
+  heroTitle={'Sweepstakes <span class="accent">Odds Calculator</span>'}
+  heroSubtitle="Calculate exact without-replacement odds, or explore a clearly labeled range when the total entry pool is unknown."
+  pageType="WebPage"
+  datePublished="2026-07-30"
+  dateModified="2026-07-30"
+  mainEntityId={`${canonical}#app`}
+  jsonLd={[webApplicationLd, faqLd]}
+>
+  <OddsCalculator />
+  <OddsCasinoRecommendations partners={topPartners} />
+
+  <section aria-labelledby="what-it-tells">
+    <h2 id="what-it-tells">What this calculator tells you</h2>
+    <p>
+      The result is the probability of <strong>at least one win</strong> when a drawing selects
+      unique winning entries without replacement. Enter your entries, the total entries including
+      yours, and the number of prizes. The result does not predict who enters later, how an operator
+      runs an undisclosed pool, or whether a prize is worth pursuing.
+    </p>
+    <p>
+      Sweepstakes entries can come from daily rewards, promotions, a
+      <a href="/guides/amoe-sweepstakes-casinos/">free AMOE route</a>, or purchase-associated
+      bonuses. Learn how those balances fit the
+      <a href="/guides/dual-currency-sweepstakes-model/">dual-currency model</a>.
+    </p>
+  </section>
+
+  <section aria-labelledby="unknown-total">
+    <h2 id="unknown-total">What to do when total entries are unknown</h2>
+    <p>
+      Select <strong>I don’t know the total</strong> and enter your best estimate of all entries,
+      including yours. The tool calculates three assumptions: 80% of that estimate, the estimate
+      itself, and 125% of it. The lower pool produces the better chance and appears first.
+    </p>
+    <p>
+      This range is an estimate, not a confidence interval and not information supplied by an
+      operator. SweepstakesWiz cannot disclose an unknown pool. Check the applicable operator’s
+      official rules through reviews such as <a href="/reviews/mcluck/">McLuck</a>,
+      <a href="/reviews/pulsz/">Pulsz</a>, or <a href="/reviews/crown-coins/">Crown Coins</a>.
+    </p>
+  </section>
+
+  <section aria-labelledby="multiple-prizes">
+    <h2 id="multiple-prizes">How multiple prizes change the result</h2>
+    <p>
+      If a drawing selects more than one unique winning entry, each selection creates another
+      chance for one of your entries to be chosen. The exact model accounts for the shrinking pool
+      after each winning entry is removed. It is not the same as multiplying a one-prize percentage
+      and capping it at 100%.
+    </p>
+  </section>
+
+  <section aria-labelledby="entry-types">
+    <h2 id="entry-types">Free/AMOE entries versus purchase-associated entries</h2>
+    <p>
+      The expanded comparison answers three different questions. <strong>Combined current-pool
+      odds</strong> use all your entries. <strong>Free-only odds in the same current pool</strong>
+      count only your free entries but leave every existing entry in the denominator.
+      <strong>No-purchase counterfactual odds</strong> remove your own purchase-associated entries
+      from both your entry count and the pool.
+    </p>
+    <p>
+      Keeping those definitions separate avoids pretending that purchase-associated entries vanish
+      from your numerator while remaining in a hypothetical no-purchase pool. See
+      <a href="/guides/sweeps-coins-explained/">how Sweeps Coins and free entry paths work</a> and
+      current <a href="/bonuses/no-deposit/">no-deposit entry routes</a>.
+    </p>
+  </section>
+
+  <section aria-labelledby="independent-drawings">
+    <h2 id="independent-drawings">Multiple independent drawings</h2>
+    <p>
+      The repeated-drawings option calculates the chance of at least one win across independent
+      drawings that each have the same single-drawing probability. It does not apply when entries
+      roll over, the pool changes, or one drawing affects another.
+    </p>
+  </section>
+
+  <section aria-labelledby="limitations">
+    <h2 id="limitations">Assumptions and limitations</h2>
+    <ul>
+      <li>Winning entries are unique and drawn without replacement.</li>
+      <li>The total includes your entries, and the prize count does not exceed the pool.</li>
+      <li>Estimated pools are transparent assumptions rather than known operator odds.</li>
+      <li>The calculator does not model leaderboards, tournaments, weighted entries, payout value, or spending efficiency.</li>
+      <li>Results do not override eligibility, location, redemption, or drawing terms in official rules.</li>
+    </ul>
+    <p>
+      Check current location rules in the <a href="/state-legality/">state legality hub</a> and
+      <a href="/sweepstakes-tracker/">live legality tracker</a>. Calculations are informational,
+      remain in your browser, and are not financial or legal advice.
+    </p>
+  </section>
+
+  <section aria-labelledby="worked-examples">
+    <h2 id="worked-examples">Worked examples</h2>
+    <h3>Known pool: one entry, 5,000 total entries, 10 prizes</h3>
+    <p>
+      With one entry among 5,000 and 10 unique prizes, the exact probability is 0.2%, or
+      <strong>1 in 500</strong>. This is not 1 in 250; the without-replacement expression gives the
+      exact result for the stated drawing.
+    </p>
+    <h3>Estimated pool: best estimate of 5,000</h3>
+    <p>
+      With the same one entry and 10 prizes, estimate mode evaluates total-pool assumptions of
+      4,000, 5,000, and 6,250. The displayed range is about <strong>1 in 400 to 1 in 625</strong>,
+      with a base estimate of <strong>1 in 500</strong>.
+    </p>
+  </section>
+
+  <details class="odds-methodology">
+    <summary>How this works</summary>
+    <div>
+      <h2>Methodology and formulas</h2>
+      <p>
+        Let M be your entries, N the total entries, and K the number of unique prizes. The chance
+        of at least one win is:
+      </p>
+      <p><code>p = 1 − C(N−M, K) / C(N, K)</code></p>
+      <p>
+        The implementation does not calculate factorials or raw combinations. It sums logarithms
+        across the shorter equivalent product and returns <code>-expm1(logNoWin)</code>, which stays
+        finite for large safe-integer pools.
+      </p>
+      <p>
+        Estimate mode derives <code>max(M,K,floor(0.8E))</code>, <code>E</code>, and
+        <code>ceil(1.25E)</code>. Repeated independent drawings use
+        <code>1 − (1−p)^D</code>, evaluated as <code>-expm1(D × log1p(-p))</code>.
+      </p>
+      <p>
+        Our casino cards use the existing editorial order and
+        <a href="/how-we-rate/">published rating methodology</a>; your entries and calculated result
+        never affect rankings. For the current full list, see
+        <a href="/best/sweepstakes-casinos/">best sweepstakes casinos</a>.
+      </p>
+    </div>
+  </details>
+
+  <section aria-labelledby="calculator-faq">
+    <h2 id="calculator-faq">Frequently asked questions</h2>
+    {faq.map((item) => (
+      <>
+        <h3>{item.q}</h3>
+        <p>{item.a}</p>
+      </>
+    ))}
+  </section>
+
+  <section aria-labelledby="related-odds-links">
+    <h2 id="related-odds-links">Related tools and guides</h2>
+    <ul>
+      <li><a href="/tools/">All SweepstakesWiz tools</a></li>
+      <li><a href="/guides/dual-currency-sweepstakes-model/">Dual-currency sweepstakes model</a></li>
+      <li><a href="/guides/amoe-sweepstakes-casinos/">AMOE and mail-in entries</a></li>
+      <li><a href="/guides/sweeps-coins-explained/">Sweeps Coins explained</a></li>
+      <li><a href="/bonuses/no-deposit/">No-deposit and free Sweeps Coins routes</a></li>
+    </ul>
+  </section>
+
+  <p class="odds-page-disclosure">
+    Sweepstakes play only; no real-money gambling. No purchase necessary. 18+ (21+ where required).
+    Not available in all states. We may earn referral fees; read the
+    <a href="/legal/affiliate-disclosure/">Affiliate Disclosure</a>. If play stops being fun, visit
+    <a href="/responsible-gaming/">Responsible Gaming</a> or call 1-800-GAMBLER.
+  </p>
+
+  <style>
+    .odds-methodology{margin:24px 0;border:1px solid #cbd5e1;border-radius:12px;padding:0 16px}
+    .odds-methodology summary{display:flex;align-items:center;min-height:48px;font-family:'Sora',sans-serif;font-weight:800;cursor:pointer}
+    .odds-methodology summary:focus-visible{outline:3px solid #fbbf24;outline-offset:2px}
+    .odds-methodology code{overflow-wrap:anywhere}
+    .odds-page-disclosure{font-size:.84rem!important;color:#64748b!important;border-top:1px solid #e2e8f0;padding-top:16px;margin-top:26px}
+  </style>
+</ContentLayout>

@@ -595,4 +595,17 @@ assert.match(
 );
 assert.match(recommendationsSource, /closest<HTMLAnchorElement>\('a\[data-affiliate\]'\)/);
 
+const routeSource = readFileSync(
+  new URL('../src/routes/tools/sweepstakes-odds-calculator/index.astro', import.meta.url),
+  'utf8',
+);
+assert.match(routeSource, /export const prerender = false/);
+assert.match(routeSource, /getEntry\('comparisons', 'sweepstakes-casinos'\)/);
+assert.match(routeSource, /partnerSlugs\.slice\(0, 3\)/);
+assert.match(routeSource, /applicationCategory: 'UtilitiesApplication'/);
+assert.match(routeSource, /browserRequirements: 'Requires JavaScript'/);
+assert.match(routeSource, /mainEntityId=\{`\$\{canonical\}#app`\}/);
+assert.match(routeSource, /faqPageNode/);
+assert.doesNotMatch(routeSource, /Offer|AggregateRating|expected winnings|real odds/i);
+
 console.log('verify-sweepstakes-odds: OK');
