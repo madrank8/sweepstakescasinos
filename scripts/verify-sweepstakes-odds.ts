@@ -11,6 +11,15 @@ import {
   RESULT_INVALIDATING_INPUT_IDS,
 } from '../src/lib/oddsCalculatorUi';
 import {
+  buildOddsRecommendations,
+  getOddsEditorialTopThree,
+  ODDS_EDITORIAL_TOP_THREE_SLUGS,
+  ODDS_CTA_ANALYTICS_EVENT,
+  ODDS_CTA_ANALYTICS_PAYLOAD_KEYS,
+  ODDS_CTA_CLICK_ID,
+} from '../src/lib/oddsRecommendations';
+import { shouldRenderAffiliateCta } from '../src/data/geo';
+import {
   deriveEstimatedPools,
   entryMixProbabilities,
   estimateProbabilityRange,
@@ -24,6 +33,73 @@ import {
 interface ParsedSendEventCall {
   eventRef: string;
   payloadKeys: string[];
+}
+
+interface ParsedGtagEventCall {
+  eventName: string;
+  payloadKeys: string[];
+  payloadLiteral: string;
+}
+
+function parseRecommendationsGtagCalls(source: string): ParsedGtagEventCall[] {
+  const scriptMatch = source.match(/<script>([\s\S]*?)<\/script>/);
+  assert.ok(scriptMatch, 'OddsCasinoRecommendations must include a script block');
+  const script = scriptMatch[1]!;
+  const calls: ParsedGtagEventCall[] = [];
+  const needles = ["gtag?.('event',", 'gtag?.("event",', "window.gtag?.('event',", 'window.gtag?.("event",'];
+  let index = 0;
+  while (index < script.length) {
+    let at = -1;
+    let needle = '';
+    for (const candidate of needles) {
+      const found = script.indexOf(candidate, index);
+      if (found !== -1 && (at === -1 || found < at)) {
+        at = found;
+        needle = candidate;
+      }
+    }
+    if (at === -1) break;
+    const before = script.slice(Math.max(0, at - 'function '.length), at);
+    if (before === 'function ') {
+      index = at + needle.length;
+      continue;
+    }
+    let pos = at + needle.length;
+    pos = skipWhitespace(script, pos);
+    const eventNameMatch = script.slice(pos).match(/^(['"])([^'"]+)\1/);
+    assert.ok(eventNameMatch, 'gtag event call must include a string event name');
+    const eventName = eventNameMatch[2]!;
+    pos += eventNameMatch[0]!.length;
+    pos = skipWhitespace(script, pos);
+    assert.equal(script[pos], ',', 'gtag event call must include a payload object');
+    pos = skipWhitespace(script, pos + 1);
+    assert.equal(script[pos], '{', 'gtag event payload must be an object literal');
+    const { literal, end } = readBalancedObjectLiteral(script, pos);
+    calls.push({
+      eventName,
+      payloadKeys: extractFlatObjectKeys(literal).sort(),
+      payloadLiteral: literal,
+    });
+    index = end + 1;
+  }
+  return calls;
+}
+
+function assertNoProhibitedRecommendationClaims(source: string) {
+  assert.doesNotMatch(source, /"@type"\s*:\s*"Offer"/);
+  assert.doesNotMatch(source, /"@type"\s*:\s*"Product"/);
+  assert.doesNotMatch(source, /"@type"\s*:\s*"Review"/);
+  assert.doesNotMatch(source, /"@type"\s*:\s*"AggregateRating"/);
+  assert.doesNotMatch(source, /"@type"\s*:\s*"Rating"/);
+  assert.doesNotMatch(source, /ratingValue|bestRating|worstRating|reviewRating/i);
+  assert.doesNotMatch(source, /\b\d+(?:\.\d+)?\s*\/\s*5\b/);
+  assert.doesNotMatch(source, /stars?\s+out\s+of/i);
+  assert.doesNotMatch(source, /tracker\.gemified\.io/);
+  assert.doesNotMatch(source, /\btrackingLink\b/);
+  assert.doesNotMatch(source, /\$\d+/);
+  assert.doesNotMatch(source, /\b\d{1,3}(?:,\d{3})+\s*(?:GC|SC|Coins?)\b/i);
+  assert.doesNotMatch(source, /\b\d+\s*(?:GC|SC|free\s+coins?)\b/i);
+  assert.match(source, /editorially ranked casinos/);
 }
 
 function skipWhitespace(source: string, index: number): number {
@@ -429,10 +505,76 @@ const recommendationsSource = readFileSync(
   new URL('../src/components/odds/OddsCasinoRecommendations.astro', import.meta.url),
   'utf8',
 );
-assert.match(recommendationsSource, /AffiliateLink/);
-assert.match(recommendationsSource, /clickId="odds-calculator"/);
-assert.match(recommendationsSource, /editorially ranked casinos, not recommendations produced by your odds result/);
-assert.match(recommendationsSource, /odds_casino_cta_clicked/);
-assert.doesNotMatch(recommendationsSource, /Offer|AggregateRating|trackingLink/);
+
+// --- Pure model: editorial top-three order and geo flags ---
+assert.deepEqual([...ODDS_EDITORIAL_TOP_THREE_SLUGS], ['mcluck', 'pulsz', 'crown-coins']);
+const editorialTopThree = getOddsEditorialTopThree();
+assert.equal(editorialTopThree.length, 3);
+
+for (const [state, label] of [
+  ['TX', 'allowed state'],
+  ['CA', 'site-banned state'],
+  [null, 'unknown state'],
+] as const) {
+  const items = buildOddsRecommendations(editorialTopThree, state);
+  assert.equal(items.length, 3, `${label}: must keep exactly three cards`);
+  assert.deepEqual(
+    items.map((item) => item.partner.slug),
+    [...ODDS_EDITORIAL_TOP_THREE_SLUGS],
+    `${label}: must preserve editorial order`,
+  );
+  assert.deepEqual(
+    items.map((item) => item.rank),
+    [1, 2, 3],
+    `${label}: ranks must stay 1..3`,
+  );
+  for (const item of items) {
+    assert.equal(
+      item.available,
+      shouldRenderAffiliateCta(item.partner, state),
+      `${label}: availability must follow shouldRenderAffiliateCta for ${item.partner.slug}`,
+    );
+    assert.equal(item.reviewHref, `/reviews/${item.partner.slug}/`);
+  }
+}
+
+const txItems = buildOddsRecommendations(editorialTopThree, 'TX');
+assert.ok(txItems.every((item) => item.available), 'TX: all three editorial picks should allow CTAs');
+const caItems = buildOddsRecommendations(editorialTopThree, 'CA');
+assert.ok(caItems.every((item) => !item.available), 'CA: site ban suppresses all CTAs');
+const unknownItems = buildOddsRecommendations(editorialTopThree, null);
+assert.ok(unknownItems.every((item) => !item.available), 'unknown region: fail-closed suppression');
+
+// --- Component wiring: model-driven cards, review retention, AffiliateLink-only CTAs ---
+assert.match(recommendationsSource, /from ['"].*oddsRecommendations['"]/);
+assert.match(recommendationsSource, /buildOddsRecommendations\(/);
+assert.match(recommendationsSource, /items\.map\(\(item\)/);
+assert.match(recommendationsSource, /#\{item\.rank\}/);
+assert.match(recommendationsSource, /href=\{item\.reviewHref\}/);
+assert.match(recommendationsSource, /Read review/);
+assert.match(
+  recommendationsSource,
+  /href=\{item\.reviewHref\}[\s\S]*?AffiliateLink/,
+  'review links must render outside AffiliateLink-only CTA routing',
+);
+assert.match(recommendationsSource, /<AffiliateLink[\s\S]*?clickId=\{ODDS_CTA_CLICK_ID\}/);
+assert.doesNotMatch(recommendationsSource, /\/bonuses\//);
+assert.doesNotMatch(recommendationsSource, /partner\.trackingLink/);
+assert.match(
+  recommendationsSource,
+  /editorially ranked casinos, not recommendations produced by your odds result/,
+);
+assertNoProhibitedRecommendationClaims(recommendationsSource);
+
+const ctaAnalyticsCalls = parseRecommendationsGtagCalls(recommendationsSource);
+assert.equal(
+  ctaAnalyticsCalls.length,
+  1,
+  'OddsCasinoRecommendations must emit exactly one gtag analytics call site',
+);
+assert.equal(ctaAnalyticsCalls[0]!.eventName, ODDS_CTA_ANALYTICS_EVENT);
+assert.deepEqual(ctaAnalyticsCalls[0]!.payloadKeys, [...ODDS_CTA_ANALYTICS_PAYLOAD_KEYS].sort());
+assert.match(ctaAnalyticsCalls[0]!.payloadLiteral, /placement:\s*'odds-calculator'/);
+assert.match(recommendationsSource, /closest<HTMLAnchorElement>\('a\[data-affiliate\]'\)/);
 
 console.log('verify-sweepstakes-odds: OK');

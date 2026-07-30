@@ -1,14 +1,17 @@
 ---
 import AffiliateLink from '../AffiliateLink.astro';
-import type { AffiliatePartner } from '../../data/affiliates';
-import { shouldRenderAffiliateCta } from '../../data/geo';
+import {
+  buildOddsRecommendations,
+  ODDS_CTA_CLICK_ID,
+  type OddsRecommendationTuple,
+} from '../../lib/oddsRecommendations';
 
 interface Props {
-  partners: [AffiliatePartner, AffiliatePartner, AffiliatePartner];
+  partners: OddsRecommendationTuple;
 }
 
 const { partners } = Astro.props;
-const state = Astro.locals.usState;
+const items = buildOddsRecommendations(partners, Astro.locals.usState);
 ---
 <section class="odds-recommendations" data-odds-recommendations
   aria-labelledby="odds-recommendations-title">
@@ -18,31 +21,28 @@ const state = Astro.locals.usState;
     Calculator inputs never change this order.
   </p>
   <ol class="odds-casino-list">
-    {partners.map((partner, index) => {
-      const available = shouldRenderAffiliateCta(partner, state);
-      return (
-        <li class="odds-casino-card">
-          <span class="odds-casino-rank">#{index + 1}</span>
-          <div class="odds-casino-body">
-            <h3><a href={`/reviews/${partner.slug}/`}>{partner.name}</a></h3>
-            <p class:list={['odds-casino-status', { available, unavailable: !available }]}>
-              {available ? 'Available in your location' : 'Not available in your location'}
-            </p>
-            <p>Read our editorial review for free-entry routes, eligibility, and official-rules context.</p>
-          </div>
-          <div class="odds-casino-actions">
-            <a href={`/reviews/${partner.slug}/`}>Read review</a>
-            <AffiliateLink
-              partner={partner}
-              label={`Visit ${partner.name}`}
-              class="odds-casino-cta"
-              clickId="odds-calculator"
-              showUnavailableNote={false}
-            />
-          </div>
-        </li>
-      );
-    })}
+    {items.map((item) => (
+      <li class="odds-casino-card">
+        <span class="odds-casino-rank">#{item.rank}</span>
+        <div class="odds-casino-body">
+          <h3><a href={item.reviewHref}>{item.partner.name}</a></h3>
+          <p class:list={['odds-casino-status', { available: item.available, unavailable: !item.available }]}>
+            {item.available ? 'Available in your location' : 'Not available in your location'}
+          </p>
+          <p>Read our editorial review for free-entry routes, eligibility, and official-rules context.</p>
+        </div>
+        <div class="odds-casino-actions">
+          <a href={item.reviewHref}>Read review</a>
+          <AffiliateLink
+            partner={item.partner}
+            label={`Visit ${item.partner.name}`}
+            class="odds-casino-cta"
+            clickId={ODDS_CTA_CLICK_ID}
+            showUnavailableNote={false}
+          />
+        </div>
+      </li>
+    ))}
   </ol>
   <p class="odds-casino-disclosure">
     We may earn a referral fee when you use an affiliate link; this never affects rankings.
