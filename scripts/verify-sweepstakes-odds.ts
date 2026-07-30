@@ -425,4 +425,14 @@ for (const id of RESULT_INVALIDATING_INPUT_IDS) {
   assert.match(calculatorSource, new RegExp(`id="${id}"`));
 }
 
+const recommendationsSource = readFileSync(
+  new URL('../src/components/odds/OddsCasinoRecommendations.astro', import.meta.url),
+  'utf8',
+);
+assert.match(recommendationsSource, /AffiliateLink/);
+assert.match(recommendationsSource, /clickId="odds-calculator"/);
+assert.match(recommendationsSource, /editorially ranked casinos, not recommendations produced by your odds result/);
+assert.match(recommendationsSource, /odds_casino_cta_clicked/);
+assert.doesNotMatch(recommendationsSource, /Offer|AggregateRating|trackingLink/);
+
 console.log('verify-sweepstakes-odds: OK');

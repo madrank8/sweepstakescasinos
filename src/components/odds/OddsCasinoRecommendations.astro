@@ -1,0 +1,90 @@
+---
+import AffiliateLink from '../AffiliateLink.astro';
+import type { AffiliatePartner } from '../../data/affiliates';
+import { shouldRenderAffiliateCta } from '../../data/geo';
+
+interface Props {
+  partners: [AffiliatePartner, AffiliatePartner, AffiliatePartner];
+}
+
+const { partners } = Astro.props;
+const state = Astro.locals.usState;
+---
+<section class="odds-recommendations" data-odds-recommendations
+  aria-labelledby="odds-recommendations-title">
+  <h2 id="odds-recommendations-title">Get more free entries at these sweepstakes casinos</h2>
+  <p>
+    These are editorially ranked casinos, not recommendations produced by your odds result.
+    Calculator inputs never change this order.
+  </p>
+  <ol class="odds-casino-list">
+    {partners.map((partner, index) => {
+      const available = shouldRenderAffiliateCta(partner, state);
+      return (
+        <li class="odds-casino-card">
+          <span class="odds-casino-rank">#{index + 1}</span>
+          <div class="odds-casino-body">
+            <h3><a href={`/reviews/${partner.slug}/`}>{partner.name}</a></h3>
+            <p class:list={['odds-casino-status', { available, unavailable: !available }]}>
+              {available ? 'Available in your location' : 'Not available in your location'}
+            </p>
+            <p>Read our editorial review for free-entry routes, eligibility, and official-rules context.</p>
+          </div>
+          <div class="odds-casino-actions">
+            <a href={`/reviews/${partner.slug}/`}>Read review</a>
+            <AffiliateLink
+              partner={partner}
+              label={`Visit ${partner.name}`}
+              class="odds-casino-cta"
+              clickId="odds-calculator"
+              showUnavailableNote={false}
+            />
+          </div>
+        </li>
+      );
+    })}
+  </ol>
+  <p class="odds-casino-disclosure">
+    We may earn a referral fee when you use an affiliate link; this never affects rankings.
+    See our <a href="/legal/affiliate-disclosure/">Affiliate Disclosure</a>.
+    No purchase necessary. 18+ (21+ where required). Not available in all states.
+    Check each operator’s official rules and <a href="/responsible-gaming/">play responsibly</a>.
+  </p>
+</section>
+
+<style>
+  .odds-recommendations{margin:8px 0 30px}
+  .odds-casino-list{list-style:none;margin:16px 0;padding:0}
+  .odds-casino-card{display:flex;align-items:center;gap:14px;padding:16px;border:1px solid #e2e8f0;border-radius:14px;background:linear-gradient(165deg,#fafcff,#eef4ff);margin-bottom:12px}
+  .odds-casino-rank{font-family:'Sora',sans-serif;font-weight:900;color:#1a56db;font-size:1.1rem;min-width:34px}
+  .odds-casino-body{flex:1}.odds-casino-body h3{margin:0 0 3px}.odds-casino-body p{margin:0}
+  .odds-casino-status{font-size:.78rem;font-weight:800}.odds-casino-status.available{color:#047857}.odds-casino-status.unavailable{color:#991b1b}
+  .odds-casino-actions{display:flex;align-items:center;justify-content:flex-end;gap:10px;flex-wrap:wrap}
+  .odds-casino-actions :global(.odds-casino-cta){display:inline-block;min-height:44px;background:linear-gradient(135deg,#fbbf24,#f59e0b);color:#0a1628;font-weight:800;padding:10px 16px;border-radius:10px;text-decoration:none}
+  .odds-casino-disclosure{font-size:.84rem;color:#64748b;border-top:1px solid #e2e8f0;padding-top:14px}
+  @media(max-width:620px){.odds-casino-card{align-items:flex-start;flex-wrap:wrap}.odds-casino-actions{width:100%;justify-content:flex-start;padding-left:48px}}
+</style>
+
+<script>
+  declare global {
+    interface Window {
+      gtag?: (...args: unknown[]) => void;
+    }
+  }
+  document.querySelectorAll<HTMLElement>('[data-odds-recommendations]').forEach((root) => {
+    root.addEventListener('click', (event) => {
+      const target = event.target;
+      if (!(target instanceof Element)) return;
+      const link = target.closest<HTMLAnchorElement>('a[data-affiliate]');
+      if (!link) return;
+      try {
+        window.gtag?.('event', 'odds_casino_cta_clicked', {
+          casino_slug: link.dataset.affiliate ?? '',
+          placement: 'odds-calculator',
+        });
+      } catch {
+        // Navigation remains independent from analytics.
+      }
+    });
+  });
+</script>
