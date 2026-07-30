@@ -21,6 +21,78 @@ import {
   validateCalculatorInput,
 } from '../src/lib/sweepstakesOdds';
 
+interface ParsedSendEventCall {
+  eventRef: string;
+  payloadKeys: string[];
+}
+
+function skipWhitespace(source: string, index: number): number {
+  while (index < source.length && /\s/.test(source[index]!)) {
+    index++;
+  }
+  return index;
+}
+
+function readBalancedObjectLiteral(source: string, openBraceIndex: number): { literal: string; end: number } {
+  assert.equal(source[openBraceIndex], '{');
+  let depth = 0;
+  for (let i = openBraceIndex; i < source.length; i++) {
+    const ch = source[i]!;
+    if (ch === '{') depth++;
+    else if (ch === '}') {
+      depth--;
+      if (depth === 0) {
+        return { literal: source.slice(openBraceIndex, i + 1), end: i };
+      }
+    }
+  }
+  throw new Error('unbalanced object literal in sendEvent payload');
+}
+
+function extractFlatObjectKeys(objectLiteral: string): string[] {
+  return [...objectLiteral.matchAll(/\b([a-z_][a-z0-9_]*)\s*:/g)].map((match) => match[1]!);
+}
+
+function parseOddsCalculatorSendEventCalls(source: string): ParsedSendEventCall[] {
+  const scriptMatch = source.match(/<script>([\s\S]*?)<\/script>/);
+  assert.ok(scriptMatch, 'OddsCalculator.astro must include a script block');
+  const script = scriptMatch[1]!;
+  const calls: ParsedSendEventCall[] = [];
+  const needle = 'sendEvent(';
+  let index = 0;
+  while (index < script.length) {
+    const at = script.indexOf(needle, index);
+    if (at === -1) break;
+    const before = script.slice(Math.max(0, at - 'function '.length), at);
+    if (before === 'function ') {
+      index = at + needle.length;
+      continue;
+    }
+    let pos = at + needle.length;
+    pos = skipWhitespace(script, pos);
+    const comma = script.indexOf(',', pos);
+    assert.notEqual(comma, -1, 'sendEvent call must include an event reference and payload');
+    const eventRef = script.slice(pos, comma).trim();
+    pos = skipWhitespace(script, comma + 1);
+    assert.equal(script[pos], '{', 'sendEvent payload must be an object literal');
+    const { literal, end } = readBalancedObjectLiteral(script, pos);
+    calls.push({
+      eventRef,
+      payloadKeys: extractFlatObjectKeys(literal).sort(),
+    });
+    index = end + 1;
+  }
+  return calls;
+}
+
+function resolveSendEventName(eventRef: string): string {
+  if (eventRef === 'ODDS_EVENT_CALCULATION_COMPLETED') return ODDS_EVENT_CALCULATION_COMPLETED;
+  if (eventRef === 'ODDS_EVENT_OPTIONS_OPENED') return ODDS_EVENT_OPTIONS_OPENED;
+  const literal = eventRef.match(/^(['"])(.+)\1$/);
+  if (literal) return literal[2]!;
+  throw new Error(`unexpected sendEvent event reference: ${eventRef}`);
+}
+
 const close = (actual: number, expected: number, tolerance = 1e-12) =>
   assert.ok(
     Math.abs(actual - expected) <= tolerance * Math.max(1, Math.abs(expected)),
@@ -320,24 +392,37 @@ assert.deepEqual([...CALCULATION_COMPLETED_PAYLOAD_KEYS], [
   'multiple_drawings_active',
 ]);
 assert.deepEqual([...OPTIONS_OPENED_PAYLOAD_KEYS], ['option_name']);
-assert.match(
-  calculatorSource,
-  /sendEvent\(ODDS_EVENT_CALCULATION_COMPLETED,\s*\{[\s\S]*?pool_mode:[\s\S]*?entry_mix_active:[\s\S]*?multiple_drawings_active:[\s\S]*?\}\)/,
+
+assert.equal(ODDS_EVENT_CALCULATION_COMPLETED, 'odds_calculation_completed');
+assert.equal(ODDS_EVENT_OPTIONS_OPENED, 'odds_options_opened');
+
+const analyticsCalls = parseOddsCalculatorSendEventCalls(calculatorSource);
+assert.equal(
+  analyticsCalls.length,
+  2,
+  'OddsCalculator must emit exactly two analytics sendEvent call sites',
 );
-assert.match(
-  calculatorSource,
-  /sendEvent\(ODDS_EVENT_OPTIONS_OPENED,\s*\{\s*option_name:\s*option\s*\}\)/,
-);
+
+const resolvedEventNames = analyticsCalls.map((call) => resolveSendEventName(call.eventRef));
+assert.deepEqual([...new Set(resolvedEventNames)].sort(), [
+  ODDS_EVENT_CALCULATION_COMPLETED,
+  ODDS_EVENT_OPTIONS_OPENED,
+].sort());
+
+for (const call of analyticsCalls) {
+  const eventName = resolveSendEventName(call.eventRef);
+  const expectedKeys =
+    eventName === ODDS_EVENT_CALCULATION_COMPLETED
+      ? [...CALCULATION_COMPLETED_PAYLOAD_KEYS].sort()
+      : eventName === ODDS_EVENT_OPTIONS_OPENED
+        ? [...OPTIONS_OPENED_PAYLOAD_KEYS].sort()
+        : null;
+  assert.ok(expectedKeys, `unexpected analytics event: ${eventName}`);
+  assert.deepEqual(call.payloadKeys, expectedKeys);
+}
 
 for (const id of RESULT_INVALIDATING_INPUT_IDS) {
   assert.match(calculatorSource, new RegExp(`id="${id}"`));
-}
-
-const sendEventCalls = [...calculatorSource.matchAll(/sendEvent\(([\s\S]*?)\);/g)];
-assert.ok(sendEventCalls.length >= 2, 'expected at least two sendEvent calls');
-for (const [call] of sendEventCalls) {
-  assert.doesNotMatch(call, /:\s*scenario\.(entries|pool|prizes|freeEntries|drawings)\b/);
-  assert.doesNotMatch(call, /:\s*\d/);
 }
 
 console.log('verify-sweepstakes-odds: OK');
