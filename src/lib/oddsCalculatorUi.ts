@@ -1,4 +1,8 @@
-import type { PoolMode } from './sweepstakesOdds';
+import {
+  formatChance,
+  type EstimatedProbabilityRange,
+  type PoolMode,
+} from './sweepstakesOdds';
 
 export const ODDS_EVENT_CALCULATION_COMPLETED = 'odds_calculation_completed';
 export const ODDS_EVENT_OPTIONS_OPENED = 'odds_options_opened';
@@ -50,6 +54,14 @@ export function formatEntryMixValue(poolMode: PoolMode, reciprocal: string, perc
     return value;
   }
   return `Estimated: ${value} — base pool assumption`;
+}
+
+export function formatEstimatedProbabilityRange(range: EstimatedProbabilityRange): string {
+  return (
+    `Estimated probability range: ${formatChance(range.best).percent} to ` +
+    `${formatChance(range.worst).percent}; ` +
+    `base assumption ${formatChance(range.baseChance).percent}.`
+  );
 }
 
 export function formatDrawingsResult(

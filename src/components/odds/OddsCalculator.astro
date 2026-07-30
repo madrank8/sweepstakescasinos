@@ -13,7 +13,7 @@
     <ul data-error-list></ul>
   </div>
 
-  <form data-odds-form novalidate>
+  <form data-odds-form method="dialog" novalidate>
     <div class="odds-grid">
       <div class="odds-field" data-field-wrap="entries">
         <label for="odds-entries">Your entries</label>
@@ -28,7 +28,7 @@
         <label for="odds-pool" data-pool-label>Total entries</label>
         <input id="odds-pool" name="pool" type="text" inputmode="numeric"
           pattern="[0-9]*" autocomplete="off" aria-describedby="odds-pool-hint odds-pool-error" />
-        <p id="odds-pool-hint" class="odds-hint" data-pool-hint>
+        <p id="odds-pool-hint" class="odds-hint" data-pool-hint aria-live="polite" role="status">
           Include your entries in the drawing total.
         </p>
         <p id="odds-pool-error" class="odds-field-error" data-error-for="pool" hidden></p>
@@ -44,8 +44,14 @@
       </div>
 
       <label class="odds-mode-toggle">
-        <input type="checkbox" data-estimated-toggle />
-        I don’t know the total
+        <input id="odds-estimated-toggle" type="checkbox" data-estimated-toggle
+          aria-controls="odds-pool" aria-describedby="odds-estimated-instructions" />
+        <span>
+          I don’t know the total
+          <span id="odds-estimated-instructions" class="odds-mode-instructions">
+            Changes the total-entry field to an estimate and announces the new assumption.
+          </span>
+        </span>
       </label>
     </div>
 
@@ -93,7 +99,7 @@
   </form>
 
   <section class="odds-result" data-result aria-live="polite" hidden>
-    <h2 tabindex="-1" data-result-heading></h2>
+    <h3 tabindex="-1" data-result-heading></h3>
     <p class="odds-result-percent" data-result-percent></p>
     <p data-result-assumption></p>
     <div data-entry-mix-result hidden>
@@ -121,13 +127,14 @@
     entryMixDisplayLabels,
     formatDrawingsResult,
     formatEntryMixValue,
+    formatEstimatedProbabilityRange,
     ODDS_EVENT_CALCULATION_COMPLETED,
     ODDS_EVENT_OPTIONS_OPENED,
+    RESULT_INVALIDATING_INPUT_IDS,
   } from '../../lib/oddsCalculatorUi';
   import {
     entryMixProbabilities,
     estimateProbabilityRange,
-    estimatedEntryMixProbabilities,
     exactWinProbability,
     formatChance,
     repeatProbability,
@@ -204,9 +211,12 @@
       clearErrors();
       const summary = root.querySelector<HTMLElement>('[data-error-summary]')!;
       const list = root.querySelector<HTMLUListElement>('[data-error-list]')!;
+      summary.hidden = false;
       for (const issue of issues) {
         const input = root.querySelector<HTMLElement>(`#${fieldId[issue.field]}`);
         const inline = root.querySelector<HTMLElement>(`[data-error-for="${issue.field}"]`);
+        const details = input?.closest('details');
+        if (details) details.open = true;
         input?.setAttribute('aria-invalid', 'true');
         if (inline) {
           inline.textContent = `Error: ${issue.message}`;
@@ -219,7 +229,6 @@
         item.append(link);
         list.append(item);
       }
-      summary.hidden = false;
       summary.focus();
     }
 
@@ -241,11 +250,9 @@
       clearErrors();
     }
 
-    form.addEventListener('input', (event) => {
-      if (event.target instanceof HTMLInputElement && !event.target.disabled) {
-        hideResult();
-      }
-    });
+    for (const id of RESULT_INVALIDATING_INPUT_IDS) {
+      root.querySelector<HTMLInputElement>(`#${id}`)?.addEventListener('input', hideResult);
+    }
 
     estimatedToggle.addEventListener('change', () => {
       pool.value = '';
@@ -288,6 +295,7 @@
       const heading = root.querySelector<HTMLElement>('[data-result-heading]')!;
       const percent = root.querySelector<HTMLElement>('[data-result-percent]')!;
       const assumption = root.querySelector<HTMLElement>('[data-result-assumption]')!;
+      resultRegion.hidden = false;
       let singleProbability: number;
 
       if (scenario.poolMode === 'known') {
@@ -328,9 +336,7 @@
             ` to ${reciprocalOnly(range.worst)}` +
             ` (base estimate: ${reciprocalOnly(range.baseChance)}).`;
         }
-        percent.textContent =
-          `Estimated probability range: ${formatChance(range.worst).percent} to ` +
-          `${formatChance(range.best).percent}; base assumption ${formatChance(range.baseChance).percent}.`;
+        percent.textContent = formatEstimatedProbabilityRange(range);
         assumption.textContent =
           'Estimate assumptions only: 0.8×, entered total, and 1.25× total entries. This is not a confidence interval or operator data.';
       }
@@ -351,19 +357,12 @@
           mixNote.hidden = true;
         }
 
-        const mix = scenario.poolMode === 'known'
-          ? entryMixProbabilities({
-              entries: scenario.entries,
-              totalEntries: scenario.pool,
-              prizes: scenario.prizes,
-              freeEntries: scenario.freeEntries,
-            })
-          : estimatedEntryMixProbabilities({
-              entries: scenario.entries,
-              estimate: scenario.pool,
-              prizes: scenario.prizes,
-              freeEntries: scenario.freeEntries,
-            }).base;
+        const mix = entryMixProbabilities({
+          entries: scenario.entries,
+          totalEntries: scenario.pool,
+          prizes: scenario.prizes,
+          freeEntries: scenario.freeEntries,
+        });
         const formatMix = (probability: number) => {
           const formatted = formatChance(probability);
           return formatEntryMixValue(scenario.poolMode, formatted.reciprocal, formatted.percent);
@@ -386,7 +385,6 @@
         );
       }
 
-      resultRegion.hidden = false;
       heading.focus();
       sendEvent(ODDS_EVENT_CALCULATION_COMPLETED, {
         pool_mode: scenario.poolMode,
@@ -412,14 +410,14 @@
   .odds-error-summary{border:2px solid #b91c1c;border-radius:10px;background:#fef2f2;padding:14px 16px;margin:16px 0}
   .odds-error-summary h3{margin:0 0 8px}.odds-error-summary ul{margin:0 0 0 20px}
   .odds-mode-toggle{display:flex!important;grid-column:2;align-items:center;gap:8px;min-height:44px;margin-top:-8px;font-weight:600!important}
+  .odds-mode-instructions{display:block;margin-top:2px;color:#64748b;font-size:.78rem;font-weight:400}
   .odds-options{border-top:1px solid #e2e8f0;border-bottom:1px solid #e2e8f0;padding:12px 0;margin:18px 0}
   .odds-options summary{min-height:44px;display:flex;align-items:center;font-weight:800;cursor:pointer}
   .odds-option{padding:10px 0}.odds-option>label{display:flex;align-items:center;gap:10px;min-height:44px}
   .odds-submit{min-height:48px;border:0;border-radius:10px;padding:10px 18px;background:linear-gradient(135deg,#fbbf24,#f59e0b);color:#0a1628;font:800 1rem 'Sora',sans-serif;cursor:pointer}
   .odds-result{margin-top:22px;border-left:4px solid #10b981;background:#f0fdf4;border-radius:10px;padding:18px}
-  .odds-result h2{margin-top:0}.odds-result dl>div{padding:8px 0;border-top:1px solid #bbf7d0}
+  .odds-result h3{margin-top:0}.odds-result dl>div{padding:8px 0;border-top:1px solid #bbf7d0}
   .odds-result dt{font-weight:800}.odds-result dd{margin:2px 0 0}
   .odds-noscript{border-left:4px solid #1a56db;background:#eff6ff;padding:12px 14px}
   @media(max-width:700px){.odds-grid{grid-template-columns:1fr}.odds-mode-toggle{grid-column:1;margin-top:0}.odds-calculator{padding:18px}}
-  @media(prefers-reduced-motion:reduce){.odds-calculator *{scroll-behavior:auto!important;transition:none!important}}
 </style>

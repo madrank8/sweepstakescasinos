@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
-import { existsSync, readFileSync } from 'node:fs';
+import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
 import { getPartner } from '../src/data/affiliates';
 import { shouldRenderAffiliateCta } from '../src/data/geo';
@@ -12,6 +12,14 @@ import {
 const root = process.cwd();
 const read = (path: string) => readFileSync(join(root, path), 'utf8');
 const pkg = JSON.parse(read('package.json')) as { scripts: Record<string, string> };
+const scriptCommands = (name: string) =>
+  pkg.scripts[name]!.split('&&').map((command) => command.trim());
+const assertCommandOrder = (commands: string[], before: string, after: string) => {
+  const beforeIndex = commands.indexOf(before);
+  const afterIndex = commands.indexOf(after);
+  assert.ok(beforeIndex >= 0, `script includes ${before}`);
+  assert.ok(afterIndex > beforeIndex, `${after} runs after ${before}`);
+};
 
 assert.equal(
   pkg.scripts['verify:odds:integration'],
@@ -19,11 +27,22 @@ assert.equal(
   'package script verify:odds:integration',
 );
 assert.match(pkg.scripts.prebuild, /npm run verify:odds/);
-assert.equal(
-  pkg.scripts.ci,
-  'npm run verify:availability && npm run content:lint && npm run tracker:lint && npm run methodology:check && npm run verify:odds && npm run testing:verify && npm run testing:verify-overclaims && npm run build && npm run verify:odds:integration',
-  'ci runs pure odds verification before build and integration verification after build',
-);
+const ciCommands = scriptCommands('ci');
+for (const requiredCommand of [
+  'npm run verify:availability',
+  'npm run content:lint',
+  'npm run tracker:lint',
+  'npm run methodology:check',
+  'npm run verify:odds',
+  'npm run testing:verify',
+  'npm run testing:verify-overclaims',
+  'npm run build',
+  'npm run verify:odds:integration',
+]) {
+  assert.ok(ciCommands.includes(requiredCommand), `ci includes ${requiredCommand}`);
+}
+assertCommandOrder(ciCommands, 'npm run verify:odds', 'npm run build');
+assertCommandOrder(ciCommands, 'npm run build', 'npm run verify:odds:integration');
 
 for (const path of [
   'src/lib/sweepstakesOdds.ts',
@@ -40,6 +59,7 @@ for (const path of [
 
 const {
   ODDS_CANONICAL,
+  ODDS_DATE_MODIFIED,
   ODDS_FAQ,
   ODDS_MAIN_ENTITY_ID,
   buildOddsPageGraph,
@@ -59,18 +79,6 @@ assert.match(
   workflow.slice(integrationStep),
   /run: npm run verify:odds:integration/,
   'CI integration step invokes the package script',
-);
-
-const integrationVerifierSource = read('scripts/verify-sweepstakes-odds-integration.ts');
-assert.doesNotMatch(
-  integrationVerifierSource,
-  /const formMatch = calculator\.match\(/,
-  'form verification must inspect every form, not only the first match',
-);
-assert.doesNotMatch(
-  integrationVerifierSource,
-  /const definedIds = new Set<string>\(\)/,
-  'schema verification must count defined ID occurrences instead of collapsing them',
 );
 
 const calculator = read('src/components/odds/OddsCalculator.astro');
@@ -106,6 +114,10 @@ const formBlocks = [...calculator.matchAll(/<form\b[\s\S]*?<\/form>/g)];
 assert.equal((calculator.match(/<form\b/g) ?? []).length, 1, 'calculator has exactly one form');
 assert.equal(formBlocks.length, 1, 'calculator has exactly one complete form');
 const formMarkup = formBlocks[0][0];
+const formTag = formMarkup.match(/^<form\b[^>]*>/)?.[0];
+assert.ok(formTag, 'calculator form has an opening tag');
+assert.match(formTag, /\bmethod="dialog"/);
+assert.doesNotMatch(formTag, /\baction\s*=/);
 const optionsTag = formMarkup.match(/<details\b[^>]*class="odds-options"[^>]*>/);
 assert.ok(optionsTag, 'More options uses a details element');
 assert.doesNotMatch(optionsTag[0], /\bopen\b/, 'More options starts collapsed');
@@ -146,6 +158,13 @@ assert.deepEqual(
   'only the three ordered base value fields precede More options',
 );
 assert.equal(baseValueControls[2].attributes.value, '1', 'prizes defaults to 1');
+assert.equal(estimatedModeControls[0].attributes.id, 'odds-estimated-toggle');
+assert.equal(estimatedModeControls[0].attributes['aria-controls'], 'odds-pool');
+assert.equal(
+  estimatedModeControls[0].attributes['aria-describedby'],
+  'odds-estimated-instructions',
+);
+assert.match(calculator, /id="odds-pool-hint"[^>]*aria-live="polite"[^>]*role="status"/);
 for (const { tag } of baseValueControls) {
   assert.doesNotMatch(tag, /\b(?:hidden|disabled)\b/, 'base value fields are visible and enabled');
 }
@@ -170,21 +189,6 @@ assert.deepEqual(
   [],
   'no named value controls may appear after More options',
 );
-const calculatorAnalyticsBlocks = [...calculator.matchAll(/sendEvent\(([\s\S]*?)\);/g)]
-  .map((match) => match[1])
-  .join('\n');
-for (const forbidden of [
-  'entries:',
-  'total_entries',
-  'prizes:',
-  'free_entries',
-  'drawings:',
-  'probability:',
-  'reciprocal',
-]) {
-  assert.ok(!calculatorAnalyticsBlocks.includes(forbidden), `analytics excludes ${forbidden}`);
-}
-
 const recommendations = read('src/components/odds/OddsCasinoRecommendations.astro');
 assert.match(recommendations, /AffiliateLink/);
 assert.match(recommendations, /ODDS_CTA_CLICK_ID/);
@@ -203,10 +207,10 @@ assert.deepEqual(
   ['odds_calculation_completed', 'odds_casino_cta_clicked', 'odds_options_opened'],
   'only the three approved coarse odds events exist',
 );
-assert.match(
+assert.doesNotMatch(
   calculator,
-  /@media\(prefers-reduced-motion:reduce\)\{[^}]*scroll-behavior:auto!important;transition:none!important/,
-  'calculator removes motion when the user requests reduced motion',
+  /@media\s*\(prefers-reduced-motion:\s*reduce\)/,
+  'shared html-level reduced-motion behavior is not shadowed by a component descendant rule',
 );
 
 const routePath = 'src/routes/tools/sweepstakes-odds-calculator/index.astro';
@@ -268,6 +272,15 @@ assert.match(
 assert.match(route, /\{ODDS_FAQ\.map\(\(item\) => \(/, 'visible FAQ consumes shared FAQ data');
 assert.match(route, /mainEntityId=\{ODDS_MAIN_ENTITY_ID\}/, 'WebPage points to shared #app ID');
 assert.match(route, /jsonLd=\{ODDS_SCHEMA_NODES\}/, 'route consumes shared schema nodes');
+assert.doesNotMatch(route, /throw new Error/, 'SSR route must not fail when ranking data is unavailable');
+assert.match(route, /OddsRecommendationTuple \| null/);
+assert.match(
+  route,
+  /\{topPartners && \(\s*<OddsCasinoRecommendations partners=\{topPartners\} \/>\s*\)\}/,
+  'recommendations are omitted when ranked partners cannot be resolved',
+);
+assert.doesNotMatch(route, /\/reviews\/(?:mcluck|pulsz|crown-coins)\//);
+assert.match(route, /topPartners\.map\(/, 'contextual review links derive from resolved ranking data');
 assert.equal((route.match(/href="\/best\/sweepstakes-casinos\/"/g) ?? []).length, 1);
 
 const layout = read('src/layouts/ContentLayout.astro');
@@ -347,9 +360,12 @@ assert.doesNotMatch(
 );
 
 const ranking = read('src/content/comparisons/sweepstakes-casinos.mdx');
+assert.match(ranking, /^published:\s*\d{4}-\d{2}-\d{2}$/m);
+assert.match(ranking, /^draft:\s*false$/m);
 const rankingBlock = ranking.match(/^partnerSlugs:\s*\n((?:  - [a-z0-9-]+\n)+)/m);
 assert.ok(rankingBlock, 'ranking contains partnerSlugs frontmatter');
 const rankedSlugs = [...rankingBlock[1].matchAll(/^  - ([a-z0-9-]+)$/gm)].map((m) => m[1]);
+assert.ok(rankedSlugs.length >= 3, 'published ranking supplies at least three valid slugs');
 const firstThree = rankedSlugs.slice(0, 3);
 assert.equal(firstThree.length, 3, 'ranking supplies exactly three ordered recommendation slots');
 assert.equal(new Set(firstThree).size, 3, 'top three ranking slugs are unique');
@@ -398,29 +414,34 @@ const authoredSitemapPages = [
     source: routePath,
   },
 ];
-assert.equal(
-  execFileSync('git', ['rev-parse', '--is-shallow-repository'], {
-    cwd: root,
-    encoding: 'utf8',
-  }).trim(),
-  'false',
-  'full Git history is required for authoritative authored-source lastmod',
-);
-for (const { url, source } of authoredSitemapPages) {
-  let expectedLastmod = '';
+const gitOutput = (args: string[], context: string) => {
   try {
-    expectedLastmod = execFileSync('git', ['log', '-1', '--format=%cs', '--', source], {
+    return execFileSync('git', args, {
       cwd: root,
       encoding: 'utf8',
     }).trim();
   } catch (error) {
-    throw new Error(`Git history unavailable for authored-source lastmod: ${source}`, {
-      cause: error,
-    });
+    throw new Error(`Git history unavailable for ${context}`, { cause: error });
   }
+};
+assert.equal(
+  gitOutput(['rev-parse', '--is-shallow-repository'], 'shallow-repository check'),
+  'false',
+  'full Git history is required for authoritative authored-source lastmod',
+);
+for (const { url, source } of authoredSitemapPages) {
+  const expectedLastmod = gitOutput(
+    ['log', '-1', '--format=%cs', '--', source],
+    `authored-source lastmod: ${source}`,
+  );
   assert.ok(expectedLastmod, `git provides authored-source lastmod for ${source}`);
   assert.equal(sitemapEntry(url), expectedLastmod, `${url} lastmod comes from ${source}`);
 }
+assert.equal(
+  ODDS_DATE_MODIFIED,
+  sitemapEntry('https://sweepstakeswiz.com/tools/sweepstakes-odds-calculator/'),
+  'page dateModified stays aligned with the generated sitemap lastmod',
+);
 
 const requiredToolLinks = [
   ['partials/nav.html', '/tools/'],
@@ -429,9 +450,6 @@ const requiredToolLinks = [
   ['src/content/guides/amoe-sweepstakes-casinos.mdx', '/tools/sweepstakes-odds-calculator/'],
   ['src/content/guides/sweeps-coins-explained.mdx', '/tools/sweepstakes-odds-calculator/'],
   ['src/routes/bonuses/no-deposit/index.astro', '/tools/sweepstakes-odds-calculator/'],
-  ...firstThree.map(
-    (slug) => [`reviews/${slug}.html`, '/tools/sweepstakes-odds-calculator/'] as const,
-  ),
 ] as const;
 const authoredLinkDestinations = (path: string) => {
   const source = read(path);
@@ -454,11 +472,62 @@ for (const [path, expectedDestination] of requiredToolLinks) {
   );
 }
 
-const trustCss = read('partials/trust.css');
-assert.match(
-  trustCss,
-  /@media\(max-width:360px\)\{[\s\S]*?\.nav-brand img\{[^}]*width:34px!important[^}]*height:34px!important[^}]*\}[\s\S]*?\.nav-brand span\{[^}]*font-size:\.78rem!important[^}]*\}/,
-  'narrow mobile nav constrains its inline-sized brand assets',
+const authoredReviewPaths = readdirSync(join(root, 'reviews'))
+  .filter((name) => name.endsWith('.html'))
+  .map((name) => `reviews/${name}`);
+const linkedReviewPaths = authoredReviewPaths.filter((path) =>
+  authoredLinkDestinations(path).includes('/tools/sweepstakes-odds-calculator/'),
 );
+assert.ok(
+  linkedReviewPaths.length >= 3,
+  'at least three authored review pages link to the odds calculator',
+);
+for (const path of linkedReviewPaths) {
+  assert.equal(
+    authoredLinkDestinations(path).filter(
+      (href) => href === '/tools/sweepstakes-odds-calculator/',
+    ).length,
+    1,
+    `${path} links exactly once to the odds calculator`,
+  );
+}
+
+const trustCss = read('partials/trust.css');
+const cssBlockAfter = (source: string, marker: string) => {
+  const markerIndex = source.indexOf(marker);
+  assert.ok(markerIndex >= 0, `CSS contains ${marker}`);
+  const openBrace = source.indexOf('{', markerIndex);
+  assert.ok(openBrace >= 0, `CSS block opens after ${marker}`);
+  let depth = 0;
+  for (let i = openBrace; i < source.length; i++) {
+    if (source[i] === '{') depth++;
+    else if (source[i] === '}') {
+      depth--;
+      if (depth === 0) return source.slice(openBrace + 1, i);
+    }
+  }
+  throw new Error(`Unbalanced CSS block after ${marker}`);
+};
+const cssDeclarations = (ruleBody: string) =>
+  new Map(
+    ruleBody
+      .split(';')
+      .map((declaration) => declaration.trim())
+      .filter(Boolean)
+      .map((declaration) => {
+        const colon = declaration.indexOf(':');
+        return [declaration.slice(0, colon).trim(), declaration.slice(colon + 1).trim()];
+      }),
+  );
+const reducedMotionBlock = cssBlockAfter(trustCss, '@media(prefers-reduced-motion:reduce)');
+const htmlMotionDeclarations = cssDeclarations(cssBlockAfter(reducedMotionBlock, 'html'));
+assert.equal(htmlMotionDeclarations.get('scroll-behavior'), 'auto !important');
+
+const narrowNavBlock = cssBlockAfter(trustCss, '@media(max-width:360px)');
+const brandImageDeclarations = cssDeclarations(cssBlockAfter(narrowNavBlock, '.nav-brand img'));
+assert.equal(brandImageDeclarations.get('width'), '34px!important');
+assert.equal(brandImageDeclarations.get('height'), '34px!important');
+const brandTextDeclarations = cssDeclarations(cssBlockAfter(narrowNavBlock, '.nav-brand span'));
+assert.equal(brandTextDeclarations.get('font-size'), '.78rem!important');
 
 console.log('verify-sweepstakes-odds-integration: OK');

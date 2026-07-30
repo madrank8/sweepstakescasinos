@@ -5,7 +5,8 @@ import { getEntry } from 'astro:content';
 import ContentLayout from '../../../layouts/ContentLayout.astro';
 import OddsCalculator from '../../../components/odds/OddsCalculator.astro';
 import OddsCasinoRecommendations from '../../../components/odds/OddsCasinoRecommendations.astro';
-import { getPartner, type AffiliatePartner } from '../../../data/affiliates';
+import { getPartner } from '../../../data/affiliates';
+import type { OddsRecommendationTuple } from '../../../lib/oddsRecommendations';
 import {
   ODDS_BREADCRUMBS,
   ODDS_CANONICAL_PATH,
@@ -19,18 +20,14 @@ import {
 } from '../../../lib/oddsPageSchema';
 
 const ranking = await getEntry('comparisons', 'sweepstakes-casinos');
-if (!ranking || ranking.data.draft) {
-  throw new Error('Odds calculator requires the published sweepstakes-casinos comparison entry.');
-}
-const topSlugs = ranking.data.partnerSlugs.slice(0, 3);
-if (topSlugs.length !== 3) {
-  throw new Error('Odds calculator requires three ranked partner slugs.');
-}
-const resolvedPartners = topSlugs.map((slug) => getPartner(slug));
-if (resolvedPartners.some((partner) => !partner)) {
-  throw new Error(`Odds calculator ranking contains an unknown partner: ${topSlugs.join(', ')}`);
-}
-const topPartners = resolvedPartners as [AffiliatePartner, AffiliatePartner, AffiliatePartner];
+const topPartners: OddsRecommendationTuple | null = (() => {
+  if (!ranking || ranking.data.draft) return null;
+  const topSlugs = ranking.data.partnerSlugs.slice(0, 3);
+  if (topSlugs.length !== 3) return null;
+  const resolvedPartners = topSlugs.map((slug) => getPartner(slug));
+  if (resolvedPartners.some((partner) => !partner)) return null;
+  return resolvedPartners as OddsRecommendationTuple;
+})();
 ---
 
 <ContentLayout
@@ -47,7 +44,9 @@ const topPartners = resolvedPartners as [AffiliatePartner, AffiliatePartner, Aff
   jsonLd={ODDS_SCHEMA_NODES}
 >
   <OddsCalculator />
-  <OddsCasinoRecommendations partners={topPartners} />
+  {topPartners && (
+    <OddsCasinoRecommendations partners={topPartners} />
+  )}
 
   <section aria-labelledby="what-it-tells">
     <h2 id="what-it-tells">What this calculator tells you</h2>
@@ -75,8 +74,19 @@ const topPartners = resolvedPartners as [AffiliatePartner, AffiliatePartner, Aff
     <p>
       This range is an estimate, not a confidence interval and not information supplied by an
       operator. SweepstakesWiz cannot disclose an unknown pool. Check the applicable operator’s
-      official rules through reviews such as <a href="/reviews/mcluck/">McLuck</a>,
-      <a href="/reviews/pulsz/">Pulsz</a>, or <a href="/reviews/crown-coins/">Crown Coins</a>.
+      official rules in our casino reviews.
+      {topPartners && (
+        <span>
+          {' Current ranked examples: '}
+          {topPartners.map((partner, index) => (
+            <>
+              {index > 0 ? (index === topPartners.length - 1 ? ' and ' : ', ') : ''}
+              <a href={`/reviews/${partner.slug}/`}>{partner.name}</a>
+            </>
+          ))}
+          .
+        </span>
+      )}
     </p>
   </section>
 

@@ -5,6 +5,7 @@ import {
   entryMixDisplayLabels,
   formatDrawingsResult,
   formatEntryMixValue,
+  formatEstimatedProbabilityRange,
   ODDS_EVENT_CALCULATION_COMPLETED,
   ODDS_EVENT_OPTIONS_OPENED,
   OPTIONS_OPENED_PAYLOAD_KEYS,
@@ -130,6 +131,37 @@ function readBalancedObjectLiteral(source: string, openBraceIndex: number): { li
   throw new Error('unbalanced object literal in sendEvent payload');
 }
 
+function readBalancedBlock(source: string, openBraceIndex: number): string {
+  assert.equal(source[openBraceIndex], '{', 'block must begin with an opening brace');
+  let depth = 0;
+  for (let i = openBraceIndex; i < source.length; i++) {
+    if (source[i] === '{') depth++;
+    else if (source[i] === '}') {
+      depth--;
+      if (depth === 0) return source.slice(openBraceIndex + 1, i);
+    }
+  }
+  throw new Error('unbalanced source block');
+}
+
+function functionBody(source: string, name: string): string {
+  const start = source.indexOf(`function ${name}(`);
+  assert.ok(start >= 0, `expected function ${name}`);
+  const openBrace = source.indexOf('{', start);
+  assert.ok(openBrace >= 0, `expected body for function ${name}`);
+  return readBalancedBlock(source, openBrace);
+}
+
+function callbackBody(source: string, marker: string): string {
+  const start = source.indexOf(marker);
+  assert.ok(start >= 0, `expected callback marker: ${marker}`);
+  const arrow = source.indexOf('=>', start);
+  assert.ok(arrow >= 0, `expected arrow callback after: ${marker}`);
+  const openBrace = source.indexOf('{', arrow);
+  assert.ok(openBrace >= 0, `expected callback body after: ${marker}`);
+  return readBalancedBlock(source, openBrace);
+}
+
 function extractFlatObjectKeys(objectLiteral: string): string[] {
   return [...objectLiteral.matchAll(/\b([a-z_][a-z0-9_]*)\s*:/g)].map((match) => match[1]!);
 }
@@ -225,6 +257,10 @@ assert.equal(formatChance(estimated.best).reciprocal, '1 in 400');
 assert.equal(formatChance(estimated.baseChance).reciprocal, '1 in 500');
 assert.equal(formatChance(estimated.worst).reciprocal, '1 in 625');
 assert.ok(estimated.best >= estimated.baseChance && estimated.baseChance >= estimated.worst);
+assert.equal(
+  formatEstimatedProbabilityRange(estimated),
+  'Estimated probability range: 0.25% to 0.16%; base assumption 0.2%.',
+);
 
 const mix = entryMixProbabilities({
   entries: 5,
@@ -486,6 +522,17 @@ assert.match(calculatorSource, /validateCalculatorInput/);
 assert.match(calculatorSource, /textContent/);
 assert.doesNotMatch(calculatorSource, /localStorage|sessionStorage|fetch\(|XMLHttpRequest/);
 assert.doesNotMatch(calculatorSource, /innerHTML/);
+const calculatorFormTag = calculatorSource.match(/<form\b[^>]*>/)?.[0];
+assert.ok(calculatorFormTag, 'calculator form tag exists');
+assert.match(calculatorFormTag, /\bmethod="dialog"/);
+assert.doesNotMatch(calculatorFormTag, /\baction\s*=/);
+assert.match(
+  calculatorSource,
+  /id="odds-estimated-toggle"[^>]*aria-controls="odds-pool"[^>]*aria-describedby="odds-estimated-instructions"/,
+);
+assert.match(calculatorSource, /id="odds-estimated-instructions"/);
+assert.match(calculatorSource, /id="odds-pool-hint"[^>]*aria-live="polite"[^>]*role="status"/);
+assert.match(calculatorSource, /<h3 tabindex="-1" data-result-heading>/);
 
 // --- UI helper unit contracts (estimated advanced labeling) ---
 assert.deepEqual(entryMixDisplayLabels('known'), {
@@ -521,23 +568,43 @@ assert.match(calculatorSource, /formatEntryMixValue/);
 assert.match(calculatorSource, /formatDrawingsResult/);
 assert.match(calculatorSource, /ODDS_EVENT_CALCULATION_COMPLETED/);
 assert.match(calculatorSource, /ODDS_EVENT_OPTIONS_OPENED/);
+assert.match(calculatorSource, /RESULT_INVALIDATING_INPUT_IDS/);
+assert.match(calculatorSource, /formatEstimatedProbabilityRange/);
+assert.doesNotMatch(calculatorSource, /estimatedEntryMixProbabilities/);
 
 assert.match(calculatorSource, /<section class="odds-result" data-result aria-live="polite" hidden>/);
 
-assert.match(calculatorSource, /function hideResult\(\)/);
-assert.match(calculatorSource, /function showErrors\([\s\S]*?hideResult\(\)/);
-assert.match(calculatorSource, /function setAdvanced\([\s\S]*?hideResult\(\)/);
-assert.match(
-  calculatorSource,
-  /estimatedToggle\.addEventListener\(['"]change['"],[\s\S]*?hideResult\(\)/,
+const showErrorsBody = functionBody(calculatorSource, 'showErrors');
+assert.ok(showErrorsBody.includes('hideResult()'));
+assert.ok(
+  showErrorsBody.indexOf('summary.hidden = false') < showErrorsBody.indexOf('list.append(item)'),
+  'error live region must be unhidden before messages are appended',
 );
-assert.match(
-  calculatorSource,
-  /form\.addEventListener\(['"]input['"],[\s\S]*?hideResult\(\)/,
+assert.ok(
+  showErrorsBody.indexOf("closest('details')") < showErrorsBody.indexOf('summary.focus()'),
+  'errored controls reveal their details ancestor before summary focus',
 );
-assert.match(
+assert.match(showErrorsBody, /details\.open = true/);
+
+const setAdvancedBody = functionBody(calculatorSource, 'setAdvanced');
+assert.ok(setAdvancedBody.includes('hideResult()'));
+const estimatedChangeBody = callbackBody(
   calculatorSource,
-  /if \(!result\.ok\)[\s\S]*?hideResult\(\)[\s\S]*?showErrors\(result\.issues\)/,
+  "estimatedToggle.addEventListener('change'",
+);
+assert.ok(estimatedChangeBody.includes('hideResult()'));
+const submitBody = callbackBody(calculatorSource, "form.addEventListener('submit'");
+assert.ok(
+  submitBody.indexOf('resultRegion.hidden = false') < submitBody.indexOf('heading.textContent'),
+  'result live region must be unhidden before result content is written',
+);
+assert.ok(
+  submitBody.indexOf('hideResult()') < submitBody.indexOf('showErrors(result.issues)'),
+  'invalid submissions hide stale results before showing errors',
+);
+assert.ok(
+  calculatorSource.indexOf('for (const id of RESULT_INVALIDATING_INPUT_IDS)') >= 0,
+  'result invalidation listeners are wired through the shared input ID contract',
 );
 
 assert.deepEqual([...CALCULATION_COMPLETED_PAYLOAD_KEYS], [
@@ -610,6 +677,8 @@ const rankingSource = readFileSync(
   new URL('../src/content/comparisons/sweepstakes-casinos.mdx', import.meta.url),
   'utf8',
 );
+assert.match(rankingSource, /^published:\s*\d{4}-\d{2}-\d{2}$/m);
+assert.match(rankingSource, /^draft:\s*false$/m);
 const partnerSlugsBlock = rankingSource.match(
   /^partnerSlugs:\s*\n((?:  - [a-z0-9-]+\n)+)/m,
 );
@@ -701,7 +770,12 @@ const routeSource = readFileSync(
 );
 assert.match(routeSource, /export const prerender = false/);
 assert.match(routeSource, /getEntry\('comparisons', 'sweepstakes-casinos'\)/);
-assert.match(routeSource, /partnerSlugs\.slice\(0, 3\)/);
+assert.doesNotMatch(routeSource, /throw new Error/);
+assert.match(routeSource, /OddsRecommendationTuple \| null/);
+assert.match(
+  routeSource,
+  /\{topPartners && \(\s*<OddsCasinoRecommendations partners=\{topPartners\} \/>\s*\)\}/,
+);
 assert.match(routeSource, /from '\.\.\/\.\.\/\.\.\/lib\/oddsPageSchema'/);
 assert.match(routeSource, /mainEntityId=\{ODDS_MAIN_ENTITY_ID\}/);
 assert.match(routeSource, /jsonLd=\{ODDS_SCHEMA_NODES\}/);

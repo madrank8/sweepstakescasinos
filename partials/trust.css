@@ -13,6 +13,9 @@
 }
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
 html{scroll-behavior:smooth;}
+@media(prefers-reduced-motion:reduce){
+  html{scroll-behavior:auto !important;}
+}
 body{font-family:'DM Sans',sans-serif;background:linear-gradient(180deg,#eef2f8 0%,#dde4ef 100%);color:#0f172a;overflow-x:hidden;line-height:1.6;min-height:100vh;}
 
 nav{position:sticky;top:0;z-index:200;background:rgba(15,23,42,0.96);backdrop-filter:blur(14px);border-bottom:1px solid rgba(255,255,255,0.08);padding:0 20px;}
