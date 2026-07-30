@@ -251,6 +251,8 @@ function writeSitemapAndRobots() {
     const routeExact = {
       '/report/': 'src/routes/report.astro',
       '/guides/': 'src/routes/guides/index.astro',
+      '/tools/': 'src/routes/tools/index.astro',
+      '/tools/sweepstakes-odds-calculator/': 'src/routes/tools/sweepstakes-odds-calculator/index.astro',
       '/news/': 'src/routes/news/index.astro',
       '/new/': 'src/routes/new/index.astro',
       '/bonuses/no-deposit/': 'src/routes/bonuses/no-deposit/index.astro',
@@ -316,6 +318,17 @@ function writeSitemapAndRobots() {
 
   // Guides hub / index (authored under src/routes/guides/index.astro).
   if (existsSync(join(root, 'src', 'routes', 'guides', 'index.astro'))) push('/guides/');
+
+  if (existsSync(join(root, 'src', 'routes', 'tools', 'index.astro'))) {
+    push('/tools/');
+  }
+  if (
+    existsSync(
+      join(root, 'src', 'routes', 'tools', 'sweepstakes-odds-calculator', 'index.astro'),
+    )
+  ) {
+    push('/tools/sweepstakes-odds-calculator/');
+  }
 
   // News hub (legislation / enforcement updates).
   if (existsSync(join(root, 'src', 'routes', 'news', 'index.astro'))) push('/news/');
@@ -415,6 +428,7 @@ function writeSitemapAndRobots() {
     `- [Best sweepstakes casinos](${ORIGIN}/best/sweepstakes-casinos/)\n` +
     `- [New sweepstakes casinos](${ORIGIN}/new/)\n` +
     `- [No deposit bonuses & free Sweeps Coins](${ORIGIN}/bonuses/no-deposit/)\n` +
+    `- [Sweepstakes odds calculator](${ORIGIN}/tools/sweepstakes-odds-calculator/)\n` +
     `- [What are sweepstakes casinos?](${ORIGIN}/guides/what-are-sweepstakes-casinos/)\n` +
     `- [Sweepstakes casino legality by US state](${ORIGIN}/state-legality/)\n` +
     `- [Live legality tracker (all 51 jurisdictions)](${ORIGIN}/sweepstakes-tracker/)\n` +

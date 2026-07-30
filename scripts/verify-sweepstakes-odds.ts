@@ -608,4 +608,20 @@ assert.match(routeSource, /mainEntityId=\{`\$\{canonical\}#app`\}/);
 assert.match(routeSource, /faqPageNode/);
 assert.doesNotMatch(routeSource, /Offer|AggregateRating|expected winnings|real odds/i);
 
+const toolsHubSource = readFileSync(
+  new URL('../src/routes/tools/index.astro', import.meta.url),
+  'utf8',
+);
+assert.match(toolsHubSource, /export const prerender = true/);
+assert.match(toolsHubSource, /\/tools\/sweepstakes-odds-calculator\//);
+
+const generatorSource = readFileSync(
+  new URL('../scripts/generate-astro-pages.mjs', import.meta.url),
+  'utf8',
+);
+assert.match(generatorSource, /'\/tools\/': 'src\/routes\/tools\/index\.astro'/);
+assert.match(generatorSource, /'\/tools\/sweepstakes-odds-calculator\/': 'src\/routes\/tools\/sweepstakes-odds-calculator\/index\.astro'/);
+assert.match(generatorSource, /push\('\/tools\/'\)/);
+assert.match(generatorSource, /push\('\/tools\/sweepstakes-odds-calculator\/'\)/);
+
 console.log('verify-sweepstakes-odds: OK');

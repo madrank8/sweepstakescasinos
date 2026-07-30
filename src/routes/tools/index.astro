@@ -1,0 +1,50 @@
+---
+export const prerender = true;
+
+import ContentLayout from '../../layouts/ContentLayout.astro';
+
+const canonicalPath = '/tools/';
+const title = 'Free Sweepstakes Tools | SweepstakesWiz';
+const description =
+  'Use free SweepstakesWiz tools to calculate sweepstakes drawing odds with known or estimated entry pools.';
+const breadcrumbs = [
+  { name: 'Home', path: '/' },
+  { name: 'Tools', path: canonicalPath },
+];
+---
+<ContentLayout
+  title={title}
+  description={description}
+  canonicalPath={canonicalPath}
+  breadcrumbs={breadcrumbs}
+  heroTitle={'Free Sweepstakes <span class="accent">Tools</span>'}
+  heroSubtitle="Transparent calculators and utilities for understanding sweepstakes entries and published drawing rules."
+  pageType="CollectionPage"
+  datePublished="2026-07-30"
+  dateModified="2026-07-30"
+>
+  <p>
+    These tools explain stated sweepstakes scenarios; they do not predict undisclosed entry pools,
+    guarantee prizes, or recommend spending. Entered calculator values stay in your browser.
+  </p>
+  <section class="tools-grid" aria-labelledby="tools-list-title">
+    <h2 id="tools-list-title">Available tools</h2>
+    <a class="tool-card" href="/tools/sweepstakes-odds-calculator/">
+      <strong>Sweepstakes odds calculator</strong>
+      <span>
+        Calculate exact without-replacement odds, explore a clearly labeled estimated pool,
+        compare free-entry scenarios, and check multiple independent drawings.
+      </span>
+      <span aria-hidden="true">Use the calculator →</span>
+    </a>
+  </section>
+  <p>
+    Before entering any promotion, read the operator’s official rules and check
+    <a href="/state-legality/">availability in your state</a>.
+  </p>
+  <style>
+    .tools-grid{margin:20px 0 26px}.tool-card{display:flex;flex-direction:column;gap:8px;border:1px solid #dbe3ee;border-radius:14px;padding:20px;background:linear-gradient(165deg,#fafcff,#eef4ff);text-decoration:none}
+    .tool-card strong{font-family:'Sora',sans-serif;font-size:1.15rem}.tool-card span{color:#475569}
+    .tool-card:focus-visible{outline:3px solid #fbbf24;outline-offset:3px}
+  </style>
+</ContentLayout>
