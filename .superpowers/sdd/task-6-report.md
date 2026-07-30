@@ -369,3 +369,57 @@ All four final commands exited `0`.
 - `git diff --check`, focused verification, build, and complete CI passed. No dependencies, beads, SDD ledgers/briefs, compliance data, or ranking data changed.
 
 The existing external concerns remain unchanged: no remote preview was available; the Vercel adapter does not support local `astro preview`; and true JavaScript-disabled, browser-level 200% zoom, and emulated reduced-motion modes remain external acceptance.
+
+## Review Fix 2
+
+Status: **DONE_WITH_CONCERNS**
+Implementation commit: `5610d30` (`fix: close odds verifier acceptance gaps`)
+
+### Red/green evidence
+
+The focused red runs failed on each reviewed gap before the implementation changed:
+
+```text
+npm run verify:odds
+AssertionError: recommendation helper must not embed editorial ranking expectations
+
+npm run verify:odds:integration
+AssertionError: form verification must inspect every form, not only the first match
+
+npm run verify:odds:integration
+AssertionError: schema verification must count defined ID occurrences instead of collapsing them
+```
+
+Final required commands all exited `0`:
+
+```text
+npm run verify:odds
+verify-sweepstakes-odds: OK
+
+npm run build
+[build] Complete!
+
+npm run verify:odds:integration
+verify-sweepstakes-odds-integration: OK
+
+npm run ci
+[build] Complete!
+verify-sweepstakes-odds-integration: OK
+```
+
+### Changed files
+
+- `src/lib/oddsRecommendations.ts`: removed all embedded ranking slugs and ranking lookup; the helper now operates only on an exact resolved three-partner tuple.
+- `scripts/verify-sweepstakes-odds.ts`: derives the current top three from comparison frontmatter, resolves production partners and reviews, and calculates TX/CA/unknown availability expectations through `shouldRenderAffiliateCta`.
+- `scripts/verify-sweepstakes-odds-integration.ts`: adds the same dynamic recommendation/order/geo/review coverage, counts every defined graph ID occurrence, and verifies all forms and all base data-entry control types.
+
+### Self-review
+
+- Neither final odds verifier nor the recommendation helper contains expected ranking slug literals. A valid top-three reorder passes as long as all three unique slugs resolve to production partners and review files.
+- TX, CA, and unknown-region executions remain covered without assuming particular availability booleans; every result is compared to the production `shouldRenderAffiliateCta` policy.
+- Defined graph IDs are stored in a count map rather than a set. Every defined ID and every required canonical ID must have count `1`; internal references must still resolve, while duplicate references remain valid.
+- Form verification counts opening and complete form blocks, requiring exactly one of each. It parses `input`, `select`, and `textarea` controls before `More options`, excludes only hidden controls and the single explicit estimated-mode checkbox, and requires the remaining ordered names to be exactly `entries`, `pool`, and `prizes`.
+- The `More options` details element must lack `open`; its named controls must be exactly `freeEntries` and `drawings`, both disabled, with both field wrappers hidden initially.
+- `git diff --check`, focused verifiers, the build, and complete CI passed. No dependencies, beads, SDD ledgers/briefs, content ranking, partner data, compliance data, or unrelated files changed.
+
+The existing external concerns remain unchanged: no remote preview was available; the Vercel adapter does not support local `astro preview`; and true JavaScript-disabled, browser-level 200% zoom, and emulated reduced-motion modes remain external acceptance.
