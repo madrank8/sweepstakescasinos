@@ -423,3 +423,47 @@ verify-sweepstakes-odds-integration: OK
 - `git diff --check`, focused verifiers, the build, and complete CI passed. No dependencies, beads, SDD ledgers/briefs, content ranking, partner data, compliance data, or unrelated files changed.
 
 The existing external concerns remain unchanged: no remote preview was available; the Vercel adapter does not support local `astro preview`; and true JavaScript-disabled, browser-level 200% zoom, and emulated reduced-motion modes remain external acceptance.
+
+## Review Fix 3
+
+Status: **DONE_WITH_CONCERNS**
+Implementation commit: `c3bd922` (`test: reject post-options calculator fields`)
+
+### Red/green evidence
+
+After adding the post-details assertion, a temporary named control was inserted between
+`</details>` and the submit area solely to prove the verifier catches the gap:
+
+```text
+npm run verify:odds:integration
+AssertionError: no named value controls may appear after More options
++ actual - expected
++ [ 'verifierProbe' ]
+- []
+```
+
+The probe was then removed completely. The retained verifier change passed every required gate:
+
+```text
+npm run build
+[build] Complete!
+
+npm run verify:odds:integration
+verify-sweepstakes-odds-integration: OK
+
+npm run ci
+[build] Complete!
+verify-sweepstakes-odds-integration: OK
+```
+
+All green commands exited `0`.
+
+### Self-review
+
+- The verifier slices the calculator form from immediately after the matched `</details>` through the form close, then reuses the existing `input`/`select`/`textarea` parser.
+- Any named value control in that segment fails with its parsed name. The unnamed submit `button`, assumption copy, and structural markup remain allowed.
+- The existing exactly-one-form, base `entries`/`pool`/`prizes`, estimated-mode checkbox, collapsed details, and disabled `freeEntries`/`drawings` assertions remain unchanged.
+- The temporary mutation was removed before build and is absent from the final diff; only the integration verifier changed.
+- `git diff --check`, build, focused integration verification, and complete CI passed.
+
+The existing external concerns remain unchanged: no remote preview was available; the Vercel adapter does not support local `astro preview`; and true JavaScript-disabled, browser-level 200% zoom, and emulated reduced-motion modes remain external acceptance.
