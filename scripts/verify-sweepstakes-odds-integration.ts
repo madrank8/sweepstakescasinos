@@ -114,6 +114,7 @@ const optionsEnd = formMarkup.indexOf('</details>', optionsStart);
 assert.ok(optionsStart >= 0 && optionsEnd > optionsStart, 'More options is a collapsed details block');
 const baseFormMarkup = formMarkup.slice(0, optionsStart);
 const advancedFormMarkup = formMarkup.slice(optionsStart, optionsEnd);
+const postOptionsFormMarkup = formMarkup.slice(optionsEnd + '</details>'.length);
 const formControls = (markup: string) =>
   [...markup.matchAll(/<(input|select|textarea)\b[^>]*>/g)].map(([tag, element]) => {
     const attributes = Object.fromEntries(
@@ -161,6 +162,14 @@ for (const { tag } of advancedValueControls) {
 }
 assert.match(advancedFormMarkup, /data-entry-mix-fields hidden/);
 assert.match(advancedFormMarkup, /data-drawings-fields hidden/);
+const postOptionsValueControls = formControls(postOptionsFormMarkup).filter(
+  ({ attributes }) => typeof attributes.name === 'string',
+);
+assert.deepEqual(
+  postOptionsValueControls.map(({ attributes }) => attributes.name),
+  [],
+  'no named value controls may appear after More options',
+);
 const calculatorAnalyticsBlocks = [...calculator.matchAll(/sendEvent\(([\s\S]*?)\);/g)]
   .map((match) => match[1])
   .join('\n');
