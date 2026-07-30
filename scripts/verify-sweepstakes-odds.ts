@@ -506,6 +506,18 @@ const recommendationsSource = readFileSync(
   'utf8',
 );
 
+// --- Spec oracle (independent of production constants) ---
+const SPEC_ODDS_CTA_CLICK_ID = 'odds-calculator';
+const SPEC_ODDS_CTA_ANALYTICS_EVENT = 'odds_casino_cta_clicked';
+const SPEC_ODDS_CTA_ANALYTICS_PAYLOAD_KEYS = ['casino_slug', 'placement'] as const;
+
+assert.equal(ODDS_CTA_CLICK_ID, SPEC_ODDS_CTA_CLICK_ID);
+assert.equal(ODDS_CTA_ANALYTICS_EVENT, SPEC_ODDS_CTA_ANALYTICS_EVENT);
+assert.deepEqual(
+  [...ODDS_CTA_ANALYTICS_PAYLOAD_KEYS].sort(),
+  [...SPEC_ODDS_CTA_ANALYTICS_PAYLOAD_KEYS].sort(),
+);
+
 // --- Pure model: editorial top-three order and geo flags ---
 assert.deepEqual([...ODDS_EDITORIAL_TOP_THREE_SLUGS], ['mcluck', 'pulsz', 'crown-coins']);
 const editorialTopThree = getOddsEditorialTopThree();
@@ -572,9 +584,15 @@ assert.equal(
   1,
   'OddsCasinoRecommendations must emit exactly one gtag analytics call site',
 );
-assert.equal(ctaAnalyticsCalls[0]!.eventName, ODDS_CTA_ANALYTICS_EVENT);
-assert.deepEqual(ctaAnalyticsCalls[0]!.payloadKeys, [...ODDS_CTA_ANALYTICS_PAYLOAD_KEYS].sort());
-assert.match(ctaAnalyticsCalls[0]!.payloadLiteral, /placement:\s*'odds-calculator'/);
+assert.equal(ctaAnalyticsCalls[0]!.eventName, SPEC_ODDS_CTA_ANALYTICS_EVENT);
+assert.deepEqual(
+  ctaAnalyticsCalls[0]!.payloadKeys,
+  [...SPEC_ODDS_CTA_ANALYTICS_PAYLOAD_KEYS].sort(),
+);
+assert.match(
+  ctaAnalyticsCalls[0]!.payloadLiteral,
+  new RegExp(`placement:\\s*'${SPEC_ODDS_CTA_CLICK_ID}'`),
+);
 assert.match(recommendationsSource, /closest<HTMLAnchorElement>\('a\[data-affiliate\]'\)/);
 
 console.log('verify-sweepstakes-odds: OK');
