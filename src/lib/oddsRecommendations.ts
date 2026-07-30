@@ -1,9 +1,6 @@
-import { getPartner, type AffiliatePartner } from '../data/affiliates';
+import type { AffiliatePartner } from '../data/affiliates';
 import { shouldRenderAffiliateCta } from '../data/geo';
 import type { UsStateCode } from '../data/usStates';
-
-/** First three slugs from `comparisons/sweepstakes-casinos` editorial ranking. */
-export const ODDS_EDITORIAL_TOP_THREE_SLUGS = ['mcluck', 'pulsz', 'crown-coins'] as const;
 
 export const ODDS_CTA_CLICK_ID = 'odds-calculator';
 export const ODDS_CTA_ANALYTICS_EVENT = 'odds_casino_cta_clicked';
@@ -20,15 +17,6 @@ export interface OddsRecommendationItem {
   partner: AffiliatePartner;
   available: boolean;
   reviewHref: string;
-}
-
-export function getOddsEditorialTopThree(): OddsRecommendationTuple {
-  const partners = ODDS_EDITORIAL_TOP_THREE_SLUGS.map((slug) => {
-    const partner = getPartner(slug);
-    if (!partner) throw new Error(`missing odds editorial partner: ${slug}`);
-    return partner;
-  });
-  return partners as OddsRecommendationTuple;
 }
 
 export function buildOddsRecommendations(

@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import {
   CALCULATION_COMPLETED_PAYLOAD_KEYS,
   entryMixDisplayLabels,
@@ -12,12 +12,12 @@ import {
 } from '../src/lib/oddsCalculatorUi';
 import {
   buildOddsRecommendations,
-  getOddsEditorialTopThree,
-  ODDS_EDITORIAL_TOP_THREE_SLUGS,
   ODDS_CTA_ANALYTICS_EVENT,
   ODDS_CTA_ANALYTICS_PAYLOAD_KEYS,
   ODDS_CTA_CLICK_ID,
+  type OddsRecommendationTuple,
 } from '../src/lib/oddsRecommendations';
+import { getPartner } from '../src/data/affiliates';
 import { shouldRenderAffiliateCta } from '../src/data/geo';
 import {
   deriveEstimatedPools,
@@ -510,6 +510,15 @@ const recommendationsSource = readFileSync(
   new URL('../src/components/odds/OddsCasinoRecommendations.astro', import.meta.url),
   'utf8',
 );
+const recommendationModelSource = readFileSync(
+  new URL('../src/lib/oddsRecommendations.ts', import.meta.url),
+  'utf8',
+);
+assert.doesNotMatch(
+  recommendationModelSource,
+  /\bgetPartner\b|partnerSlugs/,
+  'recommendation helper must accept resolved partners without owning ranking data',
+);
 
 // --- Spec oracle (independent of production constants) ---
 const SPEC_ODDS_CTA_CLICK_ID = 'odds-calculator';
@@ -524,9 +533,29 @@ assert.deepEqual(
 );
 
 // --- Pure model: editorial top-three order and geo flags ---
-assert.deepEqual([...ODDS_EDITORIAL_TOP_THREE_SLUGS], ['mcluck', 'pulsz', 'crown-coins']);
-const editorialTopThree = getOddsEditorialTopThree();
-assert.equal(editorialTopThree.length, 3);
+const rankingSource = readFileSync(
+  new URL('../src/content/comparisons/sweepstakes-casinos.mdx', import.meta.url),
+  'utf8',
+);
+const partnerSlugsBlock = rankingSource.match(
+  /^partnerSlugs:\s*\n((?:  - [a-z0-9-]+\n)+)/m,
+);
+assert.ok(partnerSlugsBlock, 'ranking must define partnerSlugs');
+const editorialSlugs = [...partnerSlugsBlock[1]!.matchAll(/^  - ([a-z0-9-]+)$/gm)]
+  .slice(0, 3)
+  .map((match) => match[1]!);
+assert.equal(editorialSlugs.length, 3, 'ranking must supply exactly three recommendation slots');
+assert.equal(new Set(editorialSlugs).size, 3, 'top three ranking slugs must be unique');
+const resolvedEditorialPartners = editorialSlugs.map((slug) => {
+  const partner = getPartner(slug);
+  assert.ok(partner, `ranking partner must resolve: ${slug}`);
+  assert.ok(
+    existsSync(new URL(`../reviews/${slug}.html`, import.meta.url)),
+    `ranked review must exist: ${slug}`,
+  );
+  return partner;
+});
+const editorialTopThree = resolvedEditorialPartners as OddsRecommendationTuple;
 
 for (const [state, label] of [
   ['TX', 'allowed state'],
@@ -537,7 +566,7 @@ for (const [state, label] of [
   assert.equal(items.length, 3, `${label}: must keep exactly three cards`);
   assert.deepEqual(
     items.map((item) => item.partner.slug),
-    [...ODDS_EDITORIAL_TOP_THREE_SLUGS],
+    editorialSlugs,
     `${label}: must preserve editorial order`,
   );
   assert.deepEqual(
@@ -554,13 +583,6 @@ for (const [state, label] of [
     assert.equal(item.reviewHref, `/reviews/${item.partner.slug}/`);
   }
 }
-
-const txItems = buildOddsRecommendations(editorialTopThree, 'TX');
-assert.ok(txItems.every((item) => item.available), 'TX: all three editorial picks should allow CTAs');
-const caItems = buildOddsRecommendations(editorialTopThree, 'CA');
-assert.ok(caItems.every((item) => !item.available), 'CA: site ban suppresses all CTAs');
-const unknownItems = buildOddsRecommendations(editorialTopThree, null);
-assert.ok(unknownItems.every((item) => !item.available), 'unknown region: fail-closed suppression');
 
 // --- Component wiring: model-driven cards, review retention, AffiliateLink-only CTAs ---
 assert.match(recommendationsSource, /from ['"].*oddsRecommendations['"]/);

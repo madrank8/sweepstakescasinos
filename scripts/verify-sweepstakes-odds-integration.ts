@@ -3,6 +3,11 @@ import { execFileSync } from 'node:child_process';
 import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { getPartner } from '../src/data/affiliates';
+import { shouldRenderAffiliateCta } from '../src/data/geo';
+import {
+  buildOddsRecommendations,
+  type OddsRecommendationTuple,
+} from '../src/lib/oddsRecommendations';
 
 const root = process.cwd();
 const read = (path: string) => readFileSync(join(root, path), 'utf8');
@@ -56,6 +61,18 @@ assert.match(
   'CI integration step invokes the package script',
 );
 
+const integrationVerifierSource = read('scripts/verify-sweepstakes-odds-integration.ts');
+assert.doesNotMatch(
+  integrationVerifierSource,
+  /const formMatch = calculator\.match\(/,
+  'form verification must inspect every form, not only the first match',
+);
+assert.doesNotMatch(
+  integrationVerifierSource,
+  /const definedIds = new Set<string>\(\)/,
+  'schema verification must count defined ID occurrences instead of collapsing them',
+);
+
 const calculator = read('src/components/odds/OddsCalculator.astro');
 assert.match(calculator, /<form\b[^>]*\bnovalidate\b/);
 assert.match(calculator, /aria-live="polite"/);
@@ -85,47 +102,65 @@ for (const marker of keyboardOrder) {
   assert.ok(markerIndex > previousControlIndex, `keyboard order includes ${marker}`);
   previousControlIndex = markerIndex;
 }
-const formMatch = calculator.match(/<form\b[\s\S]*?<\/form>/);
-assert.ok(formMatch, 'calculator contains one form');
-const formMarkup = formMatch[0];
-const optionsStart = formMarkup.indexOf('<details class="odds-options">');
+const formBlocks = [...calculator.matchAll(/<form\b[\s\S]*?<\/form>/g)];
+assert.equal((calculator.match(/<form\b/g) ?? []).length, 1, 'calculator has exactly one form');
+assert.equal(formBlocks.length, 1, 'calculator has exactly one complete form');
+const formMarkup = formBlocks[0][0];
+const optionsTag = formMarkup.match(/<details\b[^>]*class="odds-options"[^>]*>/);
+assert.ok(optionsTag, 'More options uses a details element');
+assert.doesNotMatch(optionsTag[0], /\bopen\b/, 'More options starts collapsed');
+const optionsStart = formMarkup.indexOf(optionsTag[0]);
 const optionsEnd = formMarkup.indexOf('</details>', optionsStart);
 assert.ok(optionsStart >= 0 && optionsEnd > optionsStart, 'More options is a collapsed details block');
 const baseFormMarkup = formMarkup.slice(0, optionsStart);
 const advancedFormMarkup = formMarkup.slice(optionsStart, optionsEnd);
-const inputAttributes = (markup: string) =>
-  [...markup.matchAll(/<input\b[^>]*>/g)].map(([tag]) => {
+const formControls = (markup: string) =>
+  [...markup.matchAll(/<(input|select|textarea)\b[^>]*>/g)].map(([tag, element]) => {
     const attributes = Object.fromEntries(
-      [...tag.matchAll(/\b([a-zA-Z:-]+)(?:="([^"]*)")?/g)].map(([, name, value]) => [
+      [
+        ...tag.matchAll(
+          /\b([a-zA-Z:-]+)(?:\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s>]+)))?/g,
+        ),
+      ].map(([, name, doubleQuoted, singleQuoted, unquoted]) => [
         name,
-        value ?? true,
+        doubleQuoted ?? singleQuoted ?? unquoted ?? true,
       ]),
     );
-    return { tag, attributes };
+    return { element, tag, attributes };
   });
-const baseTextInputs = inputAttributes(baseFormMarkup).filter(
-  ({ attributes }) => attributes.type === 'text',
+const baseControls = formControls(baseFormMarkup).filter(
+  ({ element, attributes }) => element !== 'input' || attributes.type !== 'hidden',
 );
+const estimatedModeControls = baseControls.filter(
+  ({ element, attributes }) =>
+    element === 'input' &&
+    attributes.type === 'checkbox' &&
+    attributes['data-estimated-toggle'] === true,
+);
+assert.equal(estimatedModeControls.length, 1, 'estimated mode has one intentional checkbox control');
+const baseValueControls = baseControls.filter((control) => control !== estimatedModeControls[0]);
 assert.deepEqual(
-  baseTextInputs.map(({ attributes }) => attributes.name),
+  baseValueControls.map(({ attributes }) => attributes.name),
   ['entries', 'pool', 'prizes'],
-  'exactly three visible base text inputs precede More options',
+  'only the three ordered base value fields precede More options',
 );
-assert.equal(baseTextInputs[2].attributes.value, '1', 'prizes defaults to 1');
-for (const { tag } of baseTextInputs) {
-  assert.doesNotMatch(tag, /\b(?:hidden|disabled)\b/, 'base text inputs are visible and enabled');
+assert.equal(baseValueControls[2].attributes.value, '1', 'prizes defaults to 1');
+for (const { tag } of baseValueControls) {
+  assert.doesNotMatch(tag, /\b(?:hidden|disabled)\b/, 'base value fields are visible and enabled');
 }
-const advancedTextInputs = inputAttributes(advancedFormMarkup).filter(
-  ({ attributes }) => attributes.type === 'text',
+const advancedValueControls = formControls(advancedFormMarkup).filter(
+  ({ attributes }) => typeof attributes.name === 'string',
 );
 assert.deepEqual(
-  advancedTextInputs.map(({ attributes }) => attributes.name),
+  advancedValueControls.map(({ attributes }) => attributes.name),
   ['freeEntries', 'drawings'],
-  'advanced text inputs remain inside More options',
+  'advanced value fields remain after the More options boundary',
 );
-for (const { tag } of advancedTextInputs) {
-  assert.match(tag, /\bdisabled\b/, 'advanced text inputs start disabled');
+for (const { tag } of advancedValueControls) {
+  assert.match(tag, /\bdisabled\b/, 'advanced value fields start disabled');
 }
+assert.match(advancedFormMarkup, /data-entry-mix-fields hidden/);
+assert.match(advancedFormMarkup, /data-drawings-fields hidden/);
 const calculatorAnalyticsBlocks = [...calculator.matchAll(/sendEvent\(([\s\S]*?)\);/g)]
   .map((match) => match[1])
   .join('\n');
@@ -260,7 +295,7 @@ assert.deepEqual(
   ODDS_FAQ,
   'visible FAQ data exactly equals produced FAQPage questions and answers',
 );
-const definedIds = new Set<string>();
+const definedIdCounts = new Map<string, number>();
 const referencedIds = new Set<string>();
 const collectGraphIds = (value: unknown): void => {
   if (Array.isArray(value)) {
@@ -272,16 +307,22 @@ const collectGraphIds = (value: unknown): void => {
   const keys = Object.keys(node);
   if (typeof node['@id'] === 'string') {
     if (keys.length === 1) referencedIds.add(node['@id']);
-    else definedIds.add(node['@id']);
+    else definedIdCounts.set(node['@id'], (definedIdCounts.get(node['@id']) ?? 0) + 1);
   }
   for (const [key, child] of Object.entries(node)) {
     if (key !== '@id') collectGraphIds(child);
   }
 };
 collectGraphIds(graph);
+for (const [id, count] of definedIdCounts) {
+  assert.equal(count, 1, `produced graph defines @id exactly once: ${id}`);
+}
+for (const [, id] of expectedGraphNodes) {
+  assert.equal(definedIdCounts.get(id), 1, `required graph ID is defined exactly once: ${id}`);
+}
 for (const id of referencedIds) {
   if (id.startsWith('https://sweepstakeswiz.com') && id.includes('#')) {
-    assert.ok(definedIds.has(id), `produced graph resolves internal @id ${id}`);
+    assert.ok(definedIdCounts.has(id), `produced graph resolves internal @id ${id}`);
   }
 }
 const serializedGraph = JSON.stringify(producedGraph);
@@ -303,9 +344,23 @@ const rankedSlugs = [...rankingBlock[1].matchAll(/^  - ([a-z0-9-]+)$/gm)].map((m
 const firstThree = rankedSlugs.slice(0, 3);
 assert.equal(firstThree.length, 3, 'ranking supplies exactly three ordered recommendation slots');
 assert.equal(new Set(firstThree).size, 3, 'top three ranking slugs are unique');
-for (const slug of firstThree) {
+const rankedPartners = firstThree.map((slug) => {
   assert.ok(existsSync(join(root, `reviews/${slug}.html`)), `review exists for ${slug}`);
-  assert.equal(getPartner(slug)?.slug, slug, `affiliate partner resolves for ${slug}`);
+  const partner = getPartner(slug);
+  assert.ok(partner, `affiliate partner resolves for ${slug}`);
+  return partner;
+});
+for (const state of ['TX', 'CA', null] as const) {
+  const items = buildOddsRecommendations(rankedPartners as OddsRecommendationTuple, state);
+  assert.deepEqual(
+    items.map((item) => item.partner.slug),
+    firstThree,
+    `${state ?? 'unknown'} preserves current editorial order`,
+  );
+  for (const item of items) {
+    assert.equal(item.available, shouldRenderAffiliateCta(item.partner, state));
+    assert.equal(item.reviewHref, `/reviews/${item.partner.slug}/`);
+  }
 }
 assert.match(route, /ranking\.data\.partnerSlugs\.slice\(0, 3\)/, 'route consumes first three rankings');
 assert.match(route, /topSlugs\.map\(\(slug\) => getPartner\(slug\)\)/, 'route resolves ranked partners');
