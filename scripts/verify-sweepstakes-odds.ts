@@ -1,6 +1,16 @@
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import {
+  CALCULATION_COMPLETED_PAYLOAD_KEYS,
+  entryMixDisplayLabels,
+  formatDrawingsResult,
+  formatEntryMixValue,
+  ODDS_EVENT_CALCULATION_COMPLETED,
+  ODDS_EVENT_OPTIONS_OPENED,
+  OPTIONS_OPENED_PAYLOAD_KEYS,
+  RESULT_INVALIDATING_INPUT_IDS,
+} from '../src/lib/oddsCalculatorUi';
+import {
   deriveEstimatedPools,
   entryMixProbabilities,
   estimateProbabilityRange,
@@ -250,5 +260,84 @@ assert.match(calculatorSource, /validateCalculatorInput/);
 assert.match(calculatorSource, /textContent/);
 assert.doesNotMatch(calculatorSource, /localStorage|sessionStorage|fetch\(|XMLHttpRequest/);
 assert.doesNotMatch(calculatorSource, /innerHTML/);
+
+// --- UI helper unit contracts (estimated advanced labeling) ---
+assert.deepEqual(entryMixDisplayLabels('known'), {
+  combined: 'Combined current-pool odds',
+  freeCurrent: 'Free-only odds in the same current pool',
+  noPurchase: 'No-purchase counterfactual',
+  sectionNote: null,
+});
+const estimatedMixLabels = entryMixDisplayLabels('estimated');
+assert.match(estimatedMixLabels.combined, /base pool estimate/i);
+assert.match(estimatedMixLabels.freeCurrent, /base pool estimate/i);
+assert.match(estimatedMixLabels.noPurchase, /base pool estimate/i);
+assert.match(estimatedMixLabels.sectionNote ?? '', /base pool assumption/i);
+
+assert.equal(formatEntryMixValue('known', '1 in 100', '1%'), '1 in 100 (1%)');
+assert.match(
+  formatEntryMixValue('estimated', '1 in 100', '1%'),
+  /^Estimated: 1 in 100 \(1%\) — base pool assumption$/,
+);
+
+assert.match(
+  formatDrawingsResult('known', '1 in 50', '2%'),
+  /^Across the entered number of independent drawings: 1 in 50 \(2%\)\./,
+);
+assert.doesNotMatch(formatDrawingsResult('known', '1 in 50', '2%'), /base pool assumption/i);
+assert.match(formatDrawingsResult('estimated', '1 in 50', '2%'), /\(estimated\)/);
+assert.match(formatDrawingsResult('estimated', '1 in 50', '2%'), /base pool assumption/i);
+
+// --- Component wiring contracts ---
+assert.match(calculatorSource, /from ['"].*oddsCalculatorUi['"]/);
+assert.match(calculatorSource, /entryMixDisplayLabels/);
+assert.match(calculatorSource, /formatEntryMixValue/);
+assert.match(calculatorSource, /formatDrawingsResult/);
+assert.match(calculatorSource, /ODDS_EVENT_CALCULATION_COMPLETED/);
+assert.match(calculatorSource, /ODDS_EVENT_OPTIONS_OPENED/);
+
+assert.match(calculatorSource, /<section class="odds-result" data-result aria-live="polite" hidden>/);
+
+assert.match(calculatorSource, /function hideResult\(\)/);
+assert.match(calculatorSource, /function showErrors\([\s\S]*?hideResult\(\)/);
+assert.match(calculatorSource, /function setAdvanced\([\s\S]*?hideResult\(\)/);
+assert.match(
+  calculatorSource,
+  /estimatedToggle\.addEventListener\(['"]change['"],[\s\S]*?hideResult\(\)/,
+);
+assert.match(
+  calculatorSource,
+  /form\.addEventListener\(['"]input['"],[\s\S]*?hideResult\(\)/,
+);
+assert.match(
+  calculatorSource,
+  /if \(!result\.ok\)[\s\S]*?hideResult\(\)[\s\S]*?showErrors\(result\.issues\)/,
+);
+
+assert.deepEqual([...CALCULATION_COMPLETED_PAYLOAD_KEYS], [
+  'pool_mode',
+  'entry_mix_active',
+  'multiple_drawings_active',
+]);
+assert.deepEqual([...OPTIONS_OPENED_PAYLOAD_KEYS], ['option_name']);
+assert.match(
+  calculatorSource,
+  /sendEvent\(ODDS_EVENT_CALCULATION_COMPLETED,\s*\{[\s\S]*?pool_mode:[\s\S]*?entry_mix_active:[\s\S]*?multiple_drawings_active:[\s\S]*?\}\)/,
+);
+assert.match(
+  calculatorSource,
+  /sendEvent\(ODDS_EVENT_OPTIONS_OPENED,\s*\{\s*option_name:\s*option\s*\}\)/,
+);
+
+for (const id of RESULT_INVALIDATING_INPUT_IDS) {
+  assert.match(calculatorSource, new RegExp(`id="${id}"`));
+}
+
+const sendEventCalls = [...calculatorSource.matchAll(/sendEvent\(([\s\S]*?)\);/g)];
+assert.ok(sendEventCalls.length >= 2, 'expected at least two sendEvent calls');
+for (const [call] of sendEventCalls) {
+  assert.doesNotMatch(call, /:\s*scenario\.(entries|pool|prizes|freeEntries|drawings)\b/);
+  assert.doesNotMatch(call, /:\s*\d/);
+}
 
 console.log('verify-sweepstakes-odds: OK');

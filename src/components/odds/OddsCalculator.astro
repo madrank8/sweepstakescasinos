@@ -98,10 +98,11 @@
     <div data-entry-mix-result hidden>
       <h3>Free and purchase-associated entry comparison</h3>
       <dl>
-        <div><dt>Combined current-pool odds</dt><dd data-mix-combined></dd></div>
-        <div><dt>Free-only odds in the same current pool</dt><dd data-mix-free-current></dd></div>
-        <div><dt>No-purchase counterfactual</dt><dd data-mix-no-purchase></dd></div>
+        <div><dt data-mix-label-combined>Combined current-pool odds</dt><dd data-mix-combined></dd></div>
+        <div><dt data-mix-label-free-current>Free-only odds in the same current pool</dt><dd data-mix-free-current></dd></div>
+        <div><dt data-mix-label-no-purchase>No-purchase counterfactual</dt><dd data-mix-no-purchase></dd></div>
       </dl>
+      <p class="odds-hint" data-entry-mix-note hidden></p>
     </div>
     <p data-drawings-result hidden></p>
   </section>
@@ -115,6 +116,13 @@
 </section>
 
 <script>
+  import {
+    entryMixDisplayLabels,
+    formatDrawingsResult,
+    formatEntryMixValue,
+    ODDS_EVENT_CALCULATION_COMPLETED,
+    ODDS_EVENT_OPTIONS_OPENED,
+  } from '../../lib/oddsCalculatorUi';
   import {
     entryMixProbabilities,
     estimateProbabilityRange,
@@ -159,6 +167,25 @@
       drawings: 'odds-drawings',
     };
 
+    function hideResult(): void {
+      const resultRegion = root.querySelector<HTMLElement>('[data-result]')!;
+      resultRegion.hidden = true;
+      root.querySelector<HTMLElement>('[data-result-heading]')!.textContent = '';
+      root.querySelector<HTMLElement>('[data-result-percent]')!.textContent = '';
+      root.querySelector<HTMLElement>('[data-result-assumption]')!.textContent = '';
+      const mixRegion = root.querySelector<HTMLElement>('[data-entry-mix-result]')!;
+      mixRegion.hidden = true;
+      root.querySelector<HTMLElement>('[data-mix-combined]')!.textContent = '';
+      root.querySelector<HTMLElement>('[data-mix-free-current]')!.textContent = '';
+      root.querySelector<HTMLElement>('[data-mix-no-purchase]')!.textContent = '';
+      const mixNote = root.querySelector<HTMLElement>('[data-entry-mix-note]')!;
+      mixNote.hidden = true;
+      mixNote.textContent = '';
+      const drawingsResult = root.querySelector<HTMLElement>('[data-drawings-result]')!;
+      drawingsResult.hidden = true;
+      drawingsResult.textContent = '';
+    }
+
     function clearErrors(): void {
       root.querySelector<HTMLElement>('[data-error-summary]')!.hidden = true;
       root.querySelector<HTMLElement>('[data-error-list]')!.replaceChildren();
@@ -172,6 +199,7 @@
     }
 
     function showErrors(issues: ValidationIssue[]): void {
+      hideResult();
       clearErrors();
       const summary = root.querySelector<HTMLElement>('[data-error-summary]')!;
       const list = root.querySelector<HTMLUListElement>('[data-error-list]')!;
@@ -206,10 +234,17 @@
       });
       if (toggle.checked && !opened.has(option)) {
         opened.add(option);
-        sendEvent('odds_options_opened', { option_name: option });
+        sendEvent(ODDS_EVENT_OPTIONS_OPENED, { option_name: option });
       }
+      hideResult();
       clearErrors();
     }
+
+    form.addEventListener('input', (event) => {
+      if (event.target instanceof HTMLInputElement && !event.target.disabled) {
+        hideResult();
+      }
+    });
 
     estimatedToggle.addEventListener('change', () => {
       pool.value = '';
@@ -219,6 +254,7 @@
       poolHint.textContent = estimatedToggle.checked
         ? 'Include your entries; the calculator applies stated 0.8× and 1.25× assumptions.'
         : 'Include your entries in the drawing total.';
+      hideResult();
       clearErrors();
     });
     entryMixToggle.addEventListener('change', () =>
@@ -240,6 +276,7 @@
         drawings: drawingsToggle.checked ? String(data.get('drawings') ?? '') : undefined,
       });
       if (!result.ok) {
+        hideResult();
         showErrors(result.issues);
         return;
       }
@@ -300,6 +337,19 @@
       const mixRegion = root.querySelector<HTMLElement>('[data-entry-mix-result]')!;
       mixRegion.hidden = !scenario.entryMixActive;
       if (scenario.entryMixActive && scenario.freeEntries !== undefined) {
+        const labels = entryMixDisplayLabels(scenario.poolMode);
+        root.querySelector<HTMLElement>('[data-mix-label-combined]')!.textContent = labels.combined;
+        root.querySelector<HTMLElement>('[data-mix-label-free-current]')!.textContent = labels.freeCurrent;
+        root.querySelector<HTMLElement>('[data-mix-label-no-purchase]')!.textContent = labels.noPurchase;
+        const mixNote = root.querySelector<HTMLElement>('[data-entry-mix-note]')!;
+        if (labels.sectionNote) {
+          mixNote.textContent = labels.sectionNote;
+          mixNote.hidden = false;
+        } else {
+          mixNote.textContent = '';
+          mixNote.hidden = true;
+        }
+
         const mix = scenario.poolMode === 'known'
           ? entryMixProbabilities({
               entries: scenario.entries,
@@ -313,26 +363,31 @@
               prizes: scenario.prizes,
               freeEntries: scenario.freeEntries,
             }).base;
-        root.querySelector<HTMLElement>('[data-mix-combined]')!.textContent =
-          `${formatChance(mix.combined).reciprocal} (${formatChance(mix.combined).percent})`;
+        const formatMix = (probability: number) => {
+          const formatted = formatChance(probability);
+          return formatEntryMixValue(scenario.poolMode, formatted.reciprocal, formatted.percent);
+        };
+        root.querySelector<HTMLElement>('[data-mix-combined]')!.textContent = formatMix(mix.combined);
         root.querySelector<HTMLElement>('[data-mix-free-current]')!.textContent =
-          `${formatChance(mix.freeOnlyCurrentPool).reciprocal} (${formatChance(mix.freeOnlyCurrentPool).percent})`;
-        root.querySelector<HTMLElement>('[data-mix-no-purchase]')!.textContent =
-          `${formatChance(mix.noPurchase).reciprocal} (${formatChance(mix.noPurchase).percent})`;
+          formatMix(mix.freeOnlyCurrentPool);
+        root.querySelector<HTMLElement>('[data-mix-no-purchase]')!.textContent = formatMix(mix.noPurchase);
       }
 
       const drawingsResult = root.querySelector<HTMLElement>('[data-drawings-result]')!;
       drawingsResult.hidden = !scenario.multipleDrawingsActive;
       if (scenario.multipleDrawingsActive && scenario.drawings !== undefined) {
         const repeated = repeatProbability(singleProbability, scenario.drawings);
-        drawingsResult.textContent =
-          `Across the entered number of independent drawings: ${formatChance(repeated).reciprocal} ` +
-          `(${formatChance(repeated).percent}). This requires a stable pool and probability; it does not apply if entries roll over or draws are linked.`;
+        const repeatedFormatted = formatChance(repeated);
+        drawingsResult.textContent = formatDrawingsResult(
+          scenario.poolMode,
+          repeatedFormatted.reciprocal,
+          repeatedFormatted.percent,
+        );
       }
 
       resultRegion.hidden = false;
       heading.focus();
-      sendEvent('odds_calculation_completed', {
+      sendEvent(ODDS_EVENT_CALCULATION_COMPLETED, {
         pool_mode: scenario.poolMode,
         entry_mix_active: scenario.entryMixActive,
         multiple_drawings_active: scenario.multipleDrawingsActive,
