@@ -34,3 +34,6 @@ jobs:
         run: npm run build
         env:
           ASTRO_TELEMETRY_DISABLED: '1'
+
+      - name: Verify sweepstakes odds integration
+        run: npm run verify:odds:integration

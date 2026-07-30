@@ -1,0 +1,254 @@
+import assert from 'node:assert/strict';
+import { execFileSync } from 'node:child_process';
+import { existsSync, readFileSync } from 'node:fs';
+import { join } from 'node:path';
+
+const root = process.cwd();
+const read = (path: string) => readFileSync(join(root, path), 'utf8');
+const pkg = JSON.parse(read('package.json')) as { scripts: Record<string, string> };
+
+assert.equal(
+  pkg.scripts['verify:odds:integration'],
+  'tsx scripts/verify-sweepstakes-odds-integration.ts',
+  'package script verify:odds:integration',
+);
+assert.match(pkg.scripts.prebuild, /npm run verify:odds/);
+assert.equal(
+  pkg.scripts.ci,
+  'npm run verify:availability && npm run content:lint && npm run tracker:lint && npm run methodology:check && npm run verify:odds && npm run testing:verify && npm run testing:verify-overclaims && npm run build && npm run verify:odds:integration',
+  'ci runs pure odds verification before build and integration verification after build',
+);
+
+for (const path of [
+  'src/lib/sweepstakesOdds.ts',
+  'src/components/odds/OddsCalculator.astro',
+  'src/components/odds/OddsCasinoRecommendations.astro',
+  'src/routes/tools/index.astro',
+  'src/routes/tools/sweepstakes-odds-calculator/index.astro',
+  'src/pages/tools/index.astro',
+  'src/pages/tools/sweepstakes-odds-calculator/index.astro',
+]) {
+  assert.ok(existsSync(join(root, path)), `expected ${path}`);
+}
+
+const workflow = read('.github/workflows/ci.yml');
+const buildStep = workflow.indexOf('- name: Build');
+const integrationStep = workflow.indexOf('- name: Verify sweepstakes odds integration');
+assert.ok(buildStep >= 0, 'CI contains Build step');
+assert.ok(integrationStep > buildStep, 'CI integration verifier runs after Build');
+assert.match(
+  workflow.slice(integrationStep),
+  /run: npm run verify:odds:integration/,
+  'CI integration step invokes the package script',
+);
+
+const calculator = read('src/components/odds/OddsCalculator.astro');
+assert.match(calculator, /<form\b[^>]*\bnovalidate\b/);
+assert.match(calculator, /aria-live="polite"/);
+assert.match(calculator, /tabindex="-1"/);
+assert.match(
+  calculator,
+  /<noscript>[\s\S]*?calculator needs JavaScript[\s\S]*?methodology, examples, FAQ,[\s\S]*?casino reviews,[\s\S]*?<\/noscript>/,
+  'no-JS notice preserves the editorial fallback',
+);
+assert.match(calculator, /preventDefault\(\)/);
+assert.doesNotMatch(
+  calculator,
+  /\bfetch\s*\(|XMLHttpRequest|localStorage|sessionStorage|innerHTML/,
+  'calculator keeps inputs and derived values local',
+);
+const keyboardOrder = [
+  'id="odds-entries"',
+  'id="odds-pool"',
+  'id="odds-prizes"',
+  'data-estimated-toggle',
+  '<summary>More options</summary>',
+  'type="submit"',
+];
+let previousControlIndex = -1;
+for (const marker of keyboardOrder) {
+  const markerIndex = calculator.indexOf(marker);
+  assert.ok(markerIndex > previousControlIndex, `keyboard order includes ${marker}`);
+  previousControlIndex = markerIndex;
+}
+const calculatorAnalyticsBlocks = [...calculator.matchAll(/sendEvent\(([\s\S]*?)\);/g)]
+  .map((match) => match[1])
+  .join('\n');
+for (const forbidden of [
+  'entries:',
+  'total_entries',
+  'prizes:',
+  'free_entries',
+  'drawings:',
+  'probability:',
+  'reciprocal',
+]) {
+  assert.ok(!calculatorAnalyticsBlocks.includes(forbidden), `analytics excludes ${forbidden}`);
+}
+
+const recommendations = read('src/components/odds/OddsCasinoRecommendations.astro');
+assert.match(recommendations, /AffiliateLink/);
+assert.match(recommendations, /ODDS_CTA_CLICK_ID/);
+assert.doesNotMatch(
+  recommendations,
+  /trackingLink|['"]@type['"]\s*:\s*['"](?:AggregateRating|Offer|Product|Review)['"]/,
+);
+const oddsEventSources = [
+  read('src/lib/oddsCalculatorUi.ts'),
+  read('src/lib/oddsRecommendations.ts'),
+  calculator,
+  recommendations,
+].join('\n');
+assert.deepEqual(
+  [...new Set(oddsEventSources.match(/\bodds_[a-z_]+\b/g) ?? [])].sort(),
+  ['odds_calculation_completed', 'odds_casino_cta_clicked', 'odds_options_opened'],
+  'only the three approved coarse odds events exist',
+);
+assert.match(
+  calculator,
+  /@media\(prefers-reduced-motion:reduce\)\{[^}]*scroll-behavior:auto!important;transition:none!important/,
+  'calculator removes motion when the user requests reduced motion',
+);
+
+const routePath = 'src/routes/tools/sweepstakes-odds-calculator/index.astro';
+const generatedRoutePath = 'src/pages/tools/sweepstakes-odds-calculator/index.astro';
+const route = read(routePath);
+const generatedRoute = read(generatedRoutePath);
+assert.equal(generatedRoute, route, 'generated calculator route exactly matches authored route');
+
+const orderedRouteMarkers = [
+  '<OddsCalculator />',
+  '<OddsCasinoRecommendations partners={topPartners} />',
+  'id="what-it-tells"',
+  'id="unknown-total"',
+  'id="multiple-prizes"',
+  'id="entry-types"',
+  'id="independent-drawings"',
+  'id="limitations"',
+  'id="worked-examples"',
+  '<details class="odds-methodology">',
+  'id="calculator-faq"',
+  'id="related-odds-links"',
+  'class="odds-page-disclosure"',
+];
+let previousIndex = -1;
+for (const marker of orderedRouteMarkers) {
+  const markerIndex = generatedRoute.indexOf(marker);
+  assert.ok(markerIndex > previousIndex, `generated component/editorial order includes ${marker}`);
+  previousIndex = markerIndex;
+}
+
+for (const editorialCopy of [
+  'What this calculator tells you',
+  'What to do when total entries are unknown',
+  'How multiple prizes change the result',
+  'Free/AMOE entries versus purchase-associated entries',
+  'Assumptions and limitations',
+  'Worked examples',
+  'How this works',
+  'Frequently asked questions',
+  'Related tools and guides',
+  'No purchase necessary',
+  'official rules',
+]) {
+  assert.ok(generatedRoute.includes(editorialCopy), `generated route contains ${editorialCopy}`);
+}
+
+const faqPairs = [...route.matchAll(/\{\s*q: '([^']+)',\s*a: '([^']+)',\s*\}/g)].map(
+  ([, q, a]) => ({ q, a }),
+);
+assert.equal(faqPairs.length, 6, 'route defines six FAQ pairs');
+assert.match(route, /const faqLd = faqPageNode\(canonical, faq\)/);
+assert.match(
+  route,
+  /\{faq\.map\(\(item\) => \([\s\S]*?<h3>\{item\.q\}<\/h3>[\s\S]*?<p>\{item\.a\}<\/p>/,
+  'visible FAQ and FAQ schema consume the same faq collection',
+);
+
+assert.ok(route.includes("'@id': `${canonical}#app`"), 'route defines #app');
+assert.match(route, /mainEntityId=\{`\$\{canonical\}#app`\}/, 'WebPage points to #app');
+assert.match(route, /faqPageNode\(canonical, faq\)/, 'shared FAQ helper defines #faq');
+for (const forbiddenType of ['AggregateRating', 'Offer', 'Product', 'Review']) {
+  assert.doesNotMatch(
+    route,
+    new RegExp(`['"]@type['"]\\s*:\\s*['"]${forbiddenType}['"]`),
+    `route schema excludes ${forbiddenType}`,
+  );
+}
+assert.equal((route.match(/href="\/best\/sweepstakes-casinos\/"/g) ?? []).length, 1);
+
+const layout = read('src/layouts/ContentLayout.astro');
+assert.equal(
+  (layout.match(/<script type="application\/ld\+json"/g) ?? []).length,
+  1,
+  'layout emits one consolidated JSON-LD block',
+);
+assert.match(layout, /buildPageGraph\(/);
+const schema = read('src/lib/schema.ts');
+assert.match(schema, /'@id': `\$\{url\}#webpage`/);
+assert.match(schema, /'@id': `\$\{pageUrl\}#breadcrumb`/);
+assert.match(schema, /'@id': `\$\{pageUrl\}#faq`/);
+
+const ranking = read('src/content/comparisons/sweepstakes-casinos.mdx');
+const firstThree = [...ranking.matchAll(/^  - ([a-z0-9-]+)$/gm)].slice(0, 3).map((m) => m[1]);
+assert.deepEqual(firstThree, ['mcluck', 'pulsz', 'crown-coins']);
+for (const slug of firstThree) {
+  assert.ok(existsSync(join(root, `reviews/${slug}.html`)), `review exists for ${slug}`);
+}
+
+const sitemap = read('sitemap.xml');
+const sitemapEntry = (url: string) => {
+  const escapedUrl = url.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const matches = [
+    ...sitemap.matchAll(
+      new RegExp(
+        `<url>\\s*<loc>${escapedUrl}<\\/loc>\\s*<lastmod>(\\d{4}-\\d{2}-\\d{2})<\\/lastmod>[\\s\\S]*?<\\/url>`,
+        'g',
+      ),
+    ),
+  ];
+  assert.equal(matches.length, 1, `${url} appears exactly once in sitemap`);
+  return matches[0][1];
+};
+const authoredSitemapPages = [
+  {
+    url: 'https://sweepstakeswiz.com/tools/',
+    source: 'src/routes/tools/index.astro',
+  },
+  {
+    url: 'https://sweepstakeswiz.com/tools/sweepstakes-odds-calculator/',
+    source: routePath,
+  },
+];
+for (const { url, source } of authoredSitemapPages) {
+  const expectedLastmod = execFileSync(
+    'git',
+    ['log', '-1', '--format=%cs', '--', source],
+    { cwd: root, encoding: 'utf8' },
+  ).trim();
+  assert.ok(expectedLastmod, `git provides authored-source lastmod for ${source}`);
+  assert.equal(sitemapEntry(url), expectedLastmod, `${url} lastmod comes from ${source}`);
+}
+
+for (const path of [
+  'partials/nav.html',
+  'partials/footer.html',
+  'src/content/guides/dual-currency-sweepstakes-model.mdx',
+  'src/content/guides/amoe-sweepstakes-casinos.mdx',
+  'src/content/guides/sweeps-coins-explained.mdx',
+  'src/routes/bonuses/no-deposit/index.astro',
+  'reviews/mcluck.html',
+  'reviews/pulsz.html',
+  'reviews/crown-coins.html',
+]) {
+  assert.match(read(path), /\/tools\/(?:sweepstakes-odds-calculator\/)?/, `${path} tools link`);
+}
+
+const trustCss = read('partials/trust.css');
+assert.match(
+  trustCss,
+  /@media\(max-width:360px\)\{[\s\S]*?\.nav-brand img\{[^}]*width:34px!important[^}]*height:34px!important[^}]*\}[\s\S]*?\.nav-brand span\{[^}]*font-size:\.78rem!important[^}]*\}/,
+  'narrow mobile nav constrains its inline-sized brand assets',
+);
+
+console.log('verify-sweepstakes-odds-integration: OK');

@@ -32,10 +32,6 @@
           Include your entries in the drawing total.
         </p>
         <p id="odds-pool-error" class="odds-field-error" data-error-for="pool" hidden></p>
-        <label class="odds-mode-toggle">
-          <input type="checkbox" data-estimated-toggle />
-          I don’t know the total
-        </label>
       </fieldset>
 
       <div class="odds-field" data-field-wrap="prizes">
@@ -46,6 +42,11 @@
         <p id="odds-prizes-hint" class="odds-hint">Each prize selects one unique winning entry.</p>
         <p id="odds-prizes-error" class="odds-field-error" data-error-for="prizes" hidden></p>
       </div>
+
+      <label class="odds-mode-toggle">
+        <input type="checkbox" data-estimated-toggle />
+        I don’t know the total
+      </label>
     </div>
 
     <details class="odds-options">
@@ -410,7 +411,7 @@
   .odds-field-error{color:#991b1b;font-weight:700}
   .odds-error-summary{border:2px solid #b91c1c;border-radius:10px;background:#fef2f2;padding:14px 16px;margin:16px 0}
   .odds-error-summary h3{margin:0 0 8px}.odds-error-summary ul{margin:0 0 0 20px}
-  .odds-mode-toggle{display:flex!important;align-items:center;gap:8px;min-height:44px;margin-top:8px;font-weight:600!important}
+  .odds-mode-toggle{display:flex!important;grid-column:2;align-items:center;gap:8px;min-height:44px;margin-top:-8px;font-weight:600!important}
   .odds-options{border-top:1px solid #e2e8f0;border-bottom:1px solid #e2e8f0;padding:12px 0;margin:18px 0}
   .odds-options summary{min-height:44px;display:flex;align-items:center;font-weight:800;cursor:pointer}
   .odds-option{padding:10px 0}.odds-option>label{display:flex;align-items:center;gap:10px;min-height:44px}
@@ -419,6 +420,6 @@
   .odds-result h2{margin-top:0}.odds-result dl>div{padding:8px 0;border-top:1px solid #bbf7d0}
   .odds-result dt{font-weight:800}.odds-result dd{margin:2px 0 0}
   .odds-noscript{border-left:4px solid #1a56db;background:#eff6ff;padding:12px 14px}
-  @media(max-width:700px){.odds-grid{grid-template-columns:1fr}.odds-calculator{padding:18px}}
+  @media(max-width:700px){.odds-grid{grid-template-columns:1fr}.odds-mode-toggle{grid-column:1;margin-top:0}.odds-calculator{padding:18px}}
   @media(prefers-reduced-motion:reduce){.odds-calculator *{scroll-behavior:auto!important;transition:none!important}}
 </style>

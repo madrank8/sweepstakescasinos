@@ -122,3 +122,10 @@ footer{background:#0a1628;color:rgba(255,255,255,0.6);padding:38px 20px 20px;}
   .content-card{padding:26px 22px;}
   .content-card h2{font-size:1.3rem;}
 }
+@media(max-width:360px){
+  nav{padding-inline:12px;}
+  .nav-inner{gap:8px;}
+  .nav-brand img{width:34px!important;height:34px!important;}
+  .nav-brand span{font-size:.78rem!important;}
+  .nav-cta{padding:7px 10px!important;font-size:.72rem!important;}
+}
