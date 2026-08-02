@@ -872,8 +872,11 @@ for (const slug of editorialSlugs) {
   const meta = ODDS_PARTNER_CARD_META[slug];
   assert.ok(meta?.logoSrc, `card meta must define a real logo for ranked slug: ${slug}`);
   assert.match(meta.logoSrc, /^\/sweepstakeslogo\/.+\.webp$/);
+  // Logos live in repo-root sweepstakeslogo/ (tracked). public/ is gitignored and
+  // only populated later by generate:pages → copyPublicAssets(), so CI must not
+  // require public/ to exist before that step.
   assert.ok(
-    existsSync(new URL(`../public${meta.logoSrc}`, import.meta.url)),
+    existsSync(new URL(`..${meta.logoSrc}`, import.meta.url)),
     `homepage logo asset must exist for ranked slug: ${slug}`,
   );
   const item = buildOddsRecommendations(editorialTopThree, 'TX').find(
