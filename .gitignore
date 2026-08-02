@@ -24,3 +24,4 @@ evidence/*
 .dolt/
 *.db
 .beads-credential-key
+.gstack/
