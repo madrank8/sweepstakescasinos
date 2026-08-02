@@ -88,7 +88,9 @@ const {
   ODDS_DATE_MODIFIED,
   ODDS_DATE_PUBLISHED,
   ODDS_FAQ,
+  ODDS_HOWTO_STEPS,
   ODDS_MAIN_ENTITY_ID,
+  ODDS_PRIMARY_IMAGE_PATH,
   buildOddsPageGraph,
 } = await import('../src/lib/oddsPageSchema');
 
@@ -349,7 +351,9 @@ assert.ok(Array.isArray(graph), 'odds page graph is executable output');
 const expectedGraphNodes = [
   ['WebPage', `${ODDS_CANONICAL}#webpage`],
   ['BreadcrumbList', `${ODDS_CANONICAL}#breadcrumb`],
+  ['ImageObject', `${ODDS_CANONICAL}#primaryimage`],
   ['WebApplication', `${ODDS_CANONICAL}#app`],
+  ['HowTo', `${ODDS_CANONICAL}#howto`],
   ['FAQPage', `${ODDS_CANONICAL}#faq`],
 ] as const;
 for (const [type, id] of expectedGraphNodes) {
@@ -359,6 +363,33 @@ for (const [type, id] of expectedGraphNodes) {
 }
 const webPage = graph.find((node) => node['@type'] === 'WebPage')!;
 assert.deepEqual(webPage.mainEntity, { '@id': ODDS_MAIN_ENTITY_ID });
+assert.deepEqual(webPage.author, { '@id': 'https://sweepstakeswiz.com/author/ilija-milosevic/#person' });
+assert.deepEqual(webPage.primaryImageOfPage, {
+  '@id': `${ODDS_CANONICAL}#primaryimage`,
+});
+assert.match(String(webPage.datePublished), /T00:00:00Z$/);
+assert.match(String(webPage.dateModified), /T00:00:00Z$/);
+const webApp = graph.find((node) => node['@type'] === 'WebApplication')!;
+assert.deepEqual(webApp.offers, {
+  '@type': 'Offer',
+  price: 0,
+  priceCurrency: 'USD',
+  availability: 'https://schema.org/InStock',
+});
+const howTo = graph.find((node) => node['@type'] === 'HowTo')!;
+assert.deepEqual(
+  (howTo.step as Array<Record<string, unknown>>).map((step) => ({
+    name: step.name,
+    text: step.text,
+  })),
+  ODDS_HOWTO_STEPS.map(({ name, text }) => ({ name, text })),
+  'HowTo steps exactly match the visible ODDS_HOWTO_STEPS source',
+);
+const routeHtmlParity = read('src/routes/tools/sweepstakes-odds-calculator/index.astro');
+assert.match(routeHtmlParity, /ODDS_HOWTO_STEPS\.map/);
+assert.match(routeHtmlParity, /id=\{`howto-step-\$\{index \+ 1\}`\}/);
+assert.match(routeHtmlParity, new RegExp(`ogImage=\\{ODDS_PRIMARY_IMAGE_PATH\\}`));
+assert.equal(ODDS_PRIMARY_IMAGE_PATH, '/images/tools/sweepstakes-odds-calculator-og.webp');
 const faqPage = graph.find((node) => node['@type'] === 'FAQPage')!;
 assert.deepEqual(
   (faqPage.mainEntity as Array<Record<string, unknown>>).map((question) => ({
@@ -401,8 +432,26 @@ for (const id of referencedIds) {
 const serializedGraph = JSON.stringify(producedGraph);
 assert.doesNotMatch(
   serializedGraph,
-  /"@type":"(?:Offer|Product|Review|AggregateRating)"/,
+  /"@type":"(?:Product|Review|AggregateRating)"/,
   'produced graph excludes prohibited schema types',
+);
+assert.equal(
+  (serializedGraph.match(/"@type":"Offer"/g) ?? []).length,
+  1,
+  'produced graph includes exactly one free Offer on the WebApplication',
+);
+assert.doesNotMatch(
+  serializedGraph,
+  /"aggregateRating"|ratingValue|ratingCount/,
+  'produced graph excludes fabricated app ratings',
+);
+assert.ok(
+  existsSync(join(root, 'images/tools/sweepstakes-odds-calculator-og.webp')),
+  'primary calculator screenshot asset is tracked',
+);
+assert.ok(
+  existsSync(join(root, 'images/tools/sweepstakes-odds-calculator-og.png')),
+  'primary calculator screenshot PNG source is tracked',
 );
 assert.doesNotMatch(
   serializedGraph,

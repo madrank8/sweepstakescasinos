@@ -8,13 +8,17 @@ import OddsCasinoRecommendations from '../../../components/odds/OddsCasinoRecomm
 import { getPartner } from '../../../data/affiliates';
 import type { OddsRecommendationTuple } from '../../../lib/oddsRecommendations';
 import {
+  ODDS_AUTHOR_ID,
   ODDS_BREADCRUMBS,
   ODDS_CANONICAL_PATH,
-  ODDS_DATE_MODIFIED,
-  ODDS_DATE_PUBLISHED,
+  ODDS_DATE_MODIFIED_ISO,
+  ODDS_DATE_PUBLISHED_ISO,
   ODDS_DESCRIPTION,
   ODDS_FAQ,
+  ODDS_HOWTO_STEPS,
   ODDS_MAIN_ENTITY_ID,
+  ODDS_PRIMARY_IMAGE_ID,
+  ODDS_PRIMARY_IMAGE_PATH,
   ODDS_SCHEMA_NODES,
   ODDS_TITLE,
 } from '../../../lib/oddsPageSchema';
@@ -38,15 +42,30 @@ const topPartners: OddsRecommendationTuple | null = (() => {
   heroTitle={'Sweepstakes <span class="accent">Odds Calculator</span>'}
   heroSubtitle="Exact without-replacement odds — or a labeled estimate range when the pool is unknown."
   pageType="WebPage"
-  datePublished={ODDS_DATE_PUBLISHED}
-  dateModified={ODDS_DATE_MODIFIED}
+  ogImage={ODDS_PRIMARY_IMAGE_PATH}
+  datePublished={ODDS_DATE_PUBLISHED_ISO}
+  dateModified={ODDS_DATE_MODIFIED_ISO}
   mainEntityId={ODDS_MAIN_ENTITY_ID}
+  authorId={ODDS_AUTHOR_ID}
+  primaryImageId={ODDS_PRIMARY_IMAGE_ID}
   jsonLd={ODDS_SCHEMA_NODES}
 >
   <OddsCalculator />
   {topPartners && (
     <OddsCasinoRecommendations partners={topPartners} />
   )}
+
+  <section aria-labelledby="howto-heading" class="odds-howto">
+    <h2 id="howto-heading">How to use this calculator</h2>
+    <ol>
+      {ODDS_HOWTO_STEPS.map((step, index) => (
+        <li id={`howto-step-${index + 1}`}>
+          <strong>{step.name}</strong>
+          <p>{step.text}</p>
+        </li>
+      ))}
+    </ol>
+  </section>
 
   <section aria-labelledby="what-it-tells">
     <h2 id="what-it-tells">What this calculator tells you</h2>
@@ -218,6 +237,10 @@ const topPartners: OddsRecommendationTuple | null = (() => {
     body:has([data-odds-calculator]) .page-hero{padding:28px 20px 18px}
     body:has([data-odds-calculator]) .page-hero h1{margin-bottom:6px;font-size:clamp(1.45rem,3.2vw,2rem)}
     body:has([data-odds-calculator]) .page-hero-sub{max-width:520px;line-height:1.45;font-size:clamp(.84rem,1.4vw,.95rem)}
+    .odds-howto{margin:1.75rem 0 1.25rem}
+    .odds-howto ol{margin:0.75rem 0 0;padding-left:1.25rem}
+    .odds-howto li{margin:0.85rem 0}
+    .odds-howto li p{margin:0.35rem 0 0;color:var(--muted,#4a5d73)}
   </style>
   <style>
     .odds-methodology{margin:24px 0;border:1px solid #cbd5e1;border-radius:12px;padding:0 16px}

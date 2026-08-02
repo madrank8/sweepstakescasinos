@@ -309,6 +309,10 @@ export interface PageGraphOptions {
   dateModified?: string;
   /** @id of the page's primary content entity (e.g. #article, #itemlist). */
   mainEntityId?: string;
+  /** Optional author Person @id for the WebPage node. */
+  authorId?: string;
+  /** Optional primary ImageObject @id for the WebPage node. */
+  primaryImageId?: string;
   /** Content-layer nodes ('@context' is stripped if present). */
   nodes?: Node[];
 }
@@ -351,6 +355,8 @@ export function buildPageGraph(opts: PageGraphOptions): Node {
     datePublished,
     dateModified,
     mainEntityId,
+    authorId,
+    primaryImageId,
     nodes = [],
   } = opts;
 
@@ -372,6 +378,8 @@ export function buildPageGraph(opts: PageGraphOptions): Node {
     ...(datePublished ? { datePublished } : {}),
     ...(dateModified ? { dateModified } : {}),
     ...(mainEntityId ? { mainEntity: { '@id': mainEntityId } } : {}),
+    ...(authorId ? { author: { '@id': authorId } } : {}),
+    ...(primaryImageId ? { primaryImageOfPage: { '@id': primaryImageId } } : {}),
   };
 
   const graph: Node[] = [organizationNode(), webSiteNode(), webPage];

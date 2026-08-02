@@ -15,6 +15,7 @@ import {
 } from '../lib/pageChrome';
 import { buildPageGraph, type WebPageType } from '../lib/schema';
 
+
 const ORIGIN = 'https://sweepstakeswiz.com';
 
 interface Crumb {
@@ -38,6 +39,10 @@ interface Props {
   dateModified?: string;
   /** @id of the page's primary content entity (WebPage.mainEntity ref). */
   mainEntityId?: string;
+  /** Optional author Person @id for the WebPage node. */
+  authorId?: string;
+  /** Optional primary ImageObject @id for the WebPage node. */
+  primaryImageId?: string;
   /** Content-layer JSON-LD nodes, merged into the consolidated @graph. */
   jsonLd?: Record<string, unknown> | Array<Record<string, unknown>>;
 }
@@ -55,6 +60,8 @@ const {
   datePublished,
   dateModified,
   mainEntityId,
+  authorId,
+  primaryImageId,
   jsonLd,
 } = Astro.props;
 
@@ -73,6 +80,8 @@ const pageGraph = buildPageGraph({
   datePublished,
   dateModified,
   mainEntityId,
+  authorId,
+  primaryImageId,
   nodes: contentNodes,
 });
 ---

@@ -34,8 +34,15 @@ import {
   validateCalculatorInput,
 } from '../src/lib/sweepstakesOdds';
 import {
+  ODDS_FEATURE_LIST,
   ODDS_FAQ,
+  ODDS_HOWTO,
+  ODDS_HOWTO_ID,
+  ODDS_HOWTO_STEPS,
   ODDS_MAIN_ENTITY_ID,
+  ODDS_PRIMARY_IMAGE,
+  ODDS_PRIMARY_IMAGE_ID,
+  ODDS_PRIMARY_IMAGE_PATH,
   ODDS_SCHEMA_NODES,
 } from '../src/lib/oddsPageSchema';
 
@@ -920,20 +927,49 @@ assert.match(routeSource, /from '\.\.\/\.\.\/\.\.\/lib\/oddsPageSchema'/);
 assert.match(routeSource, /mainEntityId=\{ODDS_MAIN_ENTITY_ID\}/);
 assert.match(routeSource, /jsonLd=\{ODDS_SCHEMA_NODES\}/);
 assert.match(routeSource, /\{ODDS_FAQ\.map/);
+assert.match(routeSource, /ODDS_HOWTO_STEPS\.map/);
+assert.match(routeSource, /howto-heading/);
+assert.match(routeSource, /ogImage=\{ODDS_PRIMARY_IMAGE_PATH\}/);
+assert.match(routeSource, /authorId=\{ODDS_AUTHOR_ID\}/);
+assert.match(routeSource, /primaryImageId=\{ODDS_PRIMARY_IMAGE_ID\}/);
+assert.equal(ODDS_HOWTO_STEPS.length, 4);
 const webApplicationSchema = ODDS_SCHEMA_NODES.find(
   (node) => node['@type'] === 'WebApplication',
 );
 assert.ok(webApplicationSchema);
 assert.equal(webApplicationSchema['@id'], ODDS_MAIN_ENTITY_ID);
 assert.equal(webApplicationSchema.applicationCategory, 'UtilitiesApplication');
-assert.equal(webApplicationSchema.browserRequirements, 'Requires JavaScript');
+assert.match(
+  String(webApplicationSchema.browserRequirements),
+  /Requires JavaScript/,
+);
+assert.deepEqual(webApplicationSchema.offers, {
+  '@type': 'Offer',
+  price: 0,
+  priceCurrency: 'USD',
+  availability: 'https://schema.org/InStock',
+});
+assert.deepEqual(webApplicationSchema.featureList, [...ODDS_FEATURE_LIST]);
+assert.deepEqual(webApplicationSchema.screenshot, { '@id': ODDS_PRIMARY_IMAGE_ID });
+assert.equal(ODDS_PRIMARY_IMAGE.url, `https://sweepstakeswiz.com${ODDS_PRIMARY_IMAGE_PATH}`);
+assert.equal(ODDS_PRIMARY_IMAGE.width, 1200);
+assert.equal(ODDS_PRIMARY_IMAGE.height, 630);
+assert.equal(ODDS_HOWTO['@id'], ODDS_HOWTO_ID);
+assert.equal((ODDS_HOWTO.step as unknown[]).length, 4);
 const faqSchema = ODDS_SCHEMA_NODES.find((node) => node['@type'] === 'FAQPage');
 assert.ok(faqSchema);
 assert.equal((faqSchema.mainEntity as unknown[]).length, ODDS_FAQ.length);
+const serializedOddsSchema = JSON.stringify(ODDS_SCHEMA_NODES);
 assert.doesNotMatch(
-  JSON.stringify(ODDS_SCHEMA_NODES),
-  /"@type":"(?:Offer|Product|Review|AggregateRating)"|expected winnings|real odds/i,
+  serializedOddsSchema,
+  /"@type":"(?:Product|Review|AggregateRating)"|expected winnings|real odds/i,
 );
+assert.equal(
+  (serializedOddsSchema.match(/"@type":"Offer"/g) ?? []).length,
+  1,
+  'exactly one free Offer on the WebApplication',
+);
+assert.doesNotMatch(serializedOddsSchema, /"aggregateRating"|ratingValue|ratingCount/);
 
 const toolsHubSource = readFileSync(
   new URL('../src/routes/tools/index.astro', import.meta.url),
