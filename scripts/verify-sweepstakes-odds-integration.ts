@@ -128,10 +128,10 @@ assert.doesNotMatch(
   'calculator keeps inputs and derived values local',
 );
 const keyboardOrder = [
+  'data-estimated-toggle',
   'id="odds-entries"',
   'id="odds-pool"',
   'id="odds-prizes"',
-  'data-estimated-toggle',
   '<summary>More options</summary>',
   'type="submit"',
 ];
@@ -179,18 +179,29 @@ const formControls = (markup: string) =>
 const baseControls = formControls(baseFormMarkup).filter(
   ({ element, attributes }) => element !== 'input' || attributes.type !== 'hidden',
 );
-const estimatedModeControls = baseControls.filter(
+const poolModeControls = baseControls.filter(
   ({ element, attributes }) =>
     element === 'input' &&
-    attributes.type === 'checkbox' &&
-    attributes['data-estimated-toggle'] === true,
+    attributes.type === 'radio' &&
+    attributes.name === 'poolMode',
 );
-assert.equal(estimatedModeControls.length, 1, 'estimated mode has one intentional checkbox control');
-const baseValueControls = baseControls.filter((control) => control !== estimatedModeControls[0]);
+assert.equal(poolModeControls.length, 2, 'pool mode uses a two-option segmented radio control');
+const estimatedModeControls = poolModeControls.filter(
+  ({ attributes }) => attributes['data-estimated-toggle'] === true,
+);
+assert.equal(estimatedModeControls.length, 1, 'estimated mode has one intentional radio control');
+const knownModeControls = poolModeControls.filter(
+  ({ attributes }) => attributes.value === 'known',
+);
+assert.equal(knownModeControls.length, 1, 'known mode has one intentional radio control');
+assert.equal(knownModeControls[0].attributes.checked, true, 'known total is the default mode');
+const baseValueControls = baseControls.filter(
+  (control) => !poolModeControls.includes(control),
+);
 assert.deepEqual(
   baseValueControls.map(({ attributes }) => attributes.name),
   ['entries', 'pool', 'prizes'],
-  'only the three ordered base value fields precede More options',
+  'only the three ordered base value fields accompany the mode control before More options',
 );
 assert.equal(baseValueControls[2].attributes.value, '1', 'prizes defaults to 1');
 assert.equal(estimatedModeControls[0].attributes.id, 'odds-estimated-toggle');

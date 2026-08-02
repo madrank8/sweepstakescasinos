@@ -18,6 +18,7 @@ import {
   ODDS_CTA_ANALYTICS_EVENT,
   ODDS_CTA_ANALYTICS_PAYLOAD_KEYS,
   ODDS_CTA_CLICK_ID,
+  ODDS_PARTNER_CARD_META,
   type OddsRecommendationTuple,
 } from '../src/lib/oddsRecommendations';
 import { getPartner } from '../src/data/affiliates';
@@ -688,7 +689,11 @@ const estimatedChangeBody = callbackBody(
   calculatorSource,
   "estimatedToggle.addEventListener('change'",
 );
-assert.ok(estimatedChangeBody.includes('hideResult()'));
+const estimatedModeResetsResult =
+  estimatedChangeBody.includes('hideResult()') ||
+  (estimatedChangeBody.includes('syncPoolMode()') &&
+    functionBody(calculatorSource, 'syncPoolMode').includes('hideResult()'));
+assert.ok(estimatedModeResetsResult, 'estimated mode changes must hide stale results');
 const submitBody = callbackBody(calculatorSource, "form.addEventListener('submit'");
 assertOrder(
   submitBody,
@@ -845,9 +850,12 @@ assert.match(recommendationsSource, /items\.map\(\(item\)/);
 assert.match(recommendationsSource, /#\{item\.rank\}/);
 assert.match(recommendationsSource, /href=\{item\.reviewHref\}/);
 assert.match(recommendationsSource, /Read review/);
+assert.match(recommendationsSource, /class="card-logo"/);
+assert.match(recommendationsSource, /src=\{item\.logoSrc\}/);
+assert.match(recommendationsSource, /alt=\{item\.logoAlt\}/);
 assert.match(
   recommendationsSource,
-  /href=\{item\.reviewHref\}[\s\S]*?AffiliateLink/,
+  /href=\{item\.reviewHref\}[\s\S]*?AffiliateLink|AffiliateLink[\s\S]*?href=\{item\.reviewHref\}/,
   'review links must render outside AffiliateLink-only CTA routing',
 );
 assert.match(recommendationsSource, /<AffiliateLink[\s\S]*?clickId=\{ODDS_CTA_CLICK_ID\}/);
@@ -858,6 +866,23 @@ assert.match(
   /editorially ranked casinos, not recommendations produced by your odds result/,
 );
 assertNoProhibitedRecommendationClaims(recommendationsSource);
+assert.match(recommendationModelSource, /ODDS_PARTNER_CARD_META/);
+assert.match(recommendationModelSource, /logoSrc/);
+for (const slug of editorialSlugs) {
+  const meta = ODDS_PARTNER_CARD_META[slug];
+  assert.ok(meta?.logoSrc, `card meta must define a real logo for ranked slug: ${slug}`);
+  assert.match(meta.logoSrc, /^\/sweepstakeslogo\/.+\.webp$/);
+  assert.ok(
+    existsSync(new URL(`../public${meta.logoSrc}`, import.meta.url)),
+    `homepage logo asset must exist for ranked slug: ${slug}`,
+  );
+  const item = buildOddsRecommendations(editorialTopThree, 'TX').find(
+    (entry) => entry.partner.slug === slug,
+  );
+  assert.ok(item, `built recommendation exists for ${slug}`);
+  assert.equal(item.logoSrc, meta.logoSrc);
+  assert.match(item.logoAlt, /logo/i);
+}
 
 const ctaAnalyticsCalls = parseRecommendationsGtagCalls(recommendationsSource);
 assert.equal(

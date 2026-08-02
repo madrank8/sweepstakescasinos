@@ -22,24 +22,47 @@ const items = buildOddsRecommendations(partners, Astro.locals.usState);
   </p>
   <ol class="odds-casino-list">
     {items.map((item) => (
-      <li class="odds-casino-card">
-        <span class="odds-casino-rank">#{item.rank}</span>
-        <div class="odds-casino-body">
-          <h3><a href={item.reviewHref}>{item.partner.name}</a></h3>
+      <li class:list={['odds-casino-card', 'card']}>
+        <div class:list={['card-line', item.accentClass]}></div>
+        <div class="card-rank-wrap">
+          <span class="card-rank">
+            <span aria-hidden="true">{item.rank === 1 ? '🥇 ' : item.rank === 2 ? '🥈 ' : item.rank === 3 ? '🥉 ' : ''}</span>#{item.rank}
+          </span>
+        </div>
+        <div class="card-logo-col">
+          <img
+            class="card-logo"
+            src={item.logoSrc}
+            alt={item.logoAlt}
+            loading="lazy"
+            width="128"
+            height="76"
+          />
+          <div class="card-cname">{item.displayName}</div>
+          <div class="card-stars" aria-hidden="true">{item.stars}</div>
+          <div class="card-score">{item.score}</div>
+        </div>
+        <div class="card-body">
+          <div class="offer-lbl">Welcome Bonus</div>
+          <h3 class="card-offer">
+            {item.offer}<span class="hl">{item.offerHighlight}</span>{item.offerSuffix}
+          </h3>
           <p class:list={['odds-casino-status', { available: item.available, unavailable: !item.available }]}>
             {item.available ? 'Available in your location' : 'Not available in your location'}
           </p>
-          <p>Read our editorial review for free-entry routes, eligibility, and official-rules context.</p>
+          <p class="odds-casino-note">
+            Read our editorial review for free-entry routes, eligibility, and official-rules context.
+          </p>
         </div>
-        <div class="odds-casino-actions">
-          <a href={item.reviewHref}>Read review</a>
+        <div class="card-cta odds-casino-actions">
           <AffiliateLink
             partner={item.partner}
-            label={`Visit ${item.partner.name}`}
-            class="odds-casino-cta"
+            label={`Claim ${item.partner.name} bonus`}
+            class="btn-claim odds-casino-cta"
             clickId={ODDS_CTA_CLICK_ID}
             showUnavailableNote={false}
           />
+          <a href={item.reviewHref} class="btn-review">Read review</a>
         </div>
       </li>
     ))}
@@ -54,15 +77,86 @@ const items = buildOddsRecommendations(partners, Astro.locals.usState);
 
 <style>
   .odds-recommendations{margin:8px 0 30px}
-  .odds-casino-list{list-style:none;margin:16px 0;padding:0}
-  .odds-casino-card{display:flex;align-items:center;gap:14px;padding:16px;border:1px solid #e2e8f0;border-radius:14px;background:linear-gradient(165deg,#fafcff,#eef4ff);margin-bottom:12px}
-  .odds-casino-rank{font-family:'Sora',sans-serif;font-weight:900;color:#1a56db;font-size:1.1rem;min-width:34px}
-  .odds-casino-body{flex:1}.odds-casino-body h3{margin:0 0 3px}.odds-casino-body p{margin:0}
-  .odds-casino-status{font-size:.78rem;font-weight:800}.odds-casino-status.available{color:#047857}.odds-casino-status.unavailable{color:#991b1b}
-  .odds-casino-actions{display:flex;align-items:center;justify-content:flex-end;gap:10px;flex-wrap:wrap}
-  .odds-casino-actions :global(.odds-casino-cta){display:inline-block;min-height:44px;background:linear-gradient(135deg,#fbbf24,#f59e0b);color:#0a1628;font-weight:800;padding:10px 16px;border-radius:10px;text-decoration:none}
+  .odds-recommendations > p{color:#334155;margin:0 0 14px}
+  .odds-casino-list{list-style:none;margin:16px 0;padding:0;display:flex;flex-direction:column;gap:14px}
+  .odds-casino-card.card{
+    position:relative;display:grid;grid-template-columns:120px 1fr minmax(140px,160px);
+    gap:0;margin:0;padding:0;overflow:hidden;border-radius:14px;
+    background:linear-gradient(165deg,#0f1f38,#0a1628 55%,#07101f);
+    border:1px solid rgba(251,191,36,.22);
+    box-shadow:0 12px 32px rgba(7,16,32,.35);
+    color:#fff;
+  }
+  .odds-casino-card .card-line{position:absolute;top:0;left:0;right:0;height:3px}
+  .odds-casino-card .card-line.line-purple{background:linear-gradient(90deg,#c084fc,#7c3aed)}
+  .odds-casino-card .card-line.line-cyan{background:linear-gradient(90deg,#22d3ee,#0891b2)}
+  .odds-casino-card .card-line.line-gold{background:linear-gradient(90deg,#fbbf24,#f59e0b)}
+  .odds-casino-card .card-line.line-pink{background:linear-gradient(90deg,#f472b6,#db2777)}
+  .odds-casino-card .card-line.line-green{background:linear-gradient(90deg,#34d399,#059669)}
+  .odds-casino-card .card-line.line-red{background:linear-gradient(90deg,#f87171,#dc2626)}
+  .odds-casino-card .card-rank-wrap{position:absolute;top:0;left:0;z-index:2}
+  .odds-casino-card .card-rank{
+    display:inline-block;font-family:'Sora',sans-serif;font-weight:900;font-size:.78rem;
+    letter-spacing:.02em;padding:7px 11px;border-bottom-right-radius:10px;
+    background:linear-gradient(135deg,#07101f,#12233d);color:#fbbf24;
+  }
+  .odds-casino-card .card-logo-col{
+    display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;
+    padding:28px 10px 14px;background:linear-gradient(170deg,#152a44,#0d1a2e);
+    border-right:1px solid rgba(255,255,255,.08);
+  }
+  .odds-casino-card .card-logo{
+    width:96px;height:56px;object-fit:contain;border-radius:8px;
+    background:rgba(255,255,255,.06);padding:4px;
+  }
+  .odds-casino-card .card-cname{
+    font-family:'Sora',sans-serif;font-weight:900;font-size:.72rem;letter-spacing:.04em;color:#fff;
+  }
+  .odds-casino-card .card-stars{color:#fbbf24;font-size:.78rem;letter-spacing:1px;line-height:1}
+  .odds-casino-card .card-score{font-size:.68rem;font-weight:700;color:rgba(255,255,255,.55)}
+  .odds-casino-card .card-body{padding:22px 16px 14px;display:flex;flex-direction:column;justify-content:center;gap:4px;min-width:0}
+  .odds-casino-card .offer-lbl{
+    font-size:.68rem;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:#fbbf24;
+  }
+  .odds-casino-card .card-offer{
+    margin:0;font-family:'Sora',sans-serif;font-size:1.05rem;font-weight:900;color:#fff;line-height:1.2;
+  }
+  .odds-casino-card .card-offer .hl{color:#fbbf24}
+  .odds-casino-status{margin:4px 0 0;font-size:.78rem;font-weight:800}
+  .odds-casino-status.available{color:#34d399}
+  .odds-casino-status.unavailable{color:#fca5a5}
+  .odds-casino-note{margin:2px 0 0;font-size:.8rem;color:rgba(255,255,255,.55);line-height:1.35}
+  .odds-casino-actions{
+    display:flex;flex-direction:column;justify-content:center;gap:8px;
+    padding:14px 12px;background:linear-gradient(180deg,#12233d,#0a1424);
+    border-left:1px solid rgba(255,255,255,.08);
+  }
+  .odds-casino-actions :global(.btn-claim),
+  .odds-casino-actions :global(.odds-casino-cta){
+    display:flex;align-items:center;justify-content:center;min-height:44px;
+    padding:10px 12px;border-radius:10px;text-decoration:none;text-align:center;
+    background:linear-gradient(135deg,#fbbf24,#f59e0b);color:#0a1628;
+    font-family:'Sora',sans-serif;font-weight:900;font-size:.82rem;letter-spacing:.01em;
+    box-shadow:0 8px 20px rgba(251,191,36,.28);
+  }
+  .odds-casino-actions .btn-review{
+    display:block;text-align:center;min-height:40px;line-height:40px;
+    font-size:.78rem;font-weight:700;color:rgba(255,255,255,.7);
+    border:1px solid rgba(255,255,255,.16);border-radius:8px;text-decoration:none;
+  }
+  .odds-casino-actions .btn-review:hover{color:#fff;border-color:rgba(251,191,36,.45)}
   .odds-casino-disclosure{font-size:.84rem;color:#64748b;border-top:1px solid #e2e8f0;padding-top:14px}
-  @media(max-width:620px){.odds-casino-card{align-items:flex-start;flex-wrap:wrap}.odds-casino-actions{width:100%;justify-content:flex-start;padding-left:48px}}
+  @media(max-width:720px){
+    .odds-casino-card.card{grid-template-columns:1fr;padding:0}
+    .odds-casino-card .card-logo-col{
+      flex-direction:row;flex-wrap:wrap;justify-content:flex-start;gap:10px 14px;
+      padding:36px 14px 12px;border-right:0;border-bottom:1px solid rgba(255,255,255,.08);
+    }
+    .odds-casino-card .card-body{padding:12px 14px}
+    .odds-casino-actions{border-left:0;border-top:1px solid rgba(255,255,255,.08);padding:12px 14px}
+    .odds-casino-actions :global(.btn-claim),
+    .odds-casino-actions :global(.odds-casino-cta){width:100%}
+  }
 </style>
 
 <script>

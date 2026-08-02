@@ -36,7 +36,7 @@ const topPartners: OddsRecommendationTuple | null = (() => {
   canonicalPath={ODDS_CANONICAL_PATH}
   breadcrumbs={ODDS_BREADCRUMBS}
   heroTitle={'Sweepstakes <span class="accent">Odds Calculator</span>'}
-  heroSubtitle="Calculate exact without-replacement odds, or explore a clearly labeled range when the total entry pool is unknown."
+  heroSubtitle="Exact without-replacement odds — or a labeled estimate range when the pool is unknown."
   pageType="WebPage"
   datePublished={ODDS_DATE_PUBLISHED}
   dateModified={ODDS_DATE_MODIFIED}
@@ -67,7 +67,7 @@ const topPartners: OddsRecommendationTuple | null = (() => {
   <section aria-labelledby="unknown-total">
     <h2 id="unknown-total">What to do when total entries are unknown</h2>
     <p>
-      Select <strong>I don’t know the total</strong> and enter your best estimate of all entries,
+      Select <strong>Estimate</strong> and enter your best estimate of all entries,
       including yours. The tool calculates three assumptions: 80% of that estimate, the estimate
       itself, and 125% of it. The lower pool produces the better chance and appears first.
     </p>
@@ -214,6 +214,11 @@ const topPartners: OddsRecommendationTuple | null = (() => {
     <a href="/responsible-gaming/">Responsible Gaming</a> or call 1-800-GAMBLER.
   </p>
 
+  <style is:global>
+    body:has([data-odds-calculator]) .page-hero{padding:28px 20px 18px}
+    body:has([data-odds-calculator]) .page-hero h1{margin-bottom:6px;font-size:clamp(1.45rem,3.2vw,2rem)}
+    body:has([data-odds-calculator]) .page-hero-sub{max-width:520px;line-height:1.45;font-size:clamp(.84rem,1.4vw,.95rem)}
+  </style>
   <style>
     .odds-methodology{margin:24px 0;border:1px solid #cbd5e1;border-radius:12px;padding:0 16px}
     .odds-methodology summary{display:flex;align-items:center;min-height:48px;font-family:'Sora',sans-serif;font-weight:800;cursor:pointer}

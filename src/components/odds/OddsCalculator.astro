@@ -2,125 +2,156 @@
 // All behavior is bundled below; this component has no server props.
 ---
 <section class="odds-calculator" data-odds-calculator aria-labelledby="odds-calculator-title">
-  <h2 id="odds-calculator-title">Calculate your sweepstakes odds</h2>
-  <p class="odds-intro">
-    This calculates the chance that at least one of your entries is selected when unique winning
-    entries are drawn without replacement.
-  </p>
+  <div class="odds-workstation">
+    <div class="odds-form-panel">
+      <p class="odds-brand-kicker">SweepstakesWiz tool</p>
+      <h2 id="odds-calculator-title">Calculate your sweepstakes odds</h2>
+      <p class="odds-intro">
+        This calculates the chance that at least one of your entries is selected when unique winning
+        entries are drawn without replacement.
+      </p>
 
-  <div class="odds-error-summary" data-error-summary tabindex="-1" role="alert" hidden>
-    <h3>Check the highlighted fields</h3>
-    <ul data-error-list></ul>
-  </div>
-
-  <noscript>
-    <p class="odds-noscript">
-      The calculator needs JavaScript to calculate a result. The methodology, examples, FAQ,
-      disclosures, casino reviews, and related guides below remain available.
-    </p>
-  </noscript>
-
-  <form data-odds-form method="dialog" novalidate>
-    <div class="odds-grid">
-      <div class="odds-field" data-field-wrap="entries">
-        <label for="odds-entries">Your entries</label>
-        <input id="odds-entries" name="entries" type="text" inputmode="numeric"
-          pattern="[0-9]*" autocomplete="off" aria-describedby="odds-entries-hint odds-entries-error" />
-        <p id="odds-entries-hint" class="odds-hint">Include free and purchase-associated entries.</p>
-        <p id="odds-entries-error" class="odds-field-error" data-error-for="entries" hidden></p>
+      <div class="odds-error-summary" data-error-summary tabindex="-1" role="alert" hidden>
+        <h3>Check the highlighted fields</h3>
+        <ul data-error-list></ul>
       </div>
 
-      <fieldset class="odds-field odds-pool-field">
-        <legend>Entry pool</legend>
-        <label for="odds-pool" data-pool-label>Total entries</label>
-        <input id="odds-pool" name="pool" type="text" inputmode="numeric"
-          pattern="[0-9]*" autocomplete="off" aria-describedby="odds-pool-hint odds-pool-error" />
-        <p id="odds-pool-hint" class="odds-hint" data-pool-hint aria-live="polite" role="status">
-          Include your entries in the drawing total.
+      <noscript>
+        <p class="odds-noscript">
+          The calculator needs JavaScript to calculate a result. The methodology, examples, FAQ,
+          disclosures, casino reviews, and related guides below remain available.
         </p>
-        <p id="odds-pool-error" class="odds-field-error" data-error-for="pool" hidden></p>
-      </fieldset>
+      </noscript>
 
-      <div class="odds-field" data-field-wrap="prizes">
-        <label for="odds-prizes">Number of prizes</label>
-        <input id="odds-prizes" name="prizes" type="text" inputmode="numeric"
-          pattern="[0-9]*" autocomplete="off" value="1"
-          aria-describedby="odds-prizes-hint odds-prizes-error" />
-        <p id="odds-prizes-hint" class="odds-hint">Each prize selects one unique winning entry.</p>
-        <p id="odds-prizes-error" class="odds-field-error" data-error-for="prizes" hidden></p>
-      </div>
-
-      <label class="odds-mode-toggle">
-        <input id="odds-estimated-toggle" type="checkbox" data-estimated-toggle
-          aria-controls="odds-pool" aria-describedby="odds-estimated-instructions" />
-        <span>
-          I don’t know the total
-          <span id="odds-estimated-instructions" class="odds-mode-instructions">
+      <form data-odds-form method="dialog" novalidate>
+        <fieldset class="odds-mode-seg">
+          <legend id="odds-mode-label">Entry pool mode</legend>
+          <div class="odds-mode-seg-track" role="radiogroup" aria-labelledby="odds-mode-label">
+            <label class="odds-mode-option">
+              <input type="radio" name="poolMode" value="known" checked data-pool-mode-known />
+              <span>Known total</span>
+            </label>
+            <label class="odds-mode-option">
+              <input
+                id="odds-estimated-toggle"
+                type="radio"
+                name="poolMode"
+                value="estimated"
+                data-estimated-toggle
+                aria-controls="odds-pool"
+                aria-describedby="odds-estimated-instructions"
+              />
+              <span>Estimate</span>
+            </label>
+          </div>
+          <p id="odds-estimated-instructions" class="odds-mode-instructions">
             Use this when the total entry pool is unknown; enter your best estimate including your entries.
-          </span>
-        </span>
-      </label>
+          </p>
+        </fieldset>
+
+        <div class="odds-grid">
+          <div class="odds-field" data-field-wrap="entries">
+            <label for="odds-entries">Your entries</label>
+            <input id="odds-entries" name="entries" type="text" inputmode="numeric"
+              pattern="[0-9]*" autocomplete="off" aria-describedby="odds-entries-hint odds-entries-error" />
+            <p id="odds-entries-hint" class="odds-hint">Include free and purchase-associated entries.</p>
+            <p id="odds-entries-error" class="odds-field-error" data-error-for="entries" hidden></p>
+          </div>
+
+          <fieldset class="odds-field odds-pool-field">
+            <legend>Entry pool</legend>
+            <label for="odds-pool" data-pool-label>Total entries</label>
+            <input id="odds-pool" name="pool" type="text" inputmode="numeric"
+              pattern="[0-9]*" autocomplete="off" aria-describedby="odds-pool-hint odds-pool-error" />
+            <p id="odds-pool-hint" class="odds-hint" data-pool-hint aria-live="polite" role="status">
+              Include your entries in the drawing total.
+            </p>
+            <p id="odds-pool-error" class="odds-field-error" data-error-for="pool" hidden></p>
+          </fieldset>
+
+          <div class="odds-field" data-field-wrap="prizes">
+            <label for="odds-prizes">Number of prizes</label>
+            <input id="odds-prizes" name="prizes" type="text" inputmode="numeric"
+              pattern="[0-9]*" autocomplete="off" value="1"
+              aria-describedby="odds-prizes-hint odds-prizes-error" />
+            <p id="odds-prizes-hint" class="odds-hint">Each prize selects one unique winning entry.</p>
+            <p id="odds-prizes-error" class="odds-field-error" data-error-for="prizes" hidden></p>
+          </div>
+        </div>
+
+        <details class="odds-options">
+          <summary>More options</summary>
+          <div class="odds-option">
+            <label>
+              <input type="checkbox" data-entry-mix-toggle />
+              Compare free vs paid entries
+            </label>
+            <div data-entry-mix-fields hidden>
+              <label for="odds-free-entries">How many of your entries were free/AMOE?</label>
+              <input id="odds-free-entries" name="freeEntries" type="text" inputmode="numeric"
+                pattern="[0-9]*" autocomplete="off" disabled
+                aria-describedby="odds-free-entries-hint odds-free-entries-error" />
+              <p id="odds-free-entries-hint" class="odds-hint">
+                Purchase-associated entries are derived as your entries minus free entries.
+              </p>
+              <p id="odds-free-entries-error" class="odds-field-error"
+                data-error-for="freeEntries" hidden></p>
+            </div>
+          </div>
+
+          <div class="odds-option">
+            <label>
+              <input type="checkbox" data-drawings-toggle />
+              Multiple drawings
+            </label>
+            <div data-drawings-fields hidden>
+              <label for="odds-drawings">Number of independent drawings</label>
+              <input id="odds-drawings" name="drawings" type="text" inputmode="numeric"
+                pattern="[0-9]*" autocomplete="off" disabled
+                aria-describedby="odds-drawings-hint odds-drawings-error" />
+              <p id="odds-drawings-hint" class="odds-hint">
+                Assumes each drawing is independent with the same pool and probability.
+              </p>
+              <p id="odds-drawings-error" class="odds-field-error"
+                data-error-for="drawings" hidden></p>
+            </div>
+          </div>
+        </details>
+
+        <p class="odds-assumption">Unique winning entries · drawn without replacement</p>
+        <button class="odds-submit" type="submit">Calculate my odds</button>
+      </form>
     </div>
 
-    <details class="odds-options">
-      <summary>More options</summary>
-      <div class="odds-option">
-        <label>
-          <input type="checkbox" data-entry-mix-toggle />
-          Compare free vs paid entries
-        </label>
-        <div data-entry-mix-fields hidden>
-          <label for="odds-free-entries">How many of your entries were free/AMOE?</label>
-          <input id="odds-free-entries" name="freeEntries" type="text" inputmode="numeric"
-            pattern="[0-9]*" autocomplete="off" disabled
-            aria-describedby="odds-free-entries-hint odds-free-entries-error" />
-          <p id="odds-free-entries-hint" class="odds-hint">
-            Purchase-associated entries are derived as your entries minus free entries.
-          </p>
-          <p id="odds-free-entries-error" class="odds-field-error"
-            data-error-for="freeEntries" hidden></p>
-        </div>
+    <aside class="odds-billboard-panel" aria-label="Calculation result">
+      <div class="odds-result-placeholder" data-result-placeholder>
+        <p class="odds-bill-k">Your result</p>
+        <p class="odds-placeholder-copy">Enter your numbers and calculate to see your odds here.</p>
       </div>
 
-      <div class="odds-option">
-        <label>
-          <input type="checkbox" data-drawings-toggle />
-          Multiple drawings
-        </label>
-        <div data-drawings-fields hidden>
-          <label for="odds-drawings">Number of independent drawings</label>
-          <input id="odds-drawings" name="drawings" type="text" inputmode="numeric"
-            pattern="[0-9]*" autocomplete="off" disabled
-            aria-describedby="odds-drawings-hint odds-drawings-error" />
-          <p id="odds-drawings-hint" class="odds-hint">
-            Assumes each drawing is independent with the same pool and probability.
-          </p>
-          <p id="odds-drawings-error" class="odds-field-error"
-            data-error-for="drawings" hidden></p>
+      <section class="odds-result" data-result aria-live="polite" hidden>
+        <div class="odds-charge" data-charge hidden aria-hidden="true">
+          <span class="odds-charge-bar"></span>
         </div>
-      </div>
-    </details>
-
-    <p class="odds-assumption">Unique winning entries · drawn without replacement</p>
-    <button class="odds-submit" type="submit">Calculate my odds</button>
-  </form>
-
-  <section class="odds-result" data-result aria-live="polite" hidden>
-    <h3 tabindex="-1" data-result-heading></h3>
-    <p class="odds-result-percent" data-result-percent></p>
-    <p data-result-assumption></p>
-    <div data-entry-mix-result hidden>
-      <h3>Free and purchase-associated entry comparison</h3>
-      <dl>
-        <div><dt data-mix-label-combined>Combined current-pool odds</dt><dd data-mix-combined></dd></div>
-        <div><dt data-mix-label-free-current>Free-only odds in the same current pool</dt><dd data-mix-free-current></dd></div>
-        <div><dt data-mix-label-no-purchase>No-purchase counterfactual</dt><dd data-mix-no-purchase></dd></div>
-      </dl>
-      <p class="odds-hint" data-entry-mix-note hidden></p>
-    </div>
-    <p data-drawings-result hidden></p>
-  </section>
-
+        <div class="odds-billboard" data-billboard>
+          <p class="odds-bill-k">Your chance</p>
+          <h3 tabindex="-1" data-result-heading></h3>
+          <p class="odds-result-percent" data-result-percent></p>
+          <p data-result-assumption></p>
+          <div data-entry-mix-result hidden>
+            <h3>Free and purchase-associated entry comparison</h3>
+            <dl>
+              <div><dt data-mix-label-combined>Combined current-pool odds</dt><dd data-mix-combined></dd></div>
+              <div><dt data-mix-label-free-current>Free-only odds in the same current pool</dt><dd data-mix-free-current></dd></div>
+              <div><dt data-mix-label-no-purchase>No-purchase counterfactual</dt><dd data-mix-no-purchase></dd></div>
+            </dl>
+            <p class="odds-hint" data-entry-mix-note hidden></p>
+          </div>
+          <p data-drawings-result hidden></p>
+        </div>
+      </section>
+    </aside>
+  </div>
 </section>
 
 <script>
@@ -166,9 +197,14 @@
     const poolLabel = root.querySelector<HTMLElement>('[data-pool-label]')!;
     const poolHint = root.querySelector<HTMLElement>('[data-pool-hint]')!;
     const estimatedToggle = root.querySelector<HTMLInputElement>('[data-estimated-toggle]')!;
+    const knownToggle = root.querySelector<HTMLInputElement>('[data-pool-mode-known]')!;
     const entryMixToggle = root.querySelector<HTMLInputElement>('[data-entry-mix-toggle]')!;
     const drawingsToggle = root.querySelector<HTMLInputElement>('[data-drawings-toggle]')!;
+    const resultPlaceholder = root.querySelector<HTMLElement>('[data-result-placeholder]')!;
+    const chargeEl = root.querySelector<HTMLElement>('[data-charge]')!;
+    const billboard = root.querySelector<HTMLElement>('[data-billboard]')!;
     const opened = new Set<'entry_mix' | 'multiple_drawings'>();
+    let revealTimer: number | undefined;
 
     const fieldId: Record<OddsField, string> = {
       entries: 'odds-entries',
@@ -178,9 +214,20 @@
       drawings: 'odds-drawings',
     };
 
+    function prefersReducedMotion(): boolean {
+      return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    }
+
     function hideResult(): void {
+      if (revealTimer !== undefined) {
+        window.clearTimeout(revealTimer);
+        revealTimer = undefined;
+      }
       const resultRegion = root.querySelector<HTMLElement>('[data-result]')!;
       resultRegion.hidden = true;
+      resultPlaceholder.hidden = false;
+      chargeEl.hidden = true;
+      billboard.classList.remove('is-charging', 'is-ready');
       root.querySelector<HTMLElement>('[data-result-heading]')!.textContent = '';
       root.querySelector<HTMLElement>('[data-result-percent]')!.textContent = '';
       root.querySelector<HTMLElement>('[data-result-assumption]')!.textContent = '';
@@ -253,11 +300,7 @@
       clearErrors();
     }
 
-    for (const id of RESULT_INVALIDATING_INPUT_IDS) {
-      root.querySelector<HTMLInputElement>(`#${id}`)?.addEventListener('input', hideResult);
-    }
-
-    estimatedToggle.addEventListener('change', () => {
+    function syncPoolMode(): void {
       pool.value = '';
       poolLabel.textContent = estimatedToggle.checked
         ? 'Your best estimate of total entries'
@@ -265,8 +308,20 @@
       poolHint.textContent = estimatedToggle.checked
         ? 'Include your entries; the calculator applies stated 0.8× and 1.25× assumptions.'
         : 'Include your entries in the drawing total.';
+      root.classList.toggle('is-estimate-mode', estimatedToggle.checked);
       hideResult();
       clearErrors();
+    }
+
+    for (const id of RESULT_INVALIDATING_INPUT_IDS) {
+      root.querySelector<HTMLInputElement>(`#${id}`)?.addEventListener('input', hideResult);
+    }
+
+    estimatedToggle.addEventListener('change', () => {
+      syncPoolMode();
+    });
+    knownToggle.addEventListener('change', () => {
+      syncPoolMode();
     });
     entryMixToggle.addEventListener('change', () =>
       setAdvanced(entryMixToggle, '[data-entry-mix-fields]', 'entry_mix'));
@@ -299,6 +354,7 @@
       const percent = root.querySelector<HTMLElement>('[data-result-percent]')!;
       const assumption = root.querySelector<HTMLElement>('[data-result-assumption]')!;
       resultRegion.hidden = false;
+      resultPlaceholder.hidden = true;
       let singleProbability: number;
 
       if (scenario.poolMode === 'known') {
@@ -377,12 +433,32 @@
         );
       }
 
-      heading.focus();
-      sendEvent(ODDS_EVENT_CALCULATION_COMPLETED, {
-        pool_mode: scenario.poolMode,
-        entry_mix_active: scenario.entryMixActive,
-        multiple_drawings_active: scenario.multipleDrawingsActive,
-      });
+      const finishReveal = () => {
+        revealTimer = undefined;
+        chargeEl.hidden = true;
+        billboard.classList.remove('is-charging');
+        billboard.classList.add('is-ready');
+        heading.focus();
+        sendEvent(ODDS_EVENT_CALCULATION_COMPLETED, {
+          pool_mode: scenario.poolMode,
+          entry_mix_active: scenario.entryMixActive,
+          multiple_drawings_active: scenario.multipleDrawingsActive,
+        });
+      };
+
+      if (revealTimer !== undefined) {
+        window.clearTimeout(revealTimer);
+        revealTimer = undefined;
+      }
+
+      if (prefersReducedMotion()) {
+        finishReveal();
+      } else {
+        chargeEl.hidden = false;
+        billboard.classList.remove('is-ready');
+        billboard.classList.add('is-charging');
+        revealTimer = window.setTimeout(finishReveal, 420);
+      }
     });
   }
 
@@ -390,26 +466,144 @@
 </script>
 
 <style>
-  .odds-calculator{border:1px solid #dbe3ee;border-radius:16px;background:#fff;padding:24px;margin:0 0 26px;box-shadow:0 4px 18px rgba(10,22,40,.08)}
-  .odds-intro,.odds-hint,.odds-assumption{color:#475569}
-  .odds-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+  .odds-calculator{
+    --odds-navy:#0a1628;
+    --odds-navy-2:#12233d;
+    --odds-gold:#fbbf24;
+    --odds-gold-2:#f59e0b;
+    --odds-ink:#e8eef8;
+    --odds-muted:rgba(232,238,248,.62);
+    border:1px solid rgba(251,191,36,.28);
+    border-radius:20px;
+    background:
+      radial-gradient(circle at 88% 12%,rgba(251,191,36,.22),transparent 32%),
+      radial-gradient(circle at 8% 90%,rgba(26,86,219,.18),transparent 36%),
+      linear-gradient(165deg,#0c1a30 0%,#07101f 55%,#0a1628 100%);
+    padding:22px;
+    margin:0 0 26px;
+    box-shadow:0 18px 48px rgba(7,16,32,.35);
+    color:var(--odds-ink);
+  }
+  .odds-workstation{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.05fr);gap:18px;align-items:stretch}
+  .odds-form-panel,.odds-billboard-panel{
+    border-radius:16px;border:1px solid rgba(255,255,255,.1);
+    background:rgba(255,255,255,.045);padding:18px;
+  }
+  .odds-brand-kicker{
+    margin:0 0 6px;font-size:.72rem;font-weight:800;letter-spacing:.14em;
+    text-transform:uppercase;color:var(--odds-gold);
+  }
+  .odds-calculator h2{margin:0 0 8px;font-family:'Sora',sans-serif;font-weight:900;color:#fff;letter-spacing:-.02em}
+  .odds-intro,.odds-hint,.odds-assumption{color:var(--odds-muted)}
+  .odds-intro{margin:0 0 14px;line-height:1.5}
+  .odds-mode-seg{border:0;margin:0 0 14px;padding:0;min-width:0}
+  .odds-mode-seg legend{
+    position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);border:0;
+  }
+  .odds-mode-seg-track{
+    display:grid;grid-template-columns:1fr 1fr;gap:4px;padding:4px;border-radius:14px;
+    background:rgba(0,0,0,.28);border:1px solid rgba(251,191,36,.3);
+  }
+  .odds-mode-option{display:block;margin:0;cursor:pointer}
+  .odds-mode-option input{position:absolute;opacity:0;pointer-events:none}
+  .odds-mode-option span{
+    display:flex;align-items:center;justify-content:center;min-height:44px;padding:8px 10px;
+    border-radius:10px;font-weight:800;font-size:.92rem;color:rgba(255,255,255,.55);
+    transition:background .15s ease,color .15s ease,box-shadow .15s ease;
+  }
+  .odds-mode-option input:checked + span{
+    background:linear-gradient(135deg,var(--odds-gold),var(--odds-gold-2));
+    color:var(--odds-navy);box-shadow:0 6px 18px rgba(251,191,36,.28);
+  }
+  .odds-mode-option input:focus-visible + span{outline:3px solid var(--odds-gold);outline-offset:2px}
+  .odds-mode-instructions{margin:8px 0 0;color:var(--odds-muted);font-size:.78rem;line-height:1.4}
+  .odds-calculator.is-estimate-mode .odds-mode-instructions{color:rgba(251,191,36,.85)}
+  .odds-grid{display:grid;grid-template-columns:1fr;gap:14px}
   .odds-field{min-width:0;border:0;padding:0;margin:0}
-  .odds-field label,.odds-field legend,.odds-option label{display:block;font-weight:800;color:#0a1628}
-  .odds-field input,.odds-option input[type="text"]{width:100%;min-height:44px;border:1px solid #94a3b8;border-radius:9px;padding:9px 11px;font:inherit;background:#fff;color:#0f172a}
-  .odds-field input:focus-visible,.odds-option input:focus-visible,.odds-submit:focus-visible,summary:focus-visible,.odds-mode-toggle input:focus-visible{outline:3px solid #fbbf24;outline-offset:2px}
-  [aria-invalid="true"]{border-color:#b91c1c!important;box-shadow:0 0 0 1px #b91c1c}
-  .odds-field-error{color:#991b1b;font-weight:700}
-  .odds-error-summary{border:2px solid #b91c1c;border-radius:10px;background:#fef2f2;padding:14px 16px;margin:16px 0}
-  .odds-error-summary h3{margin:0 0 8px}.odds-error-summary ul{margin:0 0 0 20px}
-  .odds-mode-toggle{display:flex!important;grid-column:2;align-items:center;gap:8px;min-height:44px;margin-top:-8px;font-weight:600!important}
-  .odds-mode-instructions{display:block;margin-top:2px;color:#64748b;font-size:.78rem;font-weight:400}
-  .odds-options{border-top:1px solid #e2e8f0;border-bottom:1px solid #e2e8f0;padding:12px 0;margin:18px 0}
-  .odds-options summary{min-height:44px;display:flex;align-items:center;font-weight:800;cursor:pointer}
+  .odds-field label,.odds-field legend,.odds-option label{display:block;font-weight:800;color:#fff}
+  .odds-field legend{margin-bottom:6px}
+  .odds-field input,.odds-option input[type="text"]{
+    width:100%;min-height:44px;border:1px solid rgba(148,163,184,.55);border-radius:10px;
+    padding:9px 11px;font:inherit;background:rgba(255,255,255,.06);color:#fff;
+  }
+  .odds-field input::placeholder{color:rgba(255,255,255,.35)}
+  .odds-field input:focus-visible,.odds-option input:focus-visible,.odds-submit:focus-visible,summary:focus-visible{
+    outline:3px solid var(--odds-gold);outline-offset:2px;
+  }
+  [aria-invalid="true"]{border-color:#f87171!important;box-shadow:0 0 0 1px #f87171}
+  .odds-field-error{color:#fecaca;font-weight:700}
+  .odds-error-summary{border:2px solid #f87171;border-radius:10px;background:rgba(127,29,29,.35);padding:14px 16px;margin:0 0 14px;color:#fff}
+  .odds-error-summary h3{margin:0 0 8px;color:#fff}.odds-error-summary ul{margin:0 0 0 20px}
+  .odds-error-summary a{color:#fde68a}
+  .odds-options{border-top:1px solid rgba(255,255,255,.12);border-bottom:1px solid rgba(255,255,255,.12);padding:12px 0;margin:16px 0}
+  .odds-options summary{min-height:44px;display:flex;align-items:center;font-weight:800;cursor:pointer;color:#fff}
   .odds-option{padding:10px 0}.odds-option>label{display:flex;align-items:center;gap:10px;min-height:44px}
-  .odds-submit{min-height:48px;border:0;border-radius:10px;padding:10px 18px;background:linear-gradient(135deg,#fbbf24,#f59e0b);color:#0a1628;font:800 1rem 'Sora',sans-serif;cursor:pointer}
-  .odds-result{margin-top:22px;border-left:4px solid #10b981;background:#f0fdf4;border-radius:10px;padding:18px}
-  .odds-result h3{margin-top:0}.odds-result dl>div{padding:8px 0;border-top:1px solid #bbf7d0}
-  .odds-result dt{font-weight:800}.odds-result dd{margin:2px 0 0}
-  .odds-noscript{border-left:4px solid #1a56db;background:#eff6ff;padding:12px 14px}
-  @media(max-width:700px){.odds-grid{grid-template-columns:1fr}.odds-mode-toggle{grid-column:1;margin-top:0}.odds-calculator{padding:18px}}
+  .odds-assumption{margin:0 0 12px;font-size:.84rem}
+  .odds-submit{
+    width:100%;min-height:52px;border:0;border-radius:999px;padding:12px 18px;
+    background:linear-gradient(135deg,var(--odds-gold),var(--odds-gold-2));
+    color:var(--odds-navy);font:900 1.02rem 'Sora',sans-serif;cursor:pointer;
+    box-shadow:0 10px 28px rgba(251,191,36,.3);
+  }
+  .odds-submit:hover{filter:brightness(1.04)}
+  .odds-billboard-panel{display:flex;flex-direction:column;justify-content:center;min-height:280px}
+  .odds-bill-k{
+    margin:0;font-size:.78rem;font-weight:800;letter-spacing:.14em;text-transform:uppercase;
+    color:rgba(255,255,255,.55);
+  }
+  .odds-result-placeholder{
+    border-radius:14px;border:1px dashed rgba(255,255,255,.2);padding:28px 20px;
+    background:rgba(0,0,0,.18);text-align:left;
+  }
+  .odds-placeholder-copy{margin:10px 0 0;color:var(--odds-muted);line-height:1.45;max-width:28ch}
+  .odds-result{
+    margin:0;border:1px solid rgba(251,191,36,.5);border-radius:14px;padding:22px 20px;
+    background:
+      linear-gradient(160deg,rgba(0,0,0,.42),rgba(11,43,84,.55)),
+      radial-gradient(circle at 90% 10%,rgba(251,191,36,.18),transparent 42%);
+    box-shadow:0 0 0 1px rgba(251,191,36,.08),0 22px 44px rgba(0,0,0,.28);
+  }
+  .odds-charge{height:7px;border-radius:999px;background:rgba(255,255,255,.12);overflow:hidden;margin:0 0 16px}
+  .odds-charge-bar{
+    display:block;height:100%;width:12%;
+    background:linear-gradient(90deg,var(--odds-gold),#ff8a3d,var(--odds-gold));
+    background-size:200% 100%;
+    animation:odds-charge 420ms ease-out forwards;
+  }
+  .odds-billboard.is-charging [data-result-heading],
+  .odds-billboard.is-charging .odds-result-percent{opacity:.45;transform:scale(.96)}
+  .odds-billboard.is-ready [data-result-heading]{animation:odds-snap 380ms ease-out}
+  .odds-result h3[data-result-heading]{
+    margin:10px 0 8px;font-family:'Sora',sans-serif;font-size:clamp(2rem,4.2vw,2.85rem);
+    font-weight:900;letter-spacing:-.04em;line-height:.95;color:#fff;
+  }
+  .odds-result-percent{font-size:1.05rem;font-weight:800;color:var(--odds-gold);margin:0 0 8px}
+  .odds-result [data-result-assumption]{margin:0;color:var(--odds-muted);line-height:1.4}
+  .odds-result dl>div{padding:8px 0;border-top:1px solid rgba(251,191,36,.2)}
+  .odds-result dt{font-weight:800;color:#fff}.odds-result dd{margin:2px 0 0;color:var(--odds-muted)}
+  .odds-result [data-entry-mix-result] h3{font-size:1rem;margin:18px 0 8px;color:#fff}
+  .odds-result [data-drawings-result]{margin:14px 0 0;color:var(--odds-ink);font-weight:700}
+  .odds-noscript{border-left:4px solid #60a5fa;background:rgba(30,64,175,.35);padding:12px 14px;color:#fff}
+  @keyframes odds-charge{
+    0%{width:8%;background-position:0% 50%}
+    100%{width:100%;background-position:100% 50%}
+  }
+  @keyframes odds-snap{
+    0%{opacity:.4;transform:scale(.92)}
+    55%{opacity:1;transform:scale(1.04)}
+    100%{opacity:1;transform:scale(1)}
+  }
+  @media (prefers-reduced-motion: reduce){
+    .odds-charge-bar,.odds-billboard.is-ready [data-result-heading]{animation:none!important}
+    .odds-billboard.is-charging [data-result-heading],
+    .odds-billboard.is-charging .odds-result-percent{opacity:1;transform:none}
+    .odds-mode-option span{transition:none}
+  }
+  @media(max-width:860px){
+    .odds-workstation{grid-template-columns:1fr}
+    .odds-calculator{padding:16px}
+    .odds-form-panel,.odds-billboard-panel{padding:14px}
+    .odds-submit{width:100%}
+    .odds-billboard-panel{min-height:0}
+  }
 </style>
