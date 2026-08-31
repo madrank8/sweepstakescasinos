@@ -195,7 +195,7 @@ const CONFLICTING_SCORES: Record<string, [number, number]> = {
   zula: [87, 4.4],
 };
 
-const LEGACY_REVIEW_JSON_LD_SCORES: Record<string, number> = {
+const LEGACY_REVIEW_JSON_LD_SCORES: Record<string, number | string> = {
   acebet: 4.5,
   'big-pirate': 4.1,
   'card-crush': 4.2,
@@ -209,13 +209,13 @@ const LEGACY_REVIEW_JSON_LD_SCORES: Record<string, number> = {
   jackpota: 4.3,
   'lucky-bunny': 3.9,
   mcluck: 4.5,
-  'mega-bonanza': 4,
+  'mega-bonanza': '4.0',
   pulsz: 4.5,
   rolla: 4.7,
   spinblitz: 4.4,
   spinfinite: 4.1,
   'splash-coins': 4.3,
-  spree: 4,
+  spree: '4.0',
   sweepico: 4.4,
   'sweet-sweeps': 4.5,
   thrillzz: 4.3,
