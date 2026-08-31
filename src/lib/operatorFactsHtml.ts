@@ -13,10 +13,10 @@ const FIELD_SET = new Set<string>(CANONICAL_OPERATOR_FIELDS);
 const SCORE_RATIO = /(?:~\s*)?(\d{1,3}(?:\.\d+)?)\s*\/\s*(5|100)\b/gi;
 const BARE_FIVE_SCORE = /\b[0-5]\.\d+\b/g;
 const FIRST_PARTY_CUE =
-  /\b(?:editor(?:ial)?|editor(?:ial)? score|editor(?:'s)? rating|overall(?: score| rating| verdict)?|our (?:score|rating)|we rate|how we rate|earns?(?: its| an?| the)?|is rated|rated by (?:us|sweepstakes wiz))\b/i;
-const BREAKDOWN_CUE = /\b(?:how we rate|rating breakdown|score breakdown)\b/i;
+  /\b(?:editor(?:ial)?|editor(?:ial)? score|editor(?:'s)? rating|overall(?: score| rating| verdict)?|our (?:score|rating)|we rate|how we (?:rate|score)|earns?(?: its| an?| the)?|is rated|rated by (?:us|sweepstakes wiz))\b/i;
+const BREAKDOWN_CUE = /\b(?:how we (?:rate|score)|rating breakdown|score breakdown)\b/i;
 const THIRD_PARTY_CUE =
-  /\b(?:Trustpilot|Google Play|App Store|player-reported|reader reports?|customer reviews?)\b|[a-z0-9.-]+\.com\b/i;
+  /\b(?:Trustpilot|Google Play|App Store|player-reported|reader reports?)\b|[a-z0-9.-]+\.com\b/i;
 const VOID_ELEMENTS = new Set([
   'area',
   'base',
@@ -205,9 +205,21 @@ function isExplicitThirdPartyScore(
   position: number,
   ancestors: HtmlElementRange[],
 ): boolean {
-  const local = plainText(
-    html.slice(Math.max(0, position - 90), Math.min(html.length, position + 100)),
-  );
+  const windowStart = Math.max(0, position - 110);
+  const windowText = html.slice(windowStart, Math.min(html.length, position + 120));
+  const relative = position - windowStart;
+  const separators = /(?:&#183;|·|—|&mdash;|[.!?;])/gi;
+  let clauseStart = 0;
+  let clauseEnd = windowText.length;
+  for (const separator of windowText.matchAll(separators)) {
+    if (separator.index < relative) {
+      clauseStart = separator.index + separator[0].length;
+    } else {
+      clauseEnd = separator.index;
+      break;
+    }
+  }
+  const local = plainText(windowText.slice(clauseStart, clauseEnd));
   if (FIRST_PARTY_CUE.test(local)) return false;
   if (THIRD_PARTY_CUE.test(local)) return true;
 
