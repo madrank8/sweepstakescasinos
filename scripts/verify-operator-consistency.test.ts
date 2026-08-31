@@ -17,6 +17,7 @@ import {
 } from './verify-operator-consistency';
 import { getStaticReviewHtml } from '../src/lib/staticHtml.js';
 import { prepareSsrAffiliateReviewHtml } from '../src/lib/affiliateHtml';
+import { fallbackStates } from '../src/lib/tracker/fallback';
 import {
   findRenderedEditorScoreContexts,
   validateRenderedEditorScoreContexts,
@@ -205,11 +206,23 @@ const ssrMcluck = prepareSsrAffiliateReviewHtml(
   'mcluck',
   'review-mcluck',
 );
+assert.match(ssrMcluck, /Location unknown/);
 assert.equal(
   prepareSsrAffiliateReviewHtml(ssrMcluck, null, 'mcluck', 'review-mcluck'),
   ssrMcluck,
   'SSR review integration must be idempotent',
 );
+const txTrackerState = fallbackStates.find((state) => state.state_code === 'TX')!;
+const stateSpecificMcluck = prepareSsrAffiliateReviewHtml(
+  mcluckSource,
+  'TX',
+  'mcluck',
+  'review-mcluck',
+  txTrackerState,
+);
+assert.match(stateSpecificMcluck, /Tracker legal status/);
+assert.match(stateSpecificMcluck, /Affiliate offer availability: available/);
+assert.match(stateSpecificMcluck, /2026-07-12/);
 
 const staticPipelineSource = readFileSync(resolve(root, 'src/lib/staticHtml.js'), 'utf8');
 assert.match(
@@ -222,6 +235,13 @@ assert.match(
   ssrPipelineSource,
   /prepareSsrAffiliateHtml\(injectOperatorFactsHtml\(rawHtml, slug\)/,
   'SSR review facts must be injected before JSON-LD consolidation',
+);
+const generatorSource = readFileSync(resolve(root, 'scripts/generate-astro-pages.mjs'), 'utf8');
+assert.match(generatorSource, /getTrackerData/);
+assert.match(
+  generatorSource,
+  /prepareSsrAffiliateReviewHtml\([^)]*trackerState/s,
+  'generated SSR review wrappers must pass live tracker freshness to the summary',
 );
 
 const preservationFixture =

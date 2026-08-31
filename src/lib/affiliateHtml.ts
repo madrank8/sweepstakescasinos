@@ -7,6 +7,7 @@ import { injectReaderReports } from './readerReportsDisplay';
 import { injectOperatorFactsHtml } from './operatorFactsHtml';
 import type { UsStateCode } from '../data/usStates';
 import { availabilityForPartner, siteCtaEligibility } from './availability';
+import type { StateRecord } from './tracker/types';
 
 /**
  * Server-side suppression of affiliate CTAs embedded in hand-authored HTML.
@@ -98,9 +99,15 @@ export function prepareSsrAffiliateReviewHtml(
   state: UsStateCode | null | undefined,
   slug: string,
   placement?: string,
+  trackerState?: StateRecord,
 ): string {
   const withBadge = injectLegalStatusBadge(
     prepareSsrAffiliateHtml(injectOperatorFactsHtml(rawHtml, slug), state, placement),
+    {
+      state,
+      trackerState,
+      partner: getPartner(slug),
+    },
   );
   return injectReaderReports(withBadge, slug);
 }

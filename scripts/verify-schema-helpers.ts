@@ -352,6 +352,18 @@ assert.match(cardCrushBadge, /Commercially listed by the affiliate partner/);
 assert.match(cardCrushBadge, /site CTA policy suppresses this offer/);
 assert.doesNotMatch(cardCrushBadge, /Card Crush is illegal/i);
 
+const missingFreshnessBadge = injectLegalStatusBadge(sample, {
+  state: 'TX',
+  trackerState: {
+    ...txState,
+    last_reviewed_at: '',
+    last_auto_updated_at: '',
+  },
+  partner: getPartner('mcluck'),
+});
+assert.match(missingFreshnessBadge, /freshness unavailable/);
+assert.doesNotMatch(missingFreshnessBadge, /datetime="(?:null|undefined|)"/);
+
 // Chrome-light reviews: prefer verdict-box over dumping the badge at <body>
 const light = `<body><nav>n</nav><main><div class="verdict-box"><div class="vtext">v</div></div></main></body>`;
 const lightBadged = injectLegalStatusBadge(light, {

@@ -128,6 +128,7 @@ function writePage(sourcePath) {
     // Import the HTML via ?raw so it ships inside the Vercel function bundle
     // (runtime fs reads of source files are NOT available in serverless).
     const suppressImport = relImport(destination, join(root, 'src', 'lib', 'affiliateHtml'));
+    const trackerImport = relImport(destination, join(root, 'src', 'lib', 'tracker', 'data'));
     const rawImport = relImport(destination, join(root, sourcePath));
     const placement = placementLabel(sourcePath);
     if (reviewSlug) {
@@ -136,7 +137,10 @@ function writePage(sourcePath) {
         `export const prerender = false;\n` +
         `import rawHtml from '${rawImport}?raw';\n` +
         `import { prepareSsrAffiliateReviewHtml } from '${suppressImport}';\n` +
-        `const html = prepareSsrAffiliateReviewHtml(rawHtml, Astro.locals.usState, '${reviewSlug}', '${placement}');\n` +
+        `import { getTrackerData } from '${trackerImport}';\n` +
+        `const tracker = await getTrackerData();\n` +
+        `const trackerState = Astro.locals.usState ? tracker.states.find((state) => state.state_code === Astro.locals.usState) : undefined;\n` +
+        `const html = prepareSsrAffiliateReviewHtml(rawHtml, Astro.locals.usState, '${reviewSlug}', '${placement}', trackerState);\n` +
         `---\n<Fragment set:html={html} />\n`;
     } else {
       content =
