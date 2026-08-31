@@ -17,6 +17,7 @@ import {
 } from './verify-operator-consistency';
 import { getStaticReviewHtml } from '../src/lib/staticHtml.js';
 import { prepareSsrAffiliateReviewHtml } from '../src/lib/affiliateHtml';
+import { findRenderedEditorScoreContexts } from './lib/rendered-editor-score-detector';
 
 const root = resolve(import.meta.dirname, '..');
 const reviewSlugs = readdirSync(resolve(root, 'reviews'))
@@ -225,6 +226,50 @@ const preservationFixture =
 const preservationRendered = injectOperatorFactsHtml(preservationFixture, 'mcluck');
 assert.match(preservationRendered, /29,000\+ reviews/);
 assert.match(preservationRendered, /4\.6\/5 Trustpilot/);
+
+const leakedScoreFixture = `
+  <div class="metric"><div>4.5</div><div>Editor Score</div></div>
+  <div class="v-score"><span>88</span><span>/100</span></div>
+  <div class="v-stars"><span>★★★★★</span><span>4.5 / 5</span></div>
+  <div class="score-bars"><div class="sbars-total">88 / 100</div></div>
+  <div class="qp-item"><span>Overall</span><span>88 / 100</span></div>
+  <div class="sticky-sub">★★★★★ 4.5/5 · 29,000+ reviews</div>
+  <div class="sticky-sub">★★★★★ 4.6/5 Trustpilot · 29,000+ reviews</div>
+`;
+assert.deepEqual(
+  new Set(findRenderedEditorScoreContexts(leakedScoreFixture).map((context) => context.kind)),
+  new Set([
+    'labeled-score',
+    'score-total',
+    'star-score',
+    'score-bars-total',
+    'sticky-score',
+  ]),
+  'independent detector must recognize every shipped semantic editor-score context',
+);
+assert.deepEqual(
+  findRenderedEditorScoreContexts(
+    '<div class="sticky-sub">★★★★★ 4.6/5 Trustpilot · 29,000+ reviews</div>',
+  ),
+  [],
+  'independent detector must preserve explicitly labeled third-party ratings',
+);
+
+const builtVerifierSource = readFileSync(
+  resolve(root, 'scripts/verify-schema-built.ts'),
+  'utf8',
+);
+assert.doesNotMatch(
+  builtVerifierSource,
+  /data-canonical-field=["']editorScore100/,
+  'post-build detection must not trust the canonical field marker',
+);
+assert.match(builtVerifierSource, /findRenderedEditorScoreContexts\(html\)/);
+assert.match(
+  readFileSync(resolve(root, 'scripts/verify-operator-consistency.ts'), 'utf8'),
+  /findRenderedEditorScoreContexts\(rendered\)/,
+  'operator validation must scan each fully rendered review',
+);
 
 const malformed = structuredClone(OPERATORS) as OperatorRecord[];
 malformed[0].editorScore100 = {
