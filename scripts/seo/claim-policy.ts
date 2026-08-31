@@ -95,6 +95,9 @@ export function classifyTestingClaim(input: ClaimClassificationInput): ClaimClas
   const explicitFirstParty =
     EXPLICIT_FIRST_PARTY.test(input.phrase) ||
     FIRST_PERSON_TEST_CONTEXT.test(clause);
+  const hasThirdPartyContext =
+    THIRD_PARTY_CONTEXT.test(clause) || THIRD_PARTY_CONTEXT.test(context);
+  const hasNegationOrPolicyContext = NEGATION_OR_POLICY_CONTEXT.test(clause);
 
   if (occursInQuestion(context, input.phrase)) {
     return {
@@ -103,21 +106,25 @@ export function classifyTestingClaim(input: ClaimClassificationInput): ClaimClas
     };
   }
 
-  if (NEGATION_OR_POLICY_CONTEXT.test(clause)) {
-    return {
-      classification: 'AMBIGUOUS',
-      evidenceBasis: 'The match occurs in a conditional, limitation, or explicit negation rather than a documented first-hand result.',
-    };
-  }
-
-  if (explicitFirstParty && DIRECT_ATTRIBUTION.test(beforePhrase)) {
-    return {
-      classification: 'THIRD_PARTY_OR_READER_DATA',
-      evidenceBasis: 'The first-person wording is directly attributed to an operator, provider, laboratory, third party, or reader in the same clause.',
-    };
-  }
-
   if (explicitFirstParty) {
+    if (hasNegationOrPolicyContext) {
+      if (hasThirdPartyContext) {
+        return {
+          classification: 'THIRD_PARTY_OR_READER_DATA',
+          evidenceBasis: 'The same source context explicitly attributes the statement to published, operator, laboratory, third-party, or reader data.',
+        };
+      }
+      return {
+        classification: 'AMBIGUOUS',
+        evidenceBasis: 'The match occurs in a conditional, limitation, or explicit negation rather than a documented first-hand result.',
+      };
+    }
+    if (DIRECT_ATTRIBUTION.test(beforePhrase)) {
+      return {
+        classification: 'THIRD_PARTY_OR_READER_DATA',
+        evidenceBasis: 'The same source context explicitly attributes the statement to published, operator, laboratory, third-party, or reader data.',
+      };
+    }
     if (!input.hasDocumentedEvidence) {
       return {
         classification: 'UNSUPPORTED',
@@ -130,10 +137,17 @@ export function classifyTestingClaim(input: ClaimClassificationInput): ClaimClas
     };
   }
 
-  if (THIRD_PARTY_CONTEXT.test(clause) || THIRD_PARTY_CONTEXT.test(context)) {
+  if (hasThirdPartyContext) {
     return {
       classification: 'THIRD_PARTY_OR_READER_DATA',
-      evidenceBasis: 'The same source clause explicitly attributes the statement to published, operator, laboratory, third-party, or reader data.',
+      evidenceBasis: 'The same source context explicitly attributes the statement to published, operator, laboratory, third-party, or reader data.',
+    };
+  }
+
+  if (hasNegationOrPolicyContext) {
+    return {
+      classification: 'AMBIGUOUS',
+      evidenceBasis: 'The match occurs in a conditional, limitation, or explicit negation rather than a documented first-hand result.',
     };
   }
 
