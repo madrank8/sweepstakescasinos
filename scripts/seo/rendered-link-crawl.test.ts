@@ -1,7 +1,11 @@
 import assert from 'node:assert/strict';
 import {
+  geoRequestHeaders,
   parseSitemapPaths,
+  validateGeoRenderedRoutes,
   validateRenderedLinkGraph,
+  type GeoMode,
+  type GeoRenderedPage,
   type RenderedPage,
 } from './rendered-link-crawl';
 
@@ -137,6 +141,105 @@ assert.ok(broken.unintendedRedirects.some((issue) => issue.target === '/best/'))
 assert.ok(
   broken.duplicateBlockDestinations.some(
     (issue) => issue.target === '/reviews/example/',
+  ),
+);
+
+const nearbyDuplicatePages: RenderedPage[] = [
+  ...validPages,
+  {
+    path: '/guides/nearby-duplicate/',
+    status: 200,
+    html: `
+      <main>
+        <p><a href="/state-legality/">State availability in the guide body</a></p>
+        <nav class="guide-contextual-links">
+          <a href="/guides/">Guide directory</a>
+          <a href="/state-legality/">Repeated state availability</a>
+        </nav>
+      </main>`,
+  },
+  {
+    path: '/news/nearby-duplicate/',
+    status: 200,
+    html: `
+      <article>
+        <p><a href="/states/california/">California in the article body</a></p>
+        <nav class="article-contextual-links">
+          <a href="/guides/">Guide directory</a>
+          <a href="/states/california/">Repeated California context</a>
+        </nav>
+      </article>`,
+  },
+];
+const nearbyDuplicates = validateRenderedLinkGraph(nearbyDuplicatePages);
+assert.ok(
+  nearbyDuplicates.duplicateBlockDestinations.some(
+    (issue) =>
+      issue.source === '/guides/nearby-duplicate/' &&
+      issue.target === '/state-legality/',
+  ),
+);
+assert.ok(
+  nearbyDuplicates.duplicateBlockDestinations.some(
+    (issue) =>
+      issue.source === '/news/nearby-duplicate/' &&
+      issue.target === '/states/california/',
+  ),
+);
+
+assert.deepEqual(geoRequestHeaders('unknown'), {
+  'x-vercel-ip-country': 'US',
+});
+assert.deepEqual(geoRequestHeaders('TX'), {
+  'x-vercel-ip-country': 'US',
+  'x-vercel-ip-country-region': 'TX',
+});
+assert.deepEqual(geoRequestHeaders('CA'), {
+  'x-vercel-ip-country': 'US',
+  'x-vercel-ip-country-region': 'CA',
+});
+
+const geoPaths = ['/reviews/example/', '/best/sweepstakes-casinos/'];
+const modes: GeoMode[] = ['unknown', 'TX', 'CA'];
+const geoPages: GeoRenderedPage[] = geoPaths.flatMap((path) =>
+  modes.map((mode) => {
+    const stateContext =
+      path.startsWith('/reviews/') && mode === 'unknown'
+        ? '<a href="/state-legality/">Availability context</a>'
+        : path.startsWith('/reviews/')
+          ? `<a href="/states/${mode === 'TX' ? 'texas' : 'california'}/">Availability context</a>`
+          : '';
+    const cta =
+      mode === 'TX'
+        ? '<a href="/bonuses/example/?clickId=test" data-affiliate="example">Claim offer</a>'
+        : '<p data-reason="geo-suppressed">Informational only</p>';
+    return {
+      path,
+      mode,
+      status: 200,
+      html: `<main><!--sc-contextual-nav--><aside>${stateContext}</aside>${cta}</main>`,
+    };
+  }),
+);
+assert.deepEqual(validateGeoRenderedRoutes(geoPages, geoPaths), []);
+
+const brokenGeoPages = geoPages.map((page) =>
+  page.path === '/reviews/example/' && page.mode === 'CA'
+    ? {
+        ...page,
+        html: page.html.replace(
+          '<p data-reason="geo-suppressed">Informational only</p>',
+          '<a href="/bonuses/example/" data-affiliate="example">Claim offer</a>',
+        ),
+      }
+    : page,
+);
+assert.ok(
+  validateGeoRenderedRoutes(brokenGeoPages, geoPaths).some(
+    (failure) =>
+      failure.path === '/reviews/example/' &&
+      failure.mode === 'CA' &&
+      /affiliate CTA/.test(failure.reason),
   ),
 );
 
