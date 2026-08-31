@@ -11,7 +11,7 @@ import { getEntry, render } from 'astro:content';
 import ContentLayout from '../../layouts/ContentLayout.astro';
 import AffiliateLink from '../../components/AffiliateLink.astro';
 import { getPartner, AFFILIATE_PARTNERS } from '../../data/affiliates';
-import { shouldRenderAffiliateCta } from '../../data/geo';
+import { availabilityForPartner } from '../../lib/availability';
 import { brandEntityId, getBrandEntity } from '../../data/brandEntities';
 import { getOperator, verifiedValue } from '../../data/operators';
 import { faqPageNode } from '../../lib/schema';
@@ -89,7 +89,8 @@ const jsonLd = faqLd ? [itemListLd, faqLd] : [itemListLd];
   <h2>Our top-rated sweepstakes casinos</h2>
   <ol class="best-list">
     {partners.map((p, i) => {
-      const canCta = shouldRenderAffiliateCta(p, state);
+      const availability = availabilityForPartner(p, state);
+      const canCta = availability.cta.eligible;
       return (
         <li class="best-item">
           <span class="best-rank">#{i + 1}</span>

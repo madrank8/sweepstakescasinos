@@ -18,7 +18,10 @@
 import { getCollection, render } from 'astro:content';
 import ContentLayout from '../../layouts/ContentLayout.astro';
 import { AFFILIATE_PARTNERS } from '../../data/affiliates';
-import { isPartnerAvailableInState, isStateBannedSitewide } from '../../data/geo';
+import {
+  availabilityForPartner,
+  availabilityForState,
+} from '../../lib/availability';
 import {
   stateName,
   stateWikidataIri,
@@ -71,10 +74,11 @@ const stateIri = stateWikidataIri(code);
 const meta = SWEEPS_STATUS_META[trackerState.sweeps_casino_status];
 
 const ORIGIN = 'https://sweepstakeswiz.com';
-const banned = isStateBannedSitewide(code);
-const availablePartners = banned
-  ? []
-  : AFFILIATE_PARTNERS.filter((p) => isPartnerAvailableInState(p, code));
+const stateAvailability = availabilityForState(code, trackerState);
+const banned = stateAvailability.site.status === 'suppressed';
+const availablePartners = AFFILIATE_PARTNERS.filter(
+  (partner) => availabilityForPartner(partner, code, trackerState).cta.eligible,
+);
 
 const slug = entry ? entry.id : trackerState.state_slug;
 const canonicalPath = `/states/${slug}/`;
@@ -239,7 +243,8 @@ const siblings = bundle2.states
   .map((s) => ({
     slug: s.state_slug,
     name: s.state_name,
-    banned: isUsStateCode(s.state_code) ? isStateBannedSitewide(s.state_code as UsStateCode) : false,
+    banned:
+      availabilityForState(s.state_code, s).site.status === 'suppressed',
   }))
   .sort((a, b) => a.name.localeCompare(b.name));
 

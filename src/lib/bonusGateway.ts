@@ -1,13 +1,11 @@
 import { getPartner } from '../data/affiliates';
 import { getEditorialOutbound } from '../data/editorialOutbound';
-import {
-  isStateBannedSitewide,
-  shouldRenderAffiliateCta,
-  SUPPRESS_WHEN_REGION_UNKNOWN,
-  suppressionReason,
-  type SuppressionReason,
-} from '../data/geo';
 import type { UsStateCode } from '../data/usStates';
+import {
+  availabilityForPartner,
+  siteCtaEligibility,
+  type AvailabilityFacade,
+} from './availability';
 
 /**
  * Server-side decision for the /bonuses/<slug>/ affiliate gateway.
@@ -24,7 +22,11 @@ export type BonusSubject = { slug: string; name: string };
 export type BonusGatewayResult =
   | { status: 'not-found' }
   | { status: 'redirect'; url: string; partner: BonusSubject }
-  | { status: 'blocked'; reason: SuppressionReason; partner: BonusSubject };
+  | {
+      status: 'blocked';
+      reason: AvailabilityFacade['cta']['reason'];
+      partner: BonusSubject;
+    };
 
 /**
  * Sanitize a caller-supplied clickId before it is appended to the outbound
@@ -41,11 +43,6 @@ export function sanitizeClickId(raw: string | null | undefined): string | null {
   return raw;
 }
 
-function regionAllowsOutbound(state: UsStateCode | null | undefined): boolean {
-  if (!state) return !SUPPRESS_WHEN_REGION_UNKNOWN;
-  return !isStateBannedSitewide(state);
-}
-
 export function resolveBonusGateway(
   slug: string | undefined,
   state: UsStateCode | null | undefined,
@@ -55,7 +52,8 @@ export function resolveBonusGateway(
 
   const partner = getPartner(slug);
   if (partner) {
-    if (shouldRenderAffiliateCta(partner, state)) {
+    const availability = availabilityForPartner(partner, state);
+    if (availability.cta.eligible) {
       const safeId = sanitizeClickId(clickId);
       // Gemified's tracker expects the clickId appended with a literal `&`, even
       // though the base URL has no query string (see publisher.gemified.io/offers).
@@ -64,7 +62,7 @@ export function resolveBonusGateway(
     }
     return {
       status: 'blocked',
-      reason: suppressionReason(partner, state),
+      reason: availability.cta.reason,
       partner: { slug: partner.slug, name: partner.name },
     };
   }
@@ -73,10 +71,11 @@ export function resolveBonusGateway(
   if (!editorial) return { status: 'not-found' };
 
   const subject: BonusSubject = { slug: editorial.slug, name: editorial.name };
-  if (!regionAllowsOutbound(state)) {
+  const site = siteCtaEligibility(state);
+  if (!site.eligible) {
     return {
       status: 'blocked',
-      reason: !state ? 'region-unknown' : 'state-banned-sitewide',
+      reason: !state ? 'region-unknown' : 'site-policy-suppressed',
       partner: subject,
     };
   }

@@ -1,16 +1,12 @@
 import { getPartner } from '../data/affiliates';
 import { getEditorialOutbound } from '../data/editorialOutbound';
-import {
-  isStateBannedSitewide,
-  shouldRenderAffiliateCta,
-  SUPPRESS_WHEN_REGION_UNKNOWN,
-} from '../data/geo';
 import { stampUpdatedDate } from './htmlStamp';
 import { injectLegalStatusBadge } from './legalStatusBadge';
 import { decorateChrome } from './pageChrome';
 import { injectReaderReports } from './readerReportsDisplay';
 import { injectOperatorFactsHtml } from './operatorFactsHtml';
 import type { UsStateCode } from '../data/usStates';
+import { availabilityForPartner, siteCtaEligibility } from './availability';
 
 /**
  * Server-side suppression of affiliate CTAs embedded in hand-authored HTML.
@@ -45,11 +41,10 @@ function shouldRenderBonusCta(
   state: UsStateCode | null | undefined,
 ): boolean {
   const partner = getPartner(slug);
-  if (partner) return shouldRenderAffiliateCta(partner, state);
+  if (partner) return availabilityForPartner(partner, state).cta.eligible;
   // Known editorial outbound (non-partner) — site legal layer only.
   if (!getEditorialOutbound(slug)) return false;
-  if (!state) return !SUPPRESS_WHEN_REGION_UNKNOWN;
-  return !isStateBannedSitewide(state);
+  return siteCtaEligibility(state).eligible;
 }
 
 /**

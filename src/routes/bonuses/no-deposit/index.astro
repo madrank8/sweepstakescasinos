@@ -18,8 +18,11 @@ import ContentLayout from '../../../layouts/ContentLayout.astro';
 import AffiliateLink from '../../../components/AffiliateLink.astro';
 import CurrencyCompare from '../../../components/CurrencyCompare.astro';
 import { getPartner } from '../../../data/affiliates';
-import { shouldRenderAffiliateCta, SITE_BANNED_STATES } from '../../../data/geo';
-import { stateName } from '../../../data/usStates';
+import {
+  availabilityForPartner,
+  siteCtaEligibility,
+} from '../../../lib/availability';
+import { ALL_US_STATE_CODES, stateName } from '../../../data/usStates';
 import { brandEntityId, getBrandEntity } from '../../../data/brandEntities';
 import {
   getOperator,
@@ -114,7 +117,11 @@ const OFFERS: Offer[] = [
 const state = Astro.locals.usState;
 const offers = OFFERS.map((o) => {
   const partner = getPartner(o.slug);
-  return { ...o, partner, canCta: partner ? shouldRenderAffiliateCta(partner, state) : false };
+  return {
+    ...o,
+    partner,
+    canCta: partner ? availabilityForPartner(partner, state).cta.eligible : false,
+  };
 });
 
 // Signup-SC chart data, derived from the same OFFERS array (single source of
@@ -128,9 +135,10 @@ const fmtSc = (n: number) => (Number.isInteger(n) ? String(n) : n.toFixed(1));
 // Suppressed-state list, bound to SITE_BANNED_STATES (the legal-suppression
 // source), rendered alphabetically by full name. Oklahoma is handled separately
 // as a scheduled (not-yet-active) ban so the visual never overstates the count.
-const bannedStates = SITE_BANNED_STATES.map((code) => ({ code, name: stateName(code) })).sort(
-  (a, b) => a.name.localeCompare(b.name),
-);
+const bannedStates = ALL_US_STATE_CODES
+  .filter((code) => siteCtaEligibility(code).status === 'suppressed')
+  .map((code) => ({ code, name: stateName(code) }))
+  .sort((a, b) => a.name.localeCompare(b.name));
 
 const faq = [
   {

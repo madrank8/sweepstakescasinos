@@ -1,6 +1,6 @@
 import type { AffiliatePartner } from '../data/affiliates';
-import { shouldRenderAffiliateCta } from '../data/geo';
 import type { UsStateCode } from '../data/usStates';
+import { availabilityForPartner } from './availability';
 
 export const ODDS_CTA_CLICK_ID = 'odds-calculator';
 export const ODDS_CTA_ANALYTICS_EVENT = 'odds_casino_cta_clicked';
@@ -188,7 +188,7 @@ export function buildOddsRecommendations(
     return {
       rank: index + 1,
       partner,
-      available: shouldRenderAffiliateCta(partner, state),
+      available: availabilityForPartner(partner, state).cta.eligible,
       reviewHref: `/reviews/${partner.slug}/`,
       logoSrc: meta.logoSrc,
       logoAlt: `${partner.name} sweepstakes casino logo`,
