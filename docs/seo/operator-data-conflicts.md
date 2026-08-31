@@ -2,7 +2,7 @@
 
 Source snapshot: repository authored sources. Generated deterministically without a runtime date.
 
-Coverage: **29 authored reviews**, **28 homepage cards**, **10 comparison rows**, and **46 relevant hub facts**.
+Coverage: **29 authored reviews**, **4 homepage cards**, **10 comparison rows**, and **46 relevant hub facts**.
 
 No conflict below is resolved by this audit. Values remain exactly as authored pending source review.
 
@@ -74,34 +74,10 @@ No conflict below is resolved by this audit. Values remain exactly as authored p
 
 ## Homepage inventory
 
-- `mcluck` — `4.5/5`; offer `7,500 GC + 2.5 SC No Code`
-- `pulsz` — `4.5/5`; offer `5,000 GC + 2.3 SC No Code`
-- `crown-coins` — `4.8/5`; offer `100,000 Crown Coins + 2 SC No Deposit`
-- `hello-millions` — `4.6/5`; offer `7,500 GC + 2.5 SC Promo Code`
-- `playfame` — `4.3/5`; offer `7,500 GC + 2.5 SC No Code`
-- `casino-click` — `4.7/5`; offer `100,000 GC + 2 Free SC Sign-Up`
-- `spinblitz` — `4.6/5`; offer `7,500 GC + 2.5 SC Promo Code`
-- `legendz` — `4.2/5`; offer `500 GC + 3 SC No Code`
-- `thrillzz` — `4.3/5`; offer `3,000 GC + 3 SC No Code`
-- `card-crush` — `4.2/5`; offer `2 Mystery Coins + 5 Cards Free`
-- `spree` — `4.6/5`; offer `25,000 GC + 2.5 SC Instant Reg`
-- `roxymoxy` — `4/5`; offer `50,000 GC + 2.5 SC No Code`
-- `zula` — `4.4/5`; offer `Up to 120,000 GC + 10 SC`
-- `rolla` — `5/5`; offer `500,000 GC + 10 Free SC + $10 Coin Pack`
-- `splash-coins` — `4.9/5`; offer `150,000 GC + 2 Free SC Sign-Up Bonus`
-- `sweet-sweeps` — `4.7/5`; offer `7,500 GC + 2 Free SC Candy Bonus`
-- `big-pirate` — `4.7/5`; offer `20,000 GC + 2 Diamonds + 2 Rum`
-- `lucky-bunny` — `4.9/5`; offer `550,000 FC + 5 Free SC No Deposit`
-- `dexyplay` — `4.8/5`; offer `350,000 GC + Up to 88 SC + 65 Free Plays`
-- `sweepico` — `4.6/5`; offer `125,000 GC + 2 Free SC Welcome`
-- `wow-vegas` — `4.8/5`; offer `250,000 WOW Coins + 5 Free SC`
-- `freespin` — `4.9/5`; offer `200,000 GC + 20 Free Spins on Gorilla Slot`
-- `acebet` — `4.6/5`; offer `1 Free SC + 100% Match up to 1,000 SC`
-- `jackpota` — `4.7/5`; offer `7,500 GC + 2.5 SC + 75 SC Spins`
-- `high5` — `4.9/5`; offer `5 SC + 250 GC + 600 Diamonds Free`
-- `jackpot-go` — `4.5/5`; offer `10,000 GC + 0.6 SC Easy Sign-Up`
-- `spinfinite` — `4.5/5`; offer `3,000 GC + 200% First Purchase Boost`
-- `mega-bonanza` — `4.5/5`; offer `7,500 GC + 2.5 SC Registration`
+- `playfame` — `86/100`; offer `7,500 GC + 2.5 SC`
+- `legendz` — `84/100`; offer `500 GC + 3 SC`
+- `roxymoxy` — `80/100`; offer `50,000 GC + 2.5 SC`
+- `american-luck` — `72/100`; offer `—`
 
 ## Relevant hub inventory
 

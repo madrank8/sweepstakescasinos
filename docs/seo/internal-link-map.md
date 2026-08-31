@@ -2,7 +2,7 @@
 
 Source snapshot: repository authored sources. Generated deterministically without a runtime date.
 
-Inventory: **102 authored routes**, **1557 internal link occurrences**, **0 missing-target occurrences**, and **1 orphan candidates**.
+Inventory: **103 authored routes**, **1476 internal link occurrences**, **0 missing-target occurrences**, and **1 orphan candidates**.
 
 ## Missing targets
 
@@ -16,7 +16,7 @@ None detected.
 
 | URL | Authored source | Robots | Canonical | Sitemap |
 |---|---|---|---|---|
-| `/` | `index.html` | `index, follow, max-image-preview:large` | `https://sweepstakeswiz.com/` | yes |
+| `/` | `src/routes/index.astro` | `layout default: index, follow` | `https://sweepstakeswiz.com/` | yes |
 | `/about/` | `about.html` | `index, follow` | `https://sweepstakeswiz.com/about/` | yes |
 | `/author/ilija-milosevic/` | `author/ilija-milosevic.html` | `index, follow` | `https://sweepstakeswiz.com/author/ilija-milosevic/` | yes |
 | `/best/` | `src/routes/best/index.astro` | `layout default: index, follow` | `computed by route/layout` | no |
@@ -80,6 +80,7 @@ None detected.
 | `/prototypes/mcluck-firsthand-review-preview/` | `prototypes/mcluck-firsthand-review-preview.html` | `noindex, nofollow` | `absent` | no |
 | `/report/` | `src/routes/report.astro` | `index, follow` | `https://sweepstakeswiz.com/report/` | yes |
 | `/responsible-gaming/` | `responsible-gaming.html` | `index, follow` | `https://sweepstakeswiz.com/responsible-gaming/` | yes |
+| `/reviews/` | `src/routes/reviews/index.astro` | `layout default: index, follow` | `https://sweepstakeswiz.com/reviews/` | yes |
 | `/reviews/acebet/` | `reviews/acebet.html` | `index, follow` | `https://sweepstakeswiz.com/reviews/acebet/` | yes |
 | `/reviews/american-luck/` | `reviews/american-luck.html` | `index, follow` | `https://sweepstakeswiz.com/reviews/american-luck/` | yes |
 | `/reviews/big-pirate/` | `reviews/big-pirate.html` | `index, follow, max-image-preview:large` | `https://sweepstakeswiz.com/reviews/big-pirate/` | yes |

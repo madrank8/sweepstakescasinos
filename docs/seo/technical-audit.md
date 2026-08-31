@@ -24,9 +24,9 @@ Source snapshot: repository authored sources. Generated deterministically withou
 ## OPPORTUNISTIC
 
 - **1** authored routes have no detected inbound source link and are candidates for manual review; dynamic and bonus endpoints are excluded from this count.
-- Homepage and `/best/sweepstakes-casinos/` target overlapping “best sweepstakes casinos” intent; see `cannibalisation-review.md` before changing either URL or canonical.
+- Homepage and `/best/sweepstakes-casinos/` share a topic but now serve concise decision-support and deep ranked-comparison intents respectively; see `cannibalisation-review.md`.
 
 ## NOISE
 
-- `src/pages/` is generated and excluded from source findings. Generated wrappers are not duplicate authored pages.
+- `src/pages/` is generated and excluded from source findings. `index.html` is retained as historical audit evidence and is not inventoried as the served root route.
 - Bonus source HTML is intentionally replaced by the SSR geo-aware gateway; its source-file presence alone is not treated as an indexation defect.

@@ -29,7 +29,11 @@ assert.doesNotMatch(generator, /Reviews are hands-on tested and dated/i);
 
 const operators = inventoryOperatorFacts(root);
 assert.equal(operators.reviews.length, 29, 'all 29 authored reviews must be inventoried');
-assert.equal(operators.homepage.length, 28, 'every homepage operator card must be inventoried');
+assert.equal(operators.homepage.length, 4, 'only supported ranked homepage cards must be inventoried');
+assert.ok(
+  operators.homepage.every((operator) => operator.path === 'src/routes/index.astro'),
+  'homepage inventory must use the served authored Astro source',
+);
 assert.ok(
   operators.hubs.some((entry) => entry.path === 'src/routes/new/index.astro'),
   'new-casino hub operator facts must be inventoried',
@@ -47,7 +51,7 @@ assert.deepEqual(
   [...operators.reviews.map((review) => review.slug)].sort(),
   'review inventory must be deterministic',
 );
-assert.equal(new Set(operators.homepage.map((card) => card.slug)).size, 28);
+assert.equal(new Set(operators.homepage.map((card) => card.slug)).size, 4);
 for (const slug of ['jackpota', 'jackpot-go']) {
   assert.ok(
     operators.conflicts.some(
@@ -228,6 +232,12 @@ assert.equal(
 
 const routes = auditAuthoredRoutes(root);
 assert.ok(routes.routes.some((route) => route.url === '/'));
+assert.deepEqual(
+  routes.routes.filter((route) => route.url === '/').map((route) => route.source),
+  ['src/routes/index.astro'],
+  'legacy index.html must remain audit evidence, not a live route',
+);
+assert.ok(routes.routes.some((route) => route.url === '/reviews/'));
 assert.ok(routes.routes.some((route) => route.url === '/reviews/jackpota/'));
 assert.ok(routes.routes.some((route) => route.url === '/best/sweepstakes-casinos/'));
 assert.ok(routes.prototypeNoindex, 'prototype output must be noindex');
@@ -259,6 +269,16 @@ for (const [name, report] of reports) {
   assert.match(report, /^# /);
   assert.ok(report.endsWith('\n'), `${name} must end with a newline`);
 }
+assert.match(
+  reports.get('cannibalisation-review.md') ?? '',
+  /Directory intent/,
+  'cannibalisation report must explain reviews directory intent',
+);
+assert.match(
+  reports.get('cannibalisation-review.md') ?? '',
+  /historical audit evidence/i,
+  'cannibalisation report must identify legacy index.html as historical only',
+);
 const availability = reconcileAvailabilityAuthorities({
   states: fallbackStates,
   partners: AFFILIATE_PARTNERS,

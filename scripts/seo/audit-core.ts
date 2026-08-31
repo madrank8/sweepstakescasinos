@@ -17,6 +17,7 @@ import {
   fallbackOperators,
   fallbackStates,
 } from '../../src/lib/tracker/fallback';
+import { selectRankedRecommendations } from '../../src/lib/homepage';
 import { visibleEditorialScore } from '../../src/lib/pageChrome';
 import { validateAllResults } from '../../src/data/testingResults';
 import { findTestingClaims, type UnsupportedTestingClaim } from './claim-policy';
@@ -211,32 +212,14 @@ function reviewInventory(root: string): ReviewInventory[] {
 }
 
 function homepageInventory(root: string): HomepageOperator[] {
-  const html = read(root, 'index.html');
-  const cards: HomepageOperator[] = [];
-  for (const match of html.matchAll(
-    /<article\b[^>]*class=["'][^"']*\bcard\b[^"']*["'][^>]*>([\s\S]*?)<\/article>/gi,
-  )) {
-    const body = match[1];
-    const slug = body.match(/href=["']\/reviews\/([a-z0-9-]+)\/["']/i)?.[1];
-    if (!slug) continue;
-    const scoreRaw = body.match(
-      /class=["'][^"']*\bcard-score\b[^"']*["'][^>]*>\s*(\d+(?:\.\d+)?)\s*\/\s*5/i,
-    )?.[1];
-    cards.push({
-      slug,
-      path: 'index.html',
-      name: plain(
-        body.match(/class=["'][^"']*\bcard-cname\b[^"']*["'][^>]*>([\s\S]*?)<\//i)?.[1] ??
-          slug,
-      ),
-      ...(scoreRaw ? { score: Number(scoreRaw) } : {}),
-      offer: plain(
-        body.match(/class=["'][^"']*\bcard-offer\b[^"']*["'][^>]*>([\s\S]*?)<\/h3>/i)?.[1] ??
-          '',
-      ),
-    });
-  }
-  return cards;
+  void root;
+  return selectRankedRecommendations(OPERATORS).map((operator) => ({
+    slug: operator.slug,
+    path: 'src/routes/index.astro',
+    name: operator.name,
+    score: operator.score,
+    offer: operator.signupOffer ?? '',
+  }));
 }
 
 function slugForName(name: string, homepage: HomepageOperator[]): string | undefined {
@@ -352,14 +335,25 @@ export function inventoryOperatorFacts(root = process.cwd()): OperatorAudit {
 
   for (const review of reviews) {
     const home = homepage.find((card) => card.slug === review.slug);
+    const canonicalOperator = OPERATORS.find((operator) => operator.slug === review.slug);
+    const canonicalScoreSources =
+      canonicalOperator?.editorScore100.status === 'unresolved'
+        ? canonicalOperator.editorScore100.sources.map((source) => ({
+            path: source.provenance.source,
+            value: source.value,
+          }))
+        : [];
     const scoreSources = distinctSources([
-      ...(home?.score == null ? [] : [{ path: 'index.html', value: `${home.score}/5` }]),
+      ...(home?.score == null
+        ? []
+        : [{ path: home.path, value: `${home.score}/100 (${home.score / 20}/5)` }]),
       ...(review.visibleScore == null
         ? []
         : [{ path: review.path, value: `${review.visibleScore}/100 (${review.visibleScore / 20}/5)` }]),
       ...(review.schemaScore == null
         ? []
         : [{ path: `${review.path} JSON-LD Review.reviewRating`, value: `${review.schemaScore}/5` }]),
+      ...canonicalScoreSources,
     ]);
     const normalizedScores = new Set(
       scoreSources.map((source) => {
@@ -401,7 +395,7 @@ export function inventoryOperatorFacts(root = process.cwd()): OperatorAudit {
     );
     if (home?.offer && (compared?.offer || hubOffer?.value)) {
       const offerSources = distinctSources([
-        { path: 'index.html', value: home.offer },
+        { path: home.path, value: home.offer },
         ...(compared ? [{ path: compared.path, value: compared.offer }] : []),
         ...(hubOffer ? [{ path: hubOffer.path, value: hubOffer.value }] : []),
       ]);
@@ -442,7 +436,6 @@ export function documentedTestingSlugs(root: string): Set<string> {
 
 function claimSourcePaths(root: string): string[] {
   const paths = [
-    'index.html',
     'about.html',
     'how-we-rate.html',
     'editorial-policy.html',
@@ -500,6 +493,7 @@ function htmlUrl(path: string): string {
 function staticAstroUrl(path: string): string | null {
   const rel = path.replace(/^src\/routes\//, '').replace(/\.astro$/, '');
   if (rel.includes('[')) return null;
+  if (rel === 'index') return '/';
   return `/${rel.replace(/\/index$/, '').replace(/\/?$/, '/')}`.replace(/\/+/g, '/');
 }
 
@@ -519,6 +513,9 @@ function sourceRouteInventory(root: string): AuthoredRoute[] {
     ),
   ];
   for (const path of [...new Set(htmlPaths)].sort()) {
+    if (path === 'index.html' && existsSync(join(root, 'src/routes/index.astro'))) {
+      continue;
+    }
     const html = read(root, path);
     const url = htmlUrl(path);
     routes.push({
@@ -808,24 +805,30 @@ function technicalReport(
     '- Clean authored URL/canonical strategy remains unresolved: root `.html` sources are rendered at trailing-slash routes while canonical tags use the clean routes. No redirects or URL paths changed.\n',
     '\n## OPPORTUNISTIC\n\n',
     `- **${routes.orphanCandidates.length}** authored routes have no detected inbound source link and are candidates for manual review; dynamic and bonus endpoints are excluded from this count.\n`,
-    '- Homepage and `/best/sweepstakes-casinos/` target overlapping “best sweepstakes casinos” intent; see `cannibalisation-review.md` before changing either URL or canonical.\n',
+    '- Homepage and `/best/sweepstakes-casinos/` share a topic but now serve concise decision-support and deep ranked-comparison intents respectively; see `cannibalisation-review.md`.\n',
     '\n## NOISE\n\n',
-    '- `src/pages/` is generated and excluded from source findings. Generated wrappers are not duplicate authored pages.\n',
+    '- `src/pages/` is generated and excluded from source findings. `index.html` is retained as historical audit evidence and is not inventoried as the served root route.\n',
     '- Bonus source HTML is intentionally replaced by the SSR geo-aware gateway; its source-file presence alone is not treated as an indexation defect.\n',
   ].join('');
 }
 
 function cannibalisationReport(root: string): string {
-  const home = read(root, 'index.html');
+  const homePath = 'src/routes/index.astro';
+  const home = read(root, homePath);
+  const reviewsPath = 'src/routes/reviews/index.astro';
+  const reviews = read(root, reviewsPath);
   const comparison = read(root, 'src/content/comparisons/sweepstakes-casinos.mdx');
-  const homeTitle = plain(home.match(/<title[^>]*>([\s\S]*?)<\/title>/i)?.[1] ?? '');
+  const homeTitle = home.match(/const title = '([^']+)'/)?.[1] ?? '';
+  const reviewsTitle = reviews.match(/const title = '([^']+)'/)?.[1] ?? '';
   const comparisonTitle = comparison.match(/^title:\s*"([^"]+)"/m)?.[1] ?? '';
   return [
     reportHeader('Cannibalisation Review'),
-    '| Surfaces | Exact title values | Intent overlap | Status |\n',
+    '| Surface | Exact title value | Distinct search intent | Status |\n',
     '|---|---|---|---|\n',
-    `| \`index.html\` and \`src/content/comparisons/sweepstakes-casinos.mdx\` | \`index.html\` = \`${md(homeTitle)}\`<br>\`src/content/comparisons/sweepstakes-casinos.mdx\` = \`${md(comparisonTitle)}\` | Both explicitly target “Best Sweepstakes Casinos”; homepage is the current primary entry point and the comparison contains deeper top-10 coverage. | MANUAL_REVIEW |\n`,
-    '\nNo canonical, redirect, or URL consolidation is selected by this audit.\n',
+    `| \`/\` from \`${homePath}\` | \`${md(homeTitle)}\` | Concise answer, four supported editor picks, and a deterministic facts-first comparison for initial decisions. | DISTINCT |\n`,
+    `| \`/reviews/\` from \`${reviewsPath}\` | \`${md(reviewsTitle)}\` | Directory intent: find any of the 29 reviews alphabetically; no “best” ordering. | DISTINCT |\n`,
+    `| \`/best/sweepstakes-casinos/\` from \`src/content/comparisons/sweepstakes-casinos.mdx\` | \`${md(comparisonTitle)}\` | Deeper ranked/comparison intent with expanded methodology and analysis. | DISTINCT |\n`,
+    '\n`index.html` remains historical audit evidence only. The generator copies the authored `src/routes/index.astro` over the generated root wrapper, so legacy markup is not treated as live.\n',
   ].join('');
 }
 
@@ -833,16 +836,17 @@ function commercialHubReport(audit: OperatorAudit): string {
   return [
     reportHeader('Commercial Hub Plan'),
     '## Current factual shape\n\n',
-    `- Homepage: ${audit.homepage.length} operator cards at \`/\` from \`index.html\`.\n`,
+    `- Homepage: ${audit.homepage.length} supported ranked cards at \`/\` from \`src/routes/index.astro\`.\n`,
     `- Comparison: ${audit.comparison.length} operator rows at \`/best/sweepstakes-casinos/\` from \`src/content/comparisons/sweepstakes-casinos.mdx\`.\n`,
     `- Relevant authored hubs: ${audit.hubs.length} operator facts across the new-casino, no-deposit, and state-legality routes.\n`,
     `- Affiliate authority: ${AFFILIATE_PARTNERS.length} partners in \`src/data/affiliates.ts\`; tracking and economics stay outside editorial facts.\n`,
     '- Geo authority: `src/data/geo.ts` remains the site-level CTA suppression layer.\n\n',
     '## Phase 2/3 plan\n\n',
-    '1. Keep `/` as the primary “Best Sweepstakes Casinos” entry point unless a human URL/canonical decision changes that strategy.\n',
-    '2. Treat `/best/sweepstakes-casinos/` as deeper comparison coverage; remove field drift through the future canonical editorial operator model, not by copying affiliate data into content.\n',
-    '3. Preserve affiliate tracking, per-partner availability, and site-level suppression as separate authorities.\n',
-    '4. Resolve each `UNRESOLVED` or `MANUAL_REVIEW` row in `operator-data-conflicts.md` only against cited source evidence.\n\n',
+    '1. Keep `/` as the concise decision-support entry point with only the canonically supported ranked set.\n',
+    '2. Keep `/reviews/` as the complete alphabetical directory without “best” ordering.\n',
+    '3. Treat `/best/sweepstakes-casinos/` as deeper ranked comparison coverage.\n',
+    '4. Preserve affiliate tracking, per-partner availability, and site-level suppression as separate authorities.\n',
+    '5. Resolve each `UNRESOLVED` or `MANUAL_REVIEW` row in `operator-data-conflicts.md` only against cited source evidence.\n\n',
     'No ranking, offer, legal status, redirect, or canonical winner is asserted here.\n',
   ].join('');
 }
