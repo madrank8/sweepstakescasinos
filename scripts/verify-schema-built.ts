@@ -62,21 +62,14 @@ function canonicalFromHtml(html: string): string | undefined {
 
 /**
  * Deliberately independent from pageChrome's class-aware production parser.
- * The rendered verdict section must expose a numeric /100 score in text.
+ * Only the generated canonical field is eligible for Review schema. Legacy
+ * authored scores may remain as unresolved editorial evidence, but are not a
+ * canonical selector.
  */
 function independentlyVisibleEditorialScore(html: string): number | undefined {
-  const heading = html.search(
-    /<h[1-6]\b[^>]*(?:\bid=["']verdict["'][^>]*|[^>]*>\s*(?:<[^>]+>\s*)*Overall Verdict\b)/i,
+  const match = html.match(
+    /<dd\b[^>]*data-canonical-field=["']editorScore100["'][^>]*>\s*(\d{1,3}(?:\.\d+)?)\s*\/\s*100\s*<\/dd>/i,
   );
-  if (heading < 0) return undefined;
-  const verdictText = html
-    .slice(heading, heading + 5_000)
-    .replace(/<script\b[\s\S]*?<\/script>/gi, ' ')
-    .replace(/<style\b[\s\S]*?<\/style>/gi, ' ')
-    .replace(/<[^>]+>/g, ' ')
-    .replace(/&#x2f;|&#47;/gi, '/')
-    .replace(/\s+/g, ' ');
-  const match = verdictText.match(/\b(\d{1,3}(?:\.\d+)?)\s*\/\s*100\b/);
   if (!match) return undefined;
   const value = Number(match[1]);
   return Number.isFinite(value) && value >= 0 && value <= 100 ? value : undefined;
