@@ -14,8 +14,10 @@ import {
   type OperatorRecord,
 } from '../src/data/operators';
 import { ALL_US_STATE_CODES } from '../src/data/usStates';
-import { injectOperatorFactsHtml } from '../src/lib/operatorFactsHtml';
+import { prepareSsrAffiliateReviewHtml } from '../src/lib/affiliateHtml';
+import { getStaticReviewHtml } from '../src/lib/staticHtml.js';
 import { inventoryOperatorFacts } from './seo/audit-core';
+import { findRenderedEditorScoreContexts } from './lib/rendered-editor-score-detector';
 
 const ISO_DATE = /^\d{4}(?:-(?:0[1-9]|1[0-2])(?:-(?:0[1-9]|[12]\d|3[01]))?)?$/;
 const SOURCE_PATH = /^(?:https?:\/\/\S+|[a-zA-Z0-9_.-]+(?:\/[a-zA-Z0-9_.-]+)*)$/;
@@ -241,7 +243,14 @@ export function validateOperatorConsistency(root = process.cwd()): string[] {
     if (fields.join('|') !== CANONICAL_OPERATOR_FIELDS.join('|')) {
       errors.push(`${record.slug}: marker field inventory drift`);
     }
-    const rendered = injectOperatorFactsHtml(html, record.slug);
+    const rendered = /href=["']\/bonuses\//i.test(html)
+      ? prepareSsrAffiliateReviewHtml(
+          html,
+          null,
+          record.slug,
+          `review-${record.slug}`,
+        )
+      : getStaticReviewHtml(`reviews/${record.slug}.html`, record.slug);
     for (const field of CANONICAL_OPERATOR_FIELDS) {
       const selector = `data-canonical-field="${field}"`;
       if (record[field].status === 'verified' && !rendered.includes(selector)) {
@@ -249,6 +258,22 @@ export function validateOperatorConsistency(root = process.cwd()): string[] {
       }
       if (record[field].status !== 'verified' && rendered.includes(selector)) {
         errors.push(`${record.slug}.${field}: unresolved/missing field rendered canonically`);
+      }
+    }
+    const renderedScoreContexts = findRenderedEditorScoreContexts(rendered);
+    const expectedScore = verifiedValue(record.editorScore100);
+    if (expectedScore === undefined && renderedScoreContexts.length > 0) {
+      errors.push(
+        `${record.slug}.editorScore100: unresolved score leaked in rendered ` +
+          `${renderedScoreContexts.map((context) => context.kind).join(', ')} context(s)`,
+      );
+    }
+    for (const context of expectedScore === undefined ? [] : renderedScoreContexts) {
+      if (context.scale !== 100 || context.value !== expectedScore) {
+        errors.push(
+          `${record.slug}.editorScore100: rendered ${context.kind} ` +
+            `${context.value}/${context.scale} drifts from ${expectedScore}/100`,
+        );
       }
     }
 

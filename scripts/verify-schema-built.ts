@@ -8,12 +8,14 @@ import { join } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { READER_REPORT_AGGREGATES } from '../src/data/readerReports.generated';
 import { SITE } from '../src/data/site';
+import { getOperator, verifiedValue } from '../src/data/operators';
 import {
   AUTHOR_ID,
   ORG_ID,
   WEBSITE_ID,
 } from '../src/lib/schema';
 import { BRAND_AGGREGATE_RATING_MIN_REPORTS } from '../src/lib/brandAggregateRating';
+import { findRenderedEditorScoreContexts } from './lib/rendered-editor-score-detector';
 
 type Node = Record<string, unknown>;
 type BuiltHandler = { fetch(request: Request): Promise<Response> };
@@ -58,21 +60,6 @@ function canonicalFromHtml(html: string): string | undefined {
   return html.match(
     /<link\b(?=[^>]*\brel=["']canonical["'])[^>]*\bhref=["']([^"']+)["'][^>]*>/i,
   )?.[1];
-}
-
-/**
- * Deliberately independent from pageChrome's class-aware production parser.
- * Only the generated canonical field is eligible for Review schema. Legacy
- * authored scores may remain as unresolved editorial evidence, but are not a
- * canonical selector.
- */
-function independentlyVisibleEditorialScore(html: string): number | undefined {
-  const match = html.match(
-    /<dd\b[^>]*data-canonical-field=["']editorScore100["'][^>]*>\s*(\d{1,3}(?:\.\d+)?)\s*\/\s*100\s*<\/dd>/i,
-  );
-  if (!match) return undefined;
-  const value = Number(match[1]);
-  return Number.isFinite(value) && value >= 0 && value <= 100 ? value : undefined;
 }
 
 function verifyTrackingUrls(url: string, graph: unknown): void {
@@ -184,18 +171,46 @@ function verifyPage(url: string, html: string): void {
     }
   }
 
-  const visibleScore = independentlyVisibleEditorialScore(html);
+  const reviewSlug = canonical.match(
+    /^https:\/\/sweepstakeswiz\.com\/reviews\/([a-z0-9-]+)\/$/,
+  )?.[1];
+  const operator = reviewSlug ? getOperator(reviewSlug) : undefined;
+  const expectedScore = operator
+    ? verifiedValue(operator.editorScore100)
+    : undefined;
+  const renderedScoreContexts = findRenderedEditorScoreContexts(html);
+  if (operator && expectedScore === undefined && renderedScoreContexts.length > 0) {
+    fail(
+      url,
+      `unresolved editor score leaked in rendered ${renderedScoreContexts
+        .map((context) => context.kind)
+        .join(', ')} context(s)`,
+    );
+  }
+  if (operator && expectedScore !== undefined) {
+    if (renderedScoreContexts.length === 0) {
+      fail(url, `verified editor score ${expectedScore}/100 is not visibly rendered`);
+    }
+    for (const context of renderedScoreContexts) {
+      if (context.scale !== 100 || context.value !== expectedScore) {
+        fail(
+          url,
+          `rendered ${context.kind} score ${context.value}/${context.scale} does not match ${expectedScore}/100`,
+        );
+      }
+    }
+  }
   for (const review of reviews) {
     const rating = review.reviewRating as Node | undefined;
-    if (visibleScore == null) {
+    if (expectedScore == null) {
       if (rating) fail(url, 'Review rating exists without a visible editorial /100 score');
     } else if (
       !rating ||
-      rating.ratingValue !== visibleScore ||
+      rating.ratingValue !== expectedScore ||
       rating.bestRating !== 100 ||
       rating.worstRating !== 0
     ) {
-      fail(url, `Review rating does not match visible ${visibleScore}/100 score`);
+      fail(url, `Review rating does not match visible ${expectedScore}/100 score`);
     }
   }
 
