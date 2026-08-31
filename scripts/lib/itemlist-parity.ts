@@ -34,6 +34,26 @@ function attribute(markup: string, name: string): string | undefined {
   return value === undefined ? undefined : decodeHtmlAttribute(value);
 }
 
+function matchingCloseIndex(
+  html: string,
+  tag: string,
+  bodyStart: number,
+): number | undefined {
+  const tags = new RegExp(`<\\/?${tag}\\b[^>]*>`, 'gi');
+  tags.lastIndex = bodyStart;
+  let depth = 1;
+  let match: RegExpExecArray | null;
+  while ((match = tags.exec(html))) {
+    if (match[0].startsWith('</')) {
+      depth -= 1;
+      if (depth === 0) return match.index;
+    } else if (!/\/\s*>$/.test(match[0])) {
+      depth += 1;
+    }
+  }
+  return undefined;
+}
+
 function visibleLists(
   html: string,
 ): Array<{ id: string; order?: string; items: VisibleItem[] }> {
@@ -44,11 +64,9 @@ function visibleLists(
     const id = attribute(opening[0], 'data-item-list');
     if (!id) continue;
     const bodyStart = (opening.index ?? 0) + opening[0].length;
-    const close = new RegExp(`</${opening[1]}\\s*>`, 'gi');
-    close.lastIndex = bodyStart;
-    const closing = close.exec(html);
-    if (!closing) continue;
-    const body = html.slice(bodyStart, closing.index);
+    const bodyEnd = matchingCloseIndex(html, opening[1], bodyStart);
+    if (bodyEnd === undefined) continue;
+    const body = html.slice(bodyStart, bodyEnd);
     const items: VisibleItem[] = [];
     for (const item of body.matchAll(
       /<[a-z][a-z0-9:-]*\b[^>]*\bdata-item-position\s*=\s*(?:"[^"]*"|'[^']*')[^>]*>/gi,
