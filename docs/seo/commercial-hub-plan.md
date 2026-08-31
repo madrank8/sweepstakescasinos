@@ -4,7 +4,7 @@ Source snapshot: repository authored sources. Generated deterministically withou
 
 ## Current factual shape
 
-- Homepage: 4 supported ranked cards at `/` from `src/routes/index.astro`.
+- Homepage: 12 supported ranked cards at `/` from `src/routes/index.astro`.
 - Comparison: 10 operator rows at `/best/sweepstakes-casinos/` from `src/content/comparisons/sweepstakes-casinos.mdx`.
 - Relevant authored hubs: 46 operator facts across the new-casino, no-deposit, and state-legality routes.
 - Affiliate authority: 13 partners in `src/data/affiliates.ts`; tracking and economics stay outside editorial facts.
