@@ -170,5 +170,15 @@ assert.doesNotMatch(
   /mdxUpdated\s*\?\s*mdxUpdated\.toISOString\(\)\s*:\s*trackerState\.last_auto_updated_at/,
   'state legal freshness must not be replaced by page publication metadata',
 );
+const trackerReconcileSource = readFileSync(
+  resolve('src/data/trackerReconcile.ts'),
+  'utf8',
+);
+assert.match(trackerReconcileSource, /lib\/availability/);
+assert.doesNotMatch(
+  trackerReconcileSource,
+  /from ['"]\.\/geo['"]/,
+  'legacy tracker correlation helpers must delegate to the facade',
+);
 
 console.log('verify-availability tests: OK — 51 jurisdictions, 13 partners, unified CTA facade');
