@@ -25,6 +25,3 @@ evidence/*
 *.db
 .beads-credential-key
 .gstack/
-
-# Beads / Dolt files (added by bd init)
-.beads/proxieddb/
