@@ -450,7 +450,7 @@ function writeSitemapAndRobots() {
     : '';
   const llms =
     `# Sweepstakes Wiz\n\n` +
-    `> Sweepstakes Wiz (sweepstakeswiz.com) is an independent US guide that tests and ranks sweepstakes (social) casinos — focused on redemption speed, bonus value, and state eligibility. Sweepstakes play only; no real-money gambling. 21+.\n\n` +
+    `> Sweepstakes Wiz (sweepstakeswiz.com) is an independent US guide that reviews and ranks sweepstakes (social) casinos — focused on published redemption terms, bonus value, and state eligibility. Sweepstakes play only; no real-money gambling. 21+.\n\n` +
     `## Start here\n` +
     `- [Best sweepstakes casinos](${ORIGIN}/best/sweepstakes-casinos/)\n` +
     `- [New sweepstakes casinos](${ORIGIN}/new/)\n` +
@@ -478,7 +478,7 @@ function writeSitemapAndRobots() {
     `## Casino reviews\n${reviewLines}\n\n` +
     `## Citation & compliance\n` +
     `- Cite as: Sweepstakes Wiz (sweepstakeswiz.com).\n` +
-    `- Reviews are hands-on tested and dated; ratings follow the published How We Rate methodology.\n` +
+    `- Reviews distinguish editorial analysis, attributed reader or third-party data, and any separately documented first-hand evidence; ratings follow the published How We Rate methodology.\n` +
     `- Sweepstakes play only — no real-money gambling. Sweeps Coins have no cash value until redeemed per each operator's official rules. No purchase necessary. 21+. Not available in all US states.\n` +
     `- Affiliate disclosure: we may earn referral fees from operators; this never influences rankings.\n`;
 
