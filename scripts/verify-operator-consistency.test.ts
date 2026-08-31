@@ -153,46 +153,6 @@ for (const [slug, expectedScore] of [
   }
 }
 
-function obviousLegacyEditorScoreContexts(html: string): string[] {
-  const visible = html
-    .replace(/<script\b[\s\S]*?<\/script>/gi, '')
-    .replace(/<style\b[\s\S]*?<\/style>/gi, '');
-  const contexts: string[] = [];
-  const patterns: Array<[string, RegExp]> = [
-    [
-      'legacy score widget',
-      /class=["'][^"']*\b(?:v-score|vb-num|sh-score|verdict-score|sb-num)\b[^"']*["'][^>]*>[\s\S]{0,160}?\d+(?:\.\d+)?\s*\/\s*100/gi,
-    ],
-    [
-      'legacy stars widget',
-      /class=["'][^"']*\b(?:v-stars|vb-stars|sh-stars|verdict-stars|sb-stars|oc-score)\b[^"']*["'][^>]*>[\s\S]{0,160}?\d(?:\.\d+)?\s*\/\s*5/gi,
-    ],
-    [
-      'score-bars total',
-      /class=["'][^"']*\bscore-bars\b[^"']*["'][\s\S]{0,300}?\d+\s*\/\s*100/gi,
-    ],
-    [
-      'labeled editor score',
-      /class=["'][^"']*\b(?:metric|stat|qp-item|qf-item)\b[^"']*["'][^>]*>[^\n]*(?:Editor Score|Overall(?: Score| Rating)?)[^\n]*\d+(?:\.\d+)?\s*\/?\s*(?:5|100)?/gi,
-    ],
-    [
-      'sticky score label',
-      /class=["'][^"']*\bsticky-(?:sub|st)\b[^"']*["'][^>]*>[^<]*(?:★|&#9733;)[^<]*\d(?:\.\d+)?\s*\/\s*5[^<]*</gi,
-    ],
-  ];
-  for (const [label, pattern] of patterns) {
-    const matches = [...visible.matchAll(pattern)];
-    if (
-      matches.some(
-        (match) => label !== 'sticky score label' || !/\bTrustpilot\b/i.test(match[0]),
-      )
-    ) {
-      contexts.push(label);
-    }
-  }
-  return contexts;
-}
-
 const renderedReviews = new Map<string, string>();
 let staticReviewCount = 0;
 let ssrReviewCount = 0;
@@ -211,8 +171,11 @@ assert.ok(ssrReviewCount > 0, 'real review integration must exercise prepareSsrA
 const unresolvedLeaks = OPERATORS.filter(
   (operator) => operator.editorScore100.status === 'unresolved',
 ).flatMap((operator) => {
-  const contexts = obviousLegacyEditorScoreContexts(renderedReviews.get(operator.slug)!);
-  return contexts.length === 0 ? [] : [`${operator.slug}: ${contexts.join(', ')}`];
+  const errors = validateRenderedEditorScoreContexts(
+    undefined,
+    renderedReviews.get(operator.slug)!,
+  );
+  return errors.length === 0 ? [] : [`${operator.slug}: ${errors.join(', ')}`];
 });
 assert.deepEqual(
   unresolvedLeaks,
@@ -262,6 +225,69 @@ const preservationFixture =
 const preservationRendered = injectOperatorFactsHtml(preservationFixture, 'mcluck');
 assert.match(preservationRendered, /29,000\+ reviews/);
 assert.match(preservationRendered, /4\.6\/5 Trustpilot/);
+
+const semanticLeakFixture = `
+  <main>
+    <p>We rate Example Casino 4.6/5 and 91/100.</p>
+    <p>Example Casino earns its 88/100 through fast payouts.</p>
+    <p>Example Casino is rated 4.3/5.</p>
+    <div class="oc-rating">4.1 / 5 Editor Score</div>
+    <div class="offer-rating">4.7 / 5 — Editor Score</div>
+    <table><tr><td>Editor score</td><td>4.5 / 5</td><td>91 / 100</td></tr></table>
+    <section>
+      <h3>How We Rate Example Casino</h3>
+      <div><strong>Overall</strong><span>91 / 100</span></div>
+      <div><span>Redemption speed</span><span>96 / 100</span></div>
+      <div><span>Game library</span><span>92 / 100</span></div>
+    </section>
+    <p>Trustpilot rates Example Casino 4.4/5 from 29,000 reviews.</p>
+    <!--sc-operator-facts data-operator="mcluck" data-fields="name,editorScore100"-->
+  </main>
+`;
+const semanticLeakRendered = injectOperatorFactsHtml(semanticLeakFixture, 'mcluck');
+for (const leakedClaim of [
+  /We rate Example Casino 4\.6\/5 and 91\/100/,
+  /earns its 88\/100/,
+  /is rated 4\.3\/5/,
+  /class="oc-rating"[^>]*>4\.1\s*\/\s*5/,
+  /class="offer-rating"[^>]*>4\.7\s*\/\s*5/,
+  /Editor score<\/td><td>4\.5\s*\/\s*5/,
+]) {
+  assert.doesNotMatch(
+    semanticLeakRendered,
+    leakedClaim,
+    `unresolved semantic claim leaked: ${leakedClaim}`,
+  );
+}
+assert.deepEqual(
+  validateRenderedEditorScoreContexts(undefined, semanticLeakRendered),
+  [],
+  'independent detector must accept a fully normalized unresolved review',
+);
+assert.match(semanticLeakRendered, /Redemption speed<\/span><span>96\s*\/\s*100/);
+assert.match(semanticLeakRendered, /Game library<\/span><span>92\s*\/\s*100/);
+assert.match(semanticLeakRendered, /Trustpilot rates Example Casino 4\.4\/5/);
+assert.match(semanticLeakRendered, /29,000 reviews/);
+
+const verifiedSemanticFixture = semanticLeakFixture
+  .replaceAll('Example Casino', 'American Luck')
+  .replace(
+    'data-operator="mcluck"',
+    'data-operator="american-luck"',
+  );
+const verifiedSemanticRendered = injectOperatorFactsHtml(
+  verifiedSemanticFixture,
+  'american-luck',
+);
+assert.doesNotMatch(verifiedSemanticRendered, /(?:4\.6|4\.3|4\.1|4\.7|4\.5)\s*\/\s*5/);
+assert.doesNotMatch(verifiedSemanticRendered, /(?:91|88)\s*\/\s*100/);
+assert.deepEqual(
+  validateRenderedEditorScoreContexts(72, verifiedSemanticRendered),
+  [],
+  'all first-party aggregate contexts must use the verified canonical score',
+);
+assert.match(verifiedSemanticRendered, /Trustpilot rates American Luck 4\.4\/5/);
+assert.match(verifiedSemanticRendered, /Redemption speed<\/span><span>96\s*\/\s*100/);
 
 const leakedScoreFixture = `
   <div class="metric"><div>4.5</div><div>Editor Score</div></div>
@@ -316,6 +342,24 @@ assert.match(
   readFileSync(resolve(root, 'scripts/verify-operator-consistency.ts'), 'utf8'),
   /findRenderedEditorScoreContexts\(rendered\)/,
   'operator validation must scan each fully rendered review',
+);
+const productionNormalizerSource = readFileSync(
+  resolve(root, 'src/lib/operatorFactsHtml.ts'),
+  'utf8',
+);
+assert.doesNotMatch(
+  productionNormalizerSource,
+  /(?:SCORE_ONLY|SCORE_STARS|LABELED_SCORE_ITEM|STICKY_SCORE)_CLASSES/,
+  'production score normalization must not depend on a closed CSS-class whitelist',
+);
+const independentDetectorSource = readFileSync(
+  resolve(root, 'scripts/lib/rendered-editor-score-detector.ts'),
+  'utf8',
+);
+assert.doesNotMatch(
+  independentDetectorSource,
+  /(?:SCORE_TOTAL|STAR_SCORE|LABELED_SCORE|STICKY)_CLASSES/,
+  'independent detection must not duplicate production class lists',
 );
 
 const malformed = structuredClone(OPERATORS) as OperatorRecord[];
