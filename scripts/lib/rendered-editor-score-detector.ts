@@ -102,12 +102,16 @@ export function findRenderedEditorScoreContexts(
       const sourceContext = lines
         .slice(Math.max(0, lineIndex - 3), lineIndex + 4)
         .join(' ');
+      const extendedSourceContext = lines
+        .slice(Math.max(0, lineIndex - 12), lineIndex + 13)
+        .join(' ');
       if (
         EXPLICIT_THIRD_PARTY.test(line) ||
         (EXPLICIT_THIRD_PARTY.test(sourceContext) &&
           (scoreOnly ||
             /\breviews?\b/i.test(line) ||
-            /\(\s*~?[\d,.]+[Kk]?\+?\s*\)/.test(line)))
+            /\(\s*~?[\d,.]+[Kk]?\+?\s*\)/.test(line))) ||
+        (line.includes('~') && EXPLICIT_THIRD_PARTY.test(extendedSourceContext))
       ) {
         continue;
       }
