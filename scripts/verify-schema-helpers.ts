@@ -3,10 +3,12 @@
  * Run: npx tsx scripts/verify-schema-helpers.ts
  */
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
 import {
   AUTHOR_ID,
   ORG_ID,
   WEBSITE_ID,
+  brandOrganizationNode,
   breadcrumbNode,
   faqPageNode,
   legislationNode,
@@ -141,6 +143,98 @@ assert.equal(
   'legacy graph consolidator must be exported',
 );
 const consolidateJsonLd = chromeModule.consolidateJsonLd as (html: string) => string;
+const visibleEditorialScore = chromeModule.visibleEditorialScore as (html: string) => number | undefined;
+
+function graphFromHtml(html: string): Array<Record<string, unknown>> {
+  const block = [
+    ...html.matchAll(
+      /<script\s+type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi,
+    ),
+  ];
+  assert.equal(block.length, 1, 'expected one consolidated graph');
+  return (JSON.parse(block[0][1]) as { '@graph': Array<Record<string, unknown>> })['@graph'];
+}
+
+for (const [file, expected] of [
+  ['big-pirate.html', 79],
+  ['sweepico.html', 85],
+] as const) {
+  const source = readFileSync(new URL(`../reviews/${file}`, import.meta.url), 'utf8');
+  assert.equal(
+    visibleEditorialScore(source),
+    expected,
+    `${file} visible verdict score must be detected`,
+  );
+  const reviewNode = graphFromHtml(consolidateJsonLd(source)).find(
+    (node) => node['@type'] === 'Review',
+  );
+  assert.deepEqual(reviewNode?.reviewRating, {
+    '@type': 'Rating',
+    ratingValue: expected,
+    bestRating: 100,
+    worstRating: 0,
+  });
+}
+
+assert.equal(
+  typeof aggregateModule.meetsBrandAggregateRatingThreshold,
+  'function',
+  'reader-report display and schema must share one threshold predicate',
+);
+const meetsBrandAggregateRatingThreshold =
+  aggregateModule.meetsBrandAggregateRatingThreshold as (
+    aggregate: Record<string, unknown> | undefined,
+  ) => boolean;
+assert.equal(meetsBrandAggregateRatingThreshold({ count: 9, avgRating: 5 }), false);
+assert.equal(meetsBrandAggregateRatingThreshold({ count: 10, avgRating: 4.25 }), true);
+assert.equal(meetsBrandAggregateRatingThreshold({ count: 10, avgRating: null }), false);
+
+for (const slug of [
+  'american-luck',
+  'card-crush',
+  'casino-click',
+  'hello-millions',
+  'legendz',
+  'mcluck',
+  'pulsz',
+]) {
+  const source = readFileSync(new URL(`../reviews/${slug}.html`, import.meta.url), 'utf8');
+  const sourceBlock = [
+    ...source.matchAll(
+      /<script\s+type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi,
+    ),
+  ][0];
+  const sourceDocument = JSON.parse(sourceBlock[1]) as {
+    '@graph': Array<Record<string, unknown>>;
+  };
+  const legacyBrand = sourceDocument['@graph'].find(
+    (node) => node['@id'] === `https://sweepstakeswiz.com/reviews/${slug}/#brand`,
+  );
+  const canonicalBrand = brandOrganizationNode(slug);
+  assert.deepEqual(
+    canonicalBrand?.sameAs,
+    legacyBrand?.sameAs,
+    `${slug} canonical identity must preserve verified legacy sameAs URLs`,
+  );
+}
+
+const authorSource = readFileSync(
+  new URL('../author/ilija-milosevic.html', import.meta.url),
+  'utf8',
+);
+const identifiedProfile = authorSource.replace(
+  '"@type":"ProfilePage"',
+  '"@type":"ProfilePage","@id":"https://sweepstakeswiz.com/author/ilija-milosevic/#legacy-profile"',
+);
+const profileGraph = graphFromHtml(consolidateJsonLd(identifiedProfile));
+const profilePages = profileGraph.filter((node) => node['@type'] === 'ProfilePage');
+assert.equal(profilePages.length, 1, 'legacy ProfilePage must be replaced, not duplicated');
+assert.equal(
+  profilePages[0]['@id'],
+  'https://sweepstakeswiz.com/author/ilija-milosevic/#webpage',
+);
+assert.deepEqual(profilePages[0].mainEntity, { '@id': AUTHOR_ID });
+
 const legacy = `<!doctype html><html><head>
 <title>Example Review</title>
 <meta name="description" content="A <safe> review">
@@ -160,6 +254,13 @@ const consolidatedGraph = JSON.parse(blocks[0][1]) as {
   '@graph': Array<Record<string, unknown>>;
 };
 assert.ok(Array.isArray(consolidatedGraph['@graph']));
+assert.equal(
+  consolidatedGraph['@graph'].find(
+    (node) => node['@id'] === 'https://sweepstakeswiz.com/reviews/example/#webpage',
+  )?.['@type'],
+  'ItemPage',
+  'content FAQPage must not become the foundation WebPage type',
+);
 for (const id of [
   ORG_ID,
   WEBSITE_ID,

@@ -8,7 +8,6 @@ import { join } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { READER_REPORT_AGGREGATES } from '../src/data/readerReports.generated';
 import { SITE } from '../src/data/site';
-import { visibleEditorialScore } from '../src/lib/pageChrome';
 import {
   AUTHOR_ID,
   ORG_ID,
@@ -59,6 +58,28 @@ function canonicalFromHtml(html: string): string | undefined {
   return html.match(
     /<link\b(?=[^>]*\brel=["']canonical["'])[^>]*\bhref=["']([^"']+)["'][^>]*>/i,
   )?.[1];
+}
+
+/**
+ * Deliberately independent from pageChrome's class-aware production parser.
+ * The rendered verdict section must expose a numeric /100 score in text.
+ */
+function independentlyVisibleEditorialScore(html: string): number | undefined {
+  const heading = html.search(
+    /<h[1-6]\b[^>]*(?:\bid=["']verdict["'][^>]*|[^>]*>\s*(?:<[^>]+>\s*)*Overall Verdict\b)/i,
+  );
+  if (heading < 0) return undefined;
+  const verdictText = html
+    .slice(heading, heading + 5_000)
+    .replace(/<script\b[\s\S]*?<\/script>/gi, ' ')
+    .replace(/<style\b[\s\S]*?<\/style>/gi, ' ')
+    .replace(/<[^>]+>/g, ' ')
+    .replace(/&#x2f;|&#47;/gi, '/')
+    .replace(/\s+/g, ' ');
+  const match = verdictText.match(/\b(\d{1,3}(?:\.\d+)?)\s*\/\s*100\b/);
+  if (!match) return undefined;
+  const value = Number(match[1]);
+  return Number.isFinite(value) && value >= 0 && value <= 100 ? value : undefined;
 }
 
 function verifyTrackingUrls(url: string, graph: unknown): void {
@@ -170,7 +191,7 @@ function verifyPage(url: string, html: string): void {
     }
   }
 
-  const visibleScore = visibleEditorialScore(html);
+  const visibleScore = independentlyVisibleEditorialScore(html);
   for (const review of reviews) {
     const rating = review.reviewRating as Node | undefined;
     if (visibleScore == null) {
