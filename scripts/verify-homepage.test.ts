@@ -329,6 +329,12 @@ const parityGraph = [{
 }];
 assert.deepEqual(itemListParityErrors(parityFixture, parityGraph), []);
 assert.ok(
+  itemListParityErrors('', parityGraph).some((error) =>
+    /ItemList schema has no visible parity markup/i.test(error),
+  ),
+  'every emitted ItemList must opt in to visible parity validation',
+);
+assert.ok(
   itemListParityErrors(
     parityFixture.replace('data-item-name="Beta"', 'data-item-name="Gamma"'),
     parityGraph,
@@ -347,6 +353,23 @@ const builtSchemaVerifier = readFileSync(
   'utf8',
 );
 assert.match(builtSchemaVerifier, /itemListParityErrors\(html, graph\)/);
+
+for (const [relativePath, listId] of [
+  ['src/routes/state-legality/index.astro', '#states'],
+  ['src/routes/guides/index.astro', '#itemlist'],
+  ['src/content/guides/social-casinos.mdx', '#itemlist'],
+  ['src/routes/news/index.astro', '#itemlist'],
+] as const) {
+  const source = readFileSync(resolve(root, relativePath), 'utf8');
+  assert.match(
+    source,
+    /data-item-list=/,
+    `${relativePath} must expose visible parity markup for ${listId}`,
+  );
+  assert.match(source, /data-item-position=/);
+  assert.match(source, /data-item-name=/);
+  assert.match(source, /data-item-url=/);
+}
 
 const reviewsSource = readFileSync(resolve(root, 'src/routes/reviews/index.astro'), 'utf8');
 assert.match(reviewsSource, /CollectionPage/);

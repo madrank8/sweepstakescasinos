@@ -188,9 +188,13 @@ const banWaveImageNode = {
       <thead>
         <tr><th>State</th><th>Site status</th><th>Operators</th><th>Legal status</th><th>Guide</th></tr>
       </thead>
-      <tbody>
-        {rows.map((r) => (
-          <tr>
+      <tbody data-item-list={`${canonical}#states`}>
+        {rows.map((r, i) => (
+          <tr
+            data-item-position={i + 1}
+            data-item-name={`${r.name}: ${SWEEPS_STATUS_META[r.trackerStatus].label}`}
+            data-item-url={`${ORIGIN}/states/${r.slug}/`}
+          >
             <td>{r.name}</td>
             <td><span class:list={['sl-site', r.siteStatus === 'Info only' ? 'info' : 'offers']}>{r.siteStatus}</span></td>
             <td>{r.operators} of {totalOperators}</td>

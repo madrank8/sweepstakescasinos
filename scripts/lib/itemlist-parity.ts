@@ -92,43 +92,65 @@ export function itemListParityErrors(
   graph: readonly JsonNode[],
 ): string[] {
   const errors: string[] = [];
-  for (const visible of visibleLists(html)) {
+  const visible = visibleLists(html);
+  for (const schema of graph.filter((node) => node['@type'] === 'ItemList')) {
+    const id = schema['@id'];
+    if (
+      typeof id !== 'string' ||
+      !visible.some((candidate) => candidate.id === id)
+    ) {
+      errors.push(
+        `${typeof id === 'string' ? id : '(ItemList without @id)'}: ItemList schema has no visible parity markup`,
+      );
+    }
+  }
+  for (const visibleList of visible) {
     const schema = graph.find(
-      (node) => node['@type'] === 'ItemList' && node['@id'] === visible.id,
+      (node) =>
+        node['@type'] === 'ItemList' && node['@id'] === visibleList.id,
     );
     if (!schema) {
-      errors.push(`${visible.id}: visible list has no matching ItemList schema`);
+      errors.push(
+        `${visibleList.id}: visible list has no matching ItemList schema`,
+      );
       continue;
     }
     const schemaItems = Array.isArray(schema.itemListElement)
       ? (schema.itemListElement as JsonNode[])
       : [];
-    if (schema.numberOfItems !== visible.items.length) {
+    if (schema.numberOfItems !== visibleList.items.length) {
       errors.push(
-        `${visible.id}: numberOfItems ${String(schema.numberOfItems)} does not match ${visible.items.length} visible items`,
+        `${visibleList.id}: numberOfItems ${String(schema.numberOfItems)} does not match ${visibleList.items.length} visible items`,
       );
     }
-    if (schemaItems.length !== visible.items.length) {
+    if (schemaItems.length !== visibleList.items.length) {
       errors.push(
-        `${visible.id}: schema has ${schemaItems.length} items but markup has ${visible.items.length}`,
+        `${visibleList.id}: schema has ${schemaItems.length} items but markup has ${visibleList.items.length}`,
       );
     }
-    if (visible.order && schema.itemListOrder !== visible.order) {
-      errors.push(`${visible.id}: visible and schema list-order semantics differ`);
+    if (
+      visibleList.order &&
+      schema.itemListOrder !== visibleList.order
+    ) {
+      errors.push(
+        `${visibleList.id}: visible and schema list-order semantics differ`,
+      );
     }
-    const length = Math.max(schemaItems.length, visible.items.length);
+    const length = Math.max(schemaItems.length, visibleList.items.length);
     for (let index = 0; index < length; index += 1) {
-      const markup = visible.items[index];
+      const markup = visibleList.items[index];
       const item = schemaItems[index];
       if (!markup || !item) continue;
       if (item.position !== markup.position) {
-        errors.push(`${visible.id}: item ${index + 1} position differs`);
+        errors.push(
+          `${visibleList.id}: item ${index + 1} position differs`,
+        );
       }
       if (item.name !== markup.name) {
-        errors.push(`${visible.id}: item ${index + 1} name differs`);
+        errors.push(`${visibleList.id}: item ${index + 1} name differs`);
       }
       if (item.url !== markup.url) {
-        errors.push(`${visible.id}: item ${index + 1} URL differs`);
+        errors.push(`${visibleList.id}: item ${index + 1} URL differs`);
       }
     }
   }

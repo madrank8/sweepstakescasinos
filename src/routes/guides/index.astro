@@ -58,6 +58,7 @@ const groups = CATEGORY_ORDER
     items: cards.filter((c) => c.category === name).sort((a, b) => a.order - b.order),
   }))
   .filter((g) => g.items.length > 0);
+const visibleCards = groups.flatMap((group) => group.items);
 
 // "Start here" featured pick (the pillar), with a graceful fallback.
 const featured =
@@ -79,8 +80,8 @@ const itemListLd = {
   '@type': 'ItemList',
   '@id': `${canonical}#itemlist`,
   name: title,
-  numberOfItems: cards.length,
-  itemListElement: cards.map((c, i) => ({
+  numberOfItems: visibleCards.length,
+  itemListElement: visibleCards.map((c, i) => ({
     '@type': 'ListItem',
     position: i + 1,
     url: `${ORIGIN}/guides/${c.slug}/`,
@@ -180,20 +181,28 @@ const jsonLd = [itemListLd, faqLd, introNode];
     </a>
   )}
 
-  {groups.map((group) => (
-    <section class="guide-cat" aria-label={group.name}>
-      <h2>{group.name}</h2>
-      <div class="guide-grid">
-        {group.items.map((c) => (
-          <a class="guide-card" href={`/guides/${c.slug}/`}>
-            <span class="guide-card-title">{c.title}</span>
-            <span class="guide-card-sum">{c.summary}</span>
-            <span class="guide-card-cta">Read guide &#8594;</span>
-          </a>
-        ))}
-      </div>
-    </section>
-  ))}
+  <div data-item-list={`${canonical}#itemlist`}>
+    {groups.map((group) => (
+      <section class="guide-cat" aria-label={group.name}>
+        <h2>{group.name}</h2>
+        <div class="guide-grid">
+          {group.items.map((c) => (
+            <a
+              class="guide-card"
+              href={`/guides/${c.slug}/`}
+              data-item-position={visibleCards.indexOf(c) + 1}
+              data-item-name={c.title}
+              data-item-url={`${ORIGIN}/guides/${c.slug}/`}
+            >
+              <span class="guide-card-title">{c.title}</span>
+              <span class="guide-card-sum">{c.summary}</span>
+              <span class="guide-card-cta">Read guide &#8594;</span>
+            </a>
+          ))}
+        </div>
+      </section>
+    ))}
+  </div>
 
   <section class="guide-next" aria-label="Where to go next">
     <h2>Ready to play? Where to go next</h2>
