@@ -2,7 +2,7 @@
 
 Source snapshot: repository authored sources. Generated deterministically without a runtime date.
 
-Inventory: **103 authored routes**, **1446 internal link occurrences**, **0 missing-target occurrences**, and **0 orphan candidates**.
+Inventory: **103 authored routes**, **1443 internal link occurrences**, **0 missing-target occurrences**, and **0 orphan candidates**.
 
 ## Target graph
 
