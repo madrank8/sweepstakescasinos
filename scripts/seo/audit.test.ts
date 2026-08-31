@@ -134,6 +134,33 @@ assert.equal(
 );
 assert.equal(
   findUnsupportedTestingClaims(
+    '<p>Deadspin.com full independent review — redemption timelines and legitimacy tested.</p>',
+    'reviews/fixture.html',
+    false,
+  ).length,
+  0,
+  'a domain-name period must not sever third-party attribution',
+);
+assert.equal(
+  findUnsupportedTestingClaims(
+    "<p>We don't publish invented first-hand payout numbers; our reviews track published policy.</p>",
+    'reviews/fixture.html',
+    false,
+  ).length,
+  0,
+  'an explicit first-hand claim negation remains permitted',
+);
+assert.equal(
+  findUnsupportedTestingClaims(
+    '<p>Share your real, first-hand redemption experience; we aggregate reader reports.</p>',
+    'reviews/fixture.html',
+    false,
+  ).length,
+  0,
+  'a request for attributed reader experience is not a site testing claim',
+);
+assert.equal(
+  findUnsupportedTestingClaims(
     '<script type="application/ld+json">{"name":"How fast does it pay?","text":"Our own tests cleared in two business days."}</script>',
     'reviews/fixture.html',
     false,
