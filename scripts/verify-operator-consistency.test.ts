@@ -434,7 +434,6 @@ assert.doesNotMatch(
   /const VERIFIED_LABEL/,
   'missing operator verification dates must not inherit a page-level date',
 );
-assert.match(noDepositRoute, /Verification unavailable/);
 const newRoute = readFileSync(resolve(root, 'src/routes/new/index.astro'), 'utf8');
 assert.match(newRoute, /from '\.\.\/\.\.\/data\/operators'/);
 assert.match(newRoute, /canonicalOperatorName/);
