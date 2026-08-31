@@ -2,9 +2,9 @@
 
 Source snapshot: repository authored sources. Generated deterministically without a runtime date.
 
-Visible scores are parsed with the existing `visibleEditorialScore()` helper from `src/lib/pageChrome.ts`; no parallel schema model was created.
+Visible legacy scores are parsed with `visibleEditorialScore()` from `src/lib/pageChrome.ts`; schema ratings now use only verified `editorScore100` values from `src/data/operators.ts`.
 
-Coverage: **29 reviews**; source mismatches: **23**. Build-time consolidation replaces source Review ratings with visible `/100` scores.
+Coverage: **29 reviews**; source mismatches: **23**. Build-time consolidation emits **4** verified canonical Review ratings and omits ratings for unresolved records; it never converts a five-star value.
 
 | Review | Visible score | Source JSON-LD score | Expected `/5` equivalent | Source parity |
 |---|---:|---:|---:|---|

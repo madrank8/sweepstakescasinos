@@ -2,9 +2,11 @@
 
 Source snapshot: repository authored sources. Generated deterministically without a runtime date.
 
-Coverage: **29 authored reviews**, **28 homepage cards**, **10 comparison rows**, and **47 relevant hub facts**.
+Coverage: **29 authored reviews**, **28 homepage cards**, **10 comparison rows**, and **46 relevant hub facts**.
 
 No conflict below is resolved by this audit. Values remain exactly as authored pending source review.
+
+`src/data/operators.ts` records these conflicts as `unresolved`; canonical selectors and Review schema omit them. Verified canonical values retain field-level provenance, while affiliate restrictions and schema identity remain in their separate data modules.
 
 | Operator | Field | Exact source values | Status |
 |---|---|---|---|
@@ -109,7 +111,7 @@ No conflict below is resolved by this audit. Values remain exactly as authored p
 - `src/routes/bonuses/no-deposit/index.astro` — `crown-coins` welcome offer: `100,000 CC + 2 SC`
 - `src/routes/bonuses/no-deposit/index.astro` — `hello-millions` minimum redemption: `10 SC (gift cards)`
 - `src/routes/bonuses/no-deposit/index.astro` — `hello-millions` welcome offer: `15,000 GC + 2.5 SC`
-- `src/routes/bonuses/no-deposit/index.astro` — `legendz` minimum redemption: `Prizeout gift cards`
+- `src/routes/bonuses/no-deposit/index.astro` — `legendz` minimum redemption: `50 SC (gift cards); 100 SC (cash)`
 - `src/routes/bonuses/no-deposit/index.astro` — `legendz` welcome offer: `500 GC + 3 SC`
 - `src/routes/bonuses/no-deposit/index.astro` — `mcluck` minimum redemption: `10 SC (gift cards)`
 - `src/routes/bonuses/no-deposit/index.astro` — `mcluck` welcome offer: `7,500 GC + 2.5 SC`
@@ -117,11 +119,10 @@ No conflict below is resolved by this audit. Values remain exactly as authored p
 - `src/routes/bonuses/no-deposit/index.astro` — `playfame` welcome offer: `7,500 GC + 2.5 SC`
 - `src/routes/bonuses/no-deposit/index.astro` — `pulsz` minimum redemption: `10 SC (gift cards)`
 - `src/routes/bonuses/no-deposit/index.astro` — `pulsz` welcome offer: `5,000 GC + 2.3 SC`
-- `src/routes/bonuses/no-deposit/index.astro` — `roxymoxy` minimum redemption: `See review`
+- `src/routes/bonuses/no-deposit/index.astro` — `roxymoxy` minimum redemption: `100 SC (cash)`
 - `src/routes/bonuses/no-deposit/index.astro` — `roxymoxy` welcome offer: `50,000 GC + 2.5 SC`
-- `src/routes/bonuses/no-deposit/index.astro` — `spinblitz` minimum redemption: `See review`
 - `src/routes/bonuses/no-deposit/index.astro` — `spinblitz` welcome offer: `7,500 GC + 2.5 SC`
-- `src/routes/bonuses/no-deposit/index.astro` — `spree` minimum redemption: `Gift cards (~48h)`
+- `src/routes/bonuses/no-deposit/index.astro` — `spree` minimum redemption: `10 SC (gift cards)`
 - `src/routes/bonuses/no-deposit/index.astro` — `spree` welcome offer: `25,000 GC + 2.5 SC`
 - `src/routes/bonuses/no-deposit/index.astro` — `thrillzz` minimum redemption: `50 SC (cash)`
 - `src/routes/bonuses/no-deposit/index.astro` — `thrillzz` welcome offer: `3,000 GC + 3 SC`

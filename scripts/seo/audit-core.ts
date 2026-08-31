@@ -8,6 +8,7 @@ import { extname, join, relative, resolve } from 'node:path';
 import { AFFILIATE_PARTNERS } from '../../src/data/affiliates';
 import { BRAND_ENTITIES } from '../../src/data/brandEntities';
 import { SITE_BANNED_STATES } from '../../src/data/geo';
+import { OPERATORS, verifiedValue } from '../../src/data/operators';
 import { fallbackStates } from '../../src/lib/tracker/fallback';
 import { visibleEditorialScore } from '../../src/lib/pageChrome';
 import { validateAllResults } from '../../src/data/testingResults';
@@ -264,33 +265,48 @@ function hubInventory(root: string): HubOperatorFact[] {
   const newPath = 'src/routes/new/index.astro';
   const newSource = read(root, newPath);
   for (const match of newSource.matchAll(
-    /\{\s*slug:\s*'([^']+)',\s*name:\s*'([^']+)',[\s\S]*?note:\s*'([^']+)',\s*\}/g,
+    /\{\s*slug:\s*'([^']+)',[\s\S]*?note:\s*'([^']+)',\s*\}/g,
   )) {
     facts.push({
       slug: match[1],
       path: newPath,
       field: 'curated hub note',
-      value: match[3],
+      value: match[2],
     });
   }
 
   const bonusPath = 'src/routes/bonuses/no-deposit/index.astro';
   const bonusSource = read(root, bonusPath);
-  for (const match of bonusSource.matchAll(
-    /\{\s*slug:\s*'([^']+)',\s*name:\s*'([^']+)',[\s\S]*?signup:\s*'([^']+)',[\s\S]*?min:\s*'([^']+)'\s*\}/g,
-  )) {
-    facts.push({
-      slug: match[1],
-      path: bonusPath,
-      field: 'welcome offer',
-      value: plain(match[3]),
-    });
-    facts.push({
-      slug: match[1],
-      path: bonusPath,
-      field: 'minimum redemption',
-      value: plain(match[4]),
-    });
+  for (const match of bonusSource.matchAll(/canonicalOffer\('([^']+)',\s*'[^']+'\)/g)) {
+    const operator = OPERATORS.find((candidate) => candidate.slug === match[1]);
+    if (!operator) continue;
+    const signup =
+      verifiedValue(operator.signupOffer) ??
+      (operator.signupOffer.status === 'unresolved'
+        ? operator.signupOffer.sources.find((source) => source.provenance.source === bonusPath)?.value
+        : undefined);
+    const gift = verifiedValue(operator.giftCardRedemptionMinimum);
+    const cash = verifiedValue(operator.cashRedemptionMinimum);
+    const minimum = [
+      ...(gift ? [`${gift.amount} ${gift.currency} (gift cards)`] : []),
+      ...(cash ? [`${cash.amount} ${cash.currency} (cash)`] : []),
+    ].join('; ');
+    if (signup) {
+      facts.push({
+        slug: match[1],
+        path: bonusPath,
+        field: 'welcome offer',
+        value: signup,
+      });
+    }
+    if (minimum) {
+      facts.push({
+        slug: match[1],
+        path: bonusPath,
+        field: 'minimum redemption',
+        value: minimum,
+      });
+    }
   }
 
   const statePath = 'src/routes/state-legality/index.astro';
@@ -777,6 +793,7 @@ function operatorReport(audit: OperatorAudit): string {
     reportHeader('Operator Data Conflicts'),
     `Coverage: **${audit.reviews.length} authored reviews**, **${audit.homepage.length} homepage cards**, **${audit.comparison.length} comparison rows**, and **${audit.hubs.length} relevant hub facts**.\n\n`,
     'No conflict below is resolved by this audit. Values remain exactly as authored pending source review.\n\n',
+    '`src/data/operators.ts` records these conflicts as `unresolved`; canonical selectors and Review schema omit them. Verified canonical values retain field-level provenance, while affiliate restrictions and schema identity remain in their separate data modules.\n\n',
     '| Operator | Field | Exact source values | Status |\n',
     '|---|---|---|---|\n',
     ...audit.conflicts.map(
@@ -855,10 +872,16 @@ function stateReport(audit: StateAuthorityAudit): string {
 }
 
 function schemaReport(audit: SchemaAudit): string {
+  const canonicalScores = new Map(
+    OPERATORS.map((operator) => [operator.slug, operator.editorScore100]),
+  );
+  const verifiedCount = [...canonicalScores.values()].filter(
+    (fact) => fact.status === 'verified',
+  ).length;
   return [
     reportHeader('Visible and Schema Parity Audit'),
-    'Visible scores are parsed with the existing `visibleEditorialScore()` helper from `src/lib/pageChrome.ts`; no parallel schema model was created.\n\n',
-    `Coverage: **${audit.reviews.length} reviews**; source mismatches: **${audit.mismatches.length}**. Build-time consolidation replaces source Review ratings with visible \`/100\` scores.\n\n`,
+    'Visible legacy scores are parsed with `visibleEditorialScore()` from `src/lib/pageChrome.ts`; schema ratings now use only verified `editorScore100` values from `src/data/operators.ts`.\n\n',
+    `Coverage: **${audit.reviews.length} reviews**; source mismatches: **${audit.mismatches.length}**. Build-time consolidation emits **${verifiedCount}** verified canonical Review ratings and omits ratings for unresolved records; it never converts a five-star value.\n\n`,
     '| Review | Visible score | Source JSON-LD score | Expected `/5` equivalent | Source parity |\n',
     '|---|---:|---:|---:|---|\n',
     ...audit.reviews.map(
