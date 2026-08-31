@@ -9,6 +9,8 @@ import {
 
 const MARKER =
   /<!--sc-operator-facts\s+data-operator="([a-z0-9-]+)"\s+data-fields="([^"]+)"\s*-->/g;
+const LEGACY_EDITOR_SCORE =
+  /(<span\b[^>]*class=["'][^"']*\b(?:num|big)\b[^"']*["'][^>]*>)\s*\d{1,3}(?:\.\d+)?\s*(<\/span>\s*<span\b[^>]*class=["'][^"']*\b(?:den|denom)\b[^"']*["'][^>]*>)\s*\/\s*100\s*(<\/span>)/gi;
 const FIELD_SET = new Set<string>(CANONICAL_OPERATOR_FIELDS);
 
 const LABELS: Record<CanonicalOperatorField, string> = {
@@ -60,6 +62,25 @@ function formatField(field: CanonicalOperatorField, value: unknown): string {
   return String(value);
 }
 
+function normalizeLegacyEditorScore(
+  html: string,
+  score: number | undefined,
+): string {
+  return html.replace(
+    LEGACY_EDITOR_SCORE,
+    (_match, valueOpen: string, denominatorOpen: string, denominatorClose: string) => {
+      if (score !== undefined) {
+        return `${valueOpen}${score}${denominatorOpen}/100${denominatorClose}`;
+      }
+      const unresolvedOpen = valueOpen.replace(
+        />$/,
+        ' data-canonical-score-status="unresolved">',
+      );
+      return `${unresolvedOpen}Score unresolved${denominatorOpen}${denominatorClose}`;
+    },
+  );
+}
+
 /**
  * Replace declarative review markers with verified canonical facts. Missing
  * and unresolved fields intentionally produce no output.
@@ -72,8 +93,12 @@ export function injectOperatorFactsHtml(html: string, slug: string): string {
   MARKER.lastIndex = 0;
   const operator = getOperator(slug);
   if (!operator) throw new Error(`[operator-facts] Unknown review slug: ${slug}`);
+  const normalizedHtml = normalizeLegacyEditorScore(
+    html,
+    verifiedValue(operator.editorScore100),
+  );
 
-  return html.replace(MARKER, (_marker, markerSlug: string, fieldsRaw: string) => {
+  return normalizedHtml.replace(MARKER, (_marker, markerSlug: string, fieldsRaw: string) => {
     if (markerSlug !== slug) {
       throw new Error(
         `[operator-facts] Marker slug "${markerSlug}" does not match review "${slug}"`,
