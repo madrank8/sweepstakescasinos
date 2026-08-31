@@ -17,7 +17,10 @@ import {
 } from './verify-operator-consistency';
 import { getStaticReviewHtml } from '../src/lib/staticHtml.js';
 import { prepareSsrAffiliateReviewHtml } from '../src/lib/affiliateHtml';
-import { findRenderedEditorScoreContexts } from './lib/rendered-editor-score-detector';
+import {
+  findRenderedEditorScoreContexts,
+  validateRenderedEditorScoreContexts,
+} from './lib/rendered-editor-score-detector';
 
 const root = resolve(import.meta.dirname, '..');
 const reviewSlugs = readdirSync(resolve(root, 'reviews'))
@@ -286,6 +289,17 @@ assert.deepEqual(
   ),
   [],
   'independent detector must preserve explicitly labeled third-party ratings',
+);
+assert.ok(
+  validateRenderedEditorScoreContexts(undefined, leakedScoreFixture).length >= 5,
+  'post-build detector must fail an unresolved review fixture with leaked score contexts',
+);
+assert.deepEqual(
+  validateRenderedEditorScoreContexts(
+    undefined,
+    '<div class="sticky-sub">★★★★★ 4.6/5 Trustpilot · 29,000+ reviews</div>',
+  ),
+  [],
 );
 
 const builtVerifierSource = readFileSync(
