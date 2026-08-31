@@ -1,44 +1,15 @@
 /**
- * Correlation layer between the Sweepstakes Legality Tracker dataset and the
- * Wiz's own affiliate + geo model. This is what makes the tracker "native":
- * the same state maps to both the tracker's legal-status taxonomy and the Wiz's
- * operator availability.
+ * Compatibility helpers for tracker editorial cross-links.
  *
- * Authority split (do not blur these):
- *   - Affiliate CTA suppression  -> src/data/geo.ts is authoritative (legal).
- *   - Displayed legal status/bills/freshness -> the tracker dataset is authoritative.
+ * Availability decisions delegate to the facade, which preserves tracker legal
+ * display, affiliate commercial availability, and site CTA policy separately.
  */
 import { AFFILIATE_PARTNERS } from './affiliates';
 import { getBrandEntity } from './brandEntities';
 import {
-  isPartnerAvailableInState,
-  isStateBannedSitewide,
-} from './geo';
-import { isUsStateCode, type UsStateCode } from './usStates';
-import type { SweepsCasinoStatus } from '../lib/tracker/types';
-
-/** Wiz editorial legal posture used on state pages (matches content.config states). */
-export type WizLegalStatus = 'available' | 'info-only' | 'restricted';
-
-/**
- * Map the tracker's operator-legal-status taxonomy to the Wiz's editorial
- * posture. Note this is the OPERATOR legal reality, not the affiliate posture;
- * the affiliate posture is decided by isStateBannedSitewide() + partner data.
- */
-export function trackerStatusToWizLegal(status: SweepsCasinoStatus): WizLegalStatus {
-  switch (status) {
-    case 'legal_unregulated':
-    case 'gray':
-      return 'available';
-    case 'restricted':
-      return 'restricted';
-    case 'banned':
-    case 'pending_ban':
-      return 'info-only';
-    default:
-      return 'info-only';
-  }
-}
+  availabilityForPartner,
+  availabilityForState,
+} from '../lib/availability';
 
 /**
  * The Wiz affiliate availability for a state: how many reviewed partners we may
@@ -52,13 +23,16 @@ export function wizAvailabilityForState(code: string): {
   availableSlugs: string[];
 } {
   const total = AFFILIATE_PARTNERS.length;
-  if (!isUsStateCode(code)) {
+  const stateView = availabilityForState(code);
+  if (!stateView.state) {
     return { banned: false, availableCount: 0, total, availableSlugs: [] };
   }
-  const state = code as UsStateCode;
-  const banned = isStateBannedSitewide(state);
+  const banned = stateView.site.status === 'suppressed';
   if (banned) return { banned: true, availableCount: 0, total, availableSlugs: [] };
-  const available = AFFILIATE_PARTNERS.filter((p) => isPartnerAvailableInState(p, state));
+  const available = AFFILIATE_PARTNERS.filter(
+    (partner) =>
+      availabilityForPartner(partner, stateView.state).cta.eligible,
+  );
   return {
     banned: false,
     availableCount: available.length,
