@@ -2,10 +2,11 @@
 
 ## Status
 
-COMPLETE on `cursor/seo-coherence-5d71`. Fresh full CI, deployment-output
-crawl, all-sitemap parsing, desktop browser, mobile browser, and gateway checks
-passed. No production defect was found, so Task 7 made no code or test change.
-Nothing was pushed.
+COMPLETE on `cursor/seo-coherence-5d71`. The later whole-branch review exposed
+cross-phase issues that scoped Task 7 did not catch; those issues are now fixed.
+Fresh full CI, deterministic audit parity, built-schema verification, the
+all-review geo crawl, and representative browser checks pass. Nothing was
+pushed.
 
 `docs/seo/implementation-report.md` contains the cumulative implementation,
 architecture, URL, unresolved-state, human-review, test, and follow-up report.
@@ -27,23 +28,25 @@ Fresh `npm run ci` exited 0:
   gateway/suppression/reconciliation checks passed;
 - authority state: six tracker/site-policy differences plus the Card Crush
   intersection remained explicit;
-- source audit: 29 reviews, four homepage operators, 10 comparison operators,
-  46 hub facts, 57 claim matches, 103 authored routes, 1,478 internal links,
+- source audit: 29 reviews, 12 homepage decision-support operators, 10
+  comparison operators, 46 hub facts, 54 claim matches, 103 authored routes,
+  1,443 internal links,
   zero missing source targets, and zero orphan candidates;
-- claim classifications: 0 documented first-hand, 53 third-party/reader,
-  0 unsupported, and 4 ambiguous;
+- claim classifications: 0 documented first-hand, 31 third-party/reader,
+  0 unsupported, and 23 ambiguous;
 - operator inventory: 29 canonical records passed;
-- review QA: 29 source and rendered reviews, two static and 27 SSR, 29 unique
-  titles, 29 fact summaries, 108 answers, 29 disclosures, 29 contextual blocks,
-  29 FAQ schemas, zero FAQ/schema mismatches, and zero errors;
+- review QA: 29 source and 29 request-rendered reviews, 29 unique titles, 29
+  fact summaries, 32 answers, 87 geo/outbound eligibility assertions, 29
+  disclosures, 29 contextual blocks, 29 FAQ schemas, zero FAQ/schema
+  mismatches, and zero errors;
 - redemption production state: 0 testing rows, 0 reader-aggregate operators,
   non-publishable, no result route, and 0 aggregate ratings;
 - schema/build: 36 static sources passed, Vercel output built, and 115
   indexable pages passed built-schema validation;
-- rendered crawl: 123 pages, 6,054 internal links, 0 missing targets,
+- rendered crawl: 123 pages, 6,016 internal links, 0 missing targets,
   0 unintended redirects, 0 duplicate contextual destinations, 0 hierarchy
   failures, and 0 important pages without inbound links;
-- built geo crawl: 31 routes × unknown/Texas/California = 93 renders, with
+- built geo crawl: 32 routes × unknown/Texas/California = 96 renders, with
   0 geo failures.
 
 An independent browser parser fetched all 115 sitemap URLs from the fresh built
@@ -63,10 +66,10 @@ warnings/errors, and 0 page errors.
   `/best/sweepstakes-casinos/`, `/new/`, `/bonuses/no-deposit/`,
   `/state-legality/`.
 - Reviews:
-  - static/verified: American Luck;
-  - static/unresolved: Card Crush;
-  - SSR/verified: Legendz, PlayFame, RoxyMoxy;
-  - SSR/unresolved: McLuck, Acebet, WOW Vegas, Zula, Pulsz.
+  - no outbound: American Luck;
+  - partner-suppressed in Texas: Card Crush;
+  - verified-score examples: Legendz, PlayFame, RoxyMoxy;
+  - unresolved-score examples: McLuck, Acebet, WOW Vegas, Zula, Pulsz.
 - Authored states: Texas and California.
 - Tracker-only states: Alabama and Alaska.
 - Trust/entity: About, Editorial Policy, How We Rate, Responsible Gaming, and
@@ -99,13 +102,19 @@ Gateway/browser requests:
 
 ## Red/green fixes
 
-None. No reproducible production regression was found, so adding a failing test
-or changing production code would not have been justified.
+The whole-branch follow-up added the missing cross-phase cycle:
 
-A preliminary Astro development-server check returned 404 for
-`/partials/nav.html`; fresh Vercel output contains and serves that asset, and
-the final browser matrix had zero console errors. This local-development
-discrepancy was not treated as a deployment regression.
+- RED: `npm run verify:internal-links` failed because the crawl imported a
+  missing `expectedReviewCtaEligibility` export.
+- RED: built `npm run seo:crawl` reported false Texas CTA expectations for the
+  homepage, comparison hub, and odds calculator.
+- RED: after route expectations were corrected, the crawl exposed American
+  Luck and Card Crush as build-frozen static reviews whose summary/state
+  context did not change by request.
+- GREEN: all 29 generated review wrappers now use the request-rendered review
+  pipeline; the focused review QA reports 29 SSR renders and 87 state/outbound
+  assertions.
+- GREEN: the built geo crawl covers 32 routes × three modes with zero failures.
 
 ## Unresolved facts preserved
 

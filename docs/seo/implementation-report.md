@@ -1,6 +1,6 @@
 # SEO Implementation Report
 
-Evidence snapshot: `cursor/seo-coherence-5d71` at `b3d3af4`, verified on
+Evidence snapshot: `cursor/seo-coherence-5d71` at `a5cb2e8`, verified on
 2026-08-31 before this report commit.
 
 ## 1. Changes made
@@ -16,8 +16,9 @@ decisions with typed, evidence-gated paths:
 - A canonical operator inventory covers all 29 existing reviews. Every fact is
   `verified`, `unresolved`, or `missing` and verified values retain provenance.
   Conflicting editor scores and offers are not silently selected.
-- Review rendering is standardized across the two static and 27 SSR review
-  paths. Each review has a canonical fact summary, evidence-gated answer
+- Review rendering is standardized across all 29 request-rendered review
+  paths so visitor eligibility, CTA presence, and state context cannot freeze
+  at build time. Each review has a canonical fact summary, evidence-gated answer
   blocks, disclosure, contextual navigation, and visible/FAQ-schema parity.
 - Tracker legal display, affiliate commercial availability, and site CTA
   policy remain separate authorities behind one availability facade. Page CTA
@@ -56,19 +57,23 @@ The implementation is concentrated in these areas:
 - `src/lib/availability.ts`, `src/lib/availabilityViews.ts`,
   `src/lib/bonusGateway.ts`, and `src/components/AffiliateLink.astro`:
   geo-aware display and gateway decisions.
-- `src/lib/homepage.ts`, `src/lib/internalLinks.ts`, and
-  `src/lib/redemptionIndex.ts`: evidence-gated selectors, deterministic link
-  selection, and unpublished redemption assessment.
+- `src/lib/homepage.ts`, `src/lib/operatorPresentation.ts`,
+  `src/lib/redemptionEvidenceAdapter.ts`, `src/lib/internalLinks.ts`, and
+  `src/lib/redemptionIndex.ts`: evidence-gated selectors, canonical reader
+  presentation, production evidence adaptation, deterministic link selection,
+  and unpublished redemption assessment.
 - `src/routes/index.astro`, `src/routes/reviews/index.astro`,
   `src/routes/states/[slug].astro`, and the existing best, new, no-deposit,
   state-legality, guide, news, tool, and tracker route templates: authored
   surfaces and shared consumers.
-- `scripts/verify-*.ts` and `scripts/seo/*.ts`: focused contracts,
-  deterministic audits, built-schema verification, and rendered/geo crawl.
+- `scripts/verify-*.ts`, `scripts/lib/itemlist-parity.ts`, and
+  `scripts/seo/*.ts`: focused contracts, deterministic audit-byte verification,
+  visible/schema ItemList parity, and rendered/geo crawl.
 - `docs/seo/*.md`: deterministic audits, decision records, methodology, and
   this final report.
-- `package.json` and `scripts/generate-astro-pages.mjs`: CI ordering, generated
-  route ownership, and sitemap/robots generation.
+- `package.json`, `scripts/generate-astro-pages.mjs`, and
+  `src/data/routeLastmod.generated.ts`: CI ordering, generated route ownership,
+  source-derived page freshness, and sitemap/robots generation.
 
 The generated `src/pages/` tree remains generator-owned. Legacy
 `reviews/*.html` files remain authored source inputs.
@@ -94,8 +99,9 @@ The generated `src/pages/` tree remains generator-owned. Legacy
 ## 4. URLs materially changed
 
 - `/` is materially changed from the legacy inventory-led root to an authored
-  answer, four verified editor picks, a 12-row decision table, methodology,
-  legality guidance, FAQ, and specialist-hub navigation.
+  answer, a 12-row canonical-completeness decision table, four verified editor
+  scores shown only as supporting details, methodology, legality guidance, FAQ,
+  and specialist-hub navigation.
 - `/reviews/` is the only new indexable route. It is a complete alphabetical
   directory with CollectionPage, ItemList, and breadcrumb entities.
 - All 29 existing `/reviews/<slug>/` URLs now receive the shared canonical fact
@@ -194,54 +200,47 @@ After:
 
 ## 8. Tests performed
 
-Fresh `npm run ci` exited 0.
+Fresh `npm run ci` exited 0 after the coordinated whole-branch fixes.
 
 - Availability: 51 jurisdictions, 13 partners, six tracker/site-policy
   differences, and the Card Crush intersection validated.
-- SEO audit: 29 reviews, four homepage operators, 10 comparison operators, 46
-  hub facts, 57 testing-claim matches, 103 authored routes, 1,478 authored
+- SEO audit: 29 reviews, 12 homepage decision-support operators, 10 comparison
+  operators, 46 hub facts, 54 testing-claim matches, 103 authored routes, 1,443 authored
   internal links, zero missing source targets, and zero orphan candidates.
-- Testing claims: 0 documented first-hand, 53 third-party/reader, 0
-  unsupported, and 4 ambiguous limitation/question/policy matches.
-- Review QA: 29 sources/renders, two static and 27 SSR, 29 unique titles, 29
-  fact summaries, 108 answer blocks, 29 disclosures/contextual blocks, 29 FAQ
-  pages, and zero QA or FAQ/schema errors.
+- Testing claims: 0 documented first-hand, 31 third-party/reader, 0
+  unsupported, and 23 ambiguous limitation/question/policy matches.
+- Review QA: 29 sources and 29 request-rendered outputs, 29 unique titles, 29
+  fact summaries, 32 answer blocks, 87 geo/outbound eligibility assertions,
+  29 disclosures/contextual blocks, 29 FAQ pages, and zero QA or FAQ/schema errors.
 - Canonical facts: 29 operators validated. Production redemption evidence:
   zero testing rows, zero reader-aggregate operators, non-publishable status,
   no public results route, and zero aggregate ratings.
 - Build: Astro/Vercel output completed; 36 static schema sources and 115
   indexable built pages passed schema validation.
-- Rendered crawl: 123 pages, 6,054 internal links, zero missing targets,
+- Rendered crawl: 123 pages, 6,016 internal links, zero missing targets,
   unintended redirects, duplicate contextual destinations, hierarchy failures,
   missing important inbound links, or geo failures.
-- Built geo crawl: 31 routes in unknown, Texas, and California modes (93
+- Built geo crawl: 32 routes in unknown, Texas, and California modes (96
   renders).
 
-Additional built-output browser evidence:
+Additional browser evidence:
 
-- All 115 sitemap pages returned 200 with one H1, a self-canonical, indexable
-  robots state, exactly one parseable JSON-LD graph, trailing-slash-consistent
-  internal page links, server-rendered critical content, no raw Gemified URL,
-  and no checked FAQ-question or review-rating parity error. The matrix found
-  102 FAQ pages with 414 schema questions, 29 Review pages with four emitted
-  verified ratings, and zero AggregateRating nodes.
-- A 29-page desktop browser matrix covered the homepage and reviews directory,
-  every indexable commercial hub, 10 mixed static/SSR and
-  resolved/unresolved reviews, two authored and two tracker-only state pages,
-  trust/entity pages, the tools/calculator surfaces, and guide/news parents.
-  It found zero console warnings/errors, page errors, overflow, or invariant
-  failures.
-- Six representative pages at a 375 × 812 viewport had no document-level
-  horizontal overflow.
-- Gateway checks confirmed Texas redirects for eligible McLuck and Rolla
-  destinations, California/unknown blocking, Card Crush blocking in CA and TX,
-  preservation of `valid_123`, and complete removal of malicious or overlong
-  click IDs.
+- Built-schema verification validated all 115 sitemap pages, including visible
+  ItemList count/order/name/URL parity.
+- Representative browser checks covered the homepage, comparison hub,
+  no-deposit hub, Rolla in Texas/California/unknown modes, Card Crush in Texas,
+  and American Luck in Texas. All returned 200 with one H1, expected visible
+  list counts, no internal status/ranking copy, no horizontal overflow, and
+  zero console errors.
+- Review browser checks confirmed Rolla's editorial CTA appears in Texas and is
+  absent in California/unknown, while Card Crush and American Luck remain
+  suppressed in Texas exactly as their rendered eligibility summaries state.
 
-No reproducible production regression was found, so Task 7 made no code change
-and required no red/green defect cycle. The Astro development server used by a
-preliminary check did not serve `/partials/nav.html`, while the built Vercel
-output did; final browser acceptance therefore used the deployment artifact.
+The final whole-branch review exposed a cross-phase geo defect: two reviews
+without authored outbound CTAs were still prerendered even though their
+canonical visitor-eligibility summaries and contextual state links vary by
+request. A failing generated-wrapper assertion and built geo crawl reproduced
+the issue; all 29 reviews now use the request-rendered review pipeline.
 
 ## 9. Remaining recommended work
 
