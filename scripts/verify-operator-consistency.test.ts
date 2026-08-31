@@ -15,6 +15,8 @@ import {
   validateOperatorConsistency,
   validateOperatorRecords,
 } from './verify-operator-consistency';
+import { getStaticReviewHtml } from '../src/lib/staticHtml.js';
+import { prepareSsrAffiliateReviewHtml } from '../src/lib/affiliateHtml';
 
 const root = resolve(import.meta.dirname, '..');
 const reviewSlugs = readdirSync(resolve(root, 'reviews'))
@@ -113,6 +115,109 @@ for (const [slug, expectedScore] of [
     });
   }
 }
+
+function obviousLegacyEditorScoreContexts(html: string): string[] {
+  const visible = html
+    .replace(/<script\b[\s\S]*?<\/script>/gi, '')
+    .replace(/<style\b[\s\S]*?<\/style>/gi, '');
+  const contexts: string[] = [];
+  const patterns: Array<[string, RegExp]> = [
+    [
+      'legacy score widget',
+      /class=["'][^"']*\b(?:v-score|vb-num|sh-score|verdict-score|sb-num)\b[^"']*["'][^>]*>[\s\S]{0,160}?\d+(?:\.\d+)?\s*\/\s*100/gi,
+    ],
+    [
+      'legacy stars widget',
+      /class=["'][^"']*\b(?:v-stars|vb-stars|sh-stars|verdict-stars|sb-stars|oc-score)\b[^"']*["'][^>]*>[\s\S]{0,160}?\d(?:\.\d+)?\s*\/\s*5/gi,
+    ],
+    [
+      'score-bars total',
+      /class=["'][^"']*\bscore-bars\b[^"']*["'][\s\S]{0,300}?\d+\s*\/\s*100/gi,
+    ],
+    [
+      'labeled editor score',
+      /class=["'][^"']*\b(?:metric|stat|qp-item|qf-item)\b[^"']*["'][^>]*>[^\n]*(?:Editor Score|Overall(?: Score| Rating)?)[^\n]*\d+(?:\.\d+)?\s*\/?\s*(?:5|100)?/gi,
+    ],
+    [
+      'sticky score label',
+      /class=["'][^"']*\bsticky-(?:sub|st)\b[^"']*["'][^>]*>[^\n]*?(?:★|&#9733;)[^\n]*?\d(?:\.\d+)?\s*\/\s*5/gi,
+    ],
+  ];
+  for (const [label, pattern] of patterns) {
+    if (pattern.test(visible)) contexts.push(label);
+  }
+  return contexts;
+}
+
+const renderedReviews = new Map<string, string>();
+let staticReviewCount = 0;
+let ssrReviewCount = 0;
+for (const operator of OPERATORS) {
+  const relativePath = `reviews/${operator.slug}.html`;
+  const source = readFileSync(resolve(root, relativePath), 'utf8');
+  const rendered = /href=["']\/bonuses\//i.test(source)
+    ? (ssrReviewCount++,
+      prepareSsrAffiliateReviewHtml(source, null, operator.slug, `review-${operator.slug}`))
+    : (staticReviewCount++, getStaticReviewHtml(relativePath, operator.slug));
+  renderedReviews.set(operator.slug, rendered);
+}
+assert.ok(staticReviewCount > 0, 'real review integration must exercise getStaticReviewHtml');
+assert.ok(ssrReviewCount > 0, 'real review integration must exercise prepareSsrAffiliateReviewHtml');
+
+const unresolvedLeaks = OPERATORS.filter(
+  (operator) => operator.editorScore100.status === 'unresolved',
+).flatMap((operator) => {
+  const contexts = obviousLegacyEditorScoreContexts(renderedReviews.get(operator.slug)!);
+  return contexts.length === 0 ? [] : [`${operator.slug}: ${contexts.join(', ')}`];
+});
+assert.deepEqual(
+  unresolvedLeaks,
+  [],
+  `fully rendered unresolved reviews leaked legacy editor scores:\n${unresolvedLeaks.join('\n')}`,
+);
+
+const staticAmericanLuck = getStaticReviewHtml(
+  'reviews/american-luck.html',
+  'american-luck',
+);
+assert.equal(
+  getStaticReviewHtml('reviews/american-luck.html', 'american-luck'),
+  staticAmericanLuck,
+  'static review integration must be deterministic',
+);
+const mcluckSource = readFileSync(resolve(root, 'reviews/mcluck.html'), 'utf8');
+const ssrMcluck = prepareSsrAffiliateReviewHtml(
+  mcluckSource,
+  null,
+  'mcluck',
+  'review-mcluck',
+);
+assert.equal(
+  prepareSsrAffiliateReviewHtml(ssrMcluck, null, 'mcluck', 'review-mcluck'),
+  ssrMcluck,
+  'SSR review integration must be idempotent',
+);
+
+const staticPipelineSource = readFileSync(resolve(root, 'src/lib/staticHtml.js'), 'utf8');
+assert.match(
+  staticPipelineSource,
+  /injectOperatorFactsHtml\(source, slug\)[\s\S]*decorateChrome\(canonicalFacts\)/,
+  'static review facts must be injected before JSON-LD consolidation',
+);
+const ssrPipelineSource = readFileSync(resolve(root, 'src/lib/affiliateHtml.ts'), 'utf8');
+assert.match(
+  ssrPipelineSource,
+  /prepareSsrAffiliateHtml\(injectOperatorFactsHtml\(rawHtml, slug\)/,
+  'SSR review facts must be injected before JSON-LD consolidation',
+);
+
+const preservationFixture =
+  '<main><div class="sticky-sub">★★★★★ 4.5/5 · 29,000+ reviews · ' +
+  '4.6/5 Trustpilot</div><!--sc-operator-facts data-operator="mcluck" ' +
+  'data-fields="name,editorScore100"--></main>';
+const preservationRendered = injectOperatorFactsHtml(preservationFixture, 'mcluck');
+assert.match(preservationRendered, /29,000\+ reviews/);
+assert.match(preservationRendered, /4\.6\/5 Trustpilot/);
 
 const malformed = structuredClone(OPERATORS) as OperatorRecord[];
 malformed[0].editorScore100 = {
