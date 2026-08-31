@@ -24,10 +24,10 @@ const FIELD_SET = new Set<string>(CANONICAL_OPERATOR_FIELDS);
 const SCORE_RATIO = /(?:~\s*)?(\d{1,3}(?:\.\d+)?)\s*\/\s*(5|100)\b/gi;
 const BARE_FIVE_SCORE = /\b[0-5]\.\d+\b/g;
 const FIRST_PARTY_CUE =
-  /\b(?:editor(?:ial)?|editor(?:ial)? score|editor(?:'s)? rating|overall(?: score| rating| verdict)?|our (?:score|rating)|we rate|how we (?:rate|score)|earns?(?: its| an?| the)?|is rated|rated by (?:us|sweepstakes wiz))\b/i;
+  /\b(?:editor(?:ial)?|editor(?:ial)? score|editor(?:'s)? rating|overall(?: score| rating| verdict)?|our (?:score|rating|verdict|reviewers?)|reviewers?|verdict|final rating|we rate|how we (?:rate|score)|earns?(?: its| an?| the)?|is rated|rated by (?:us|sweepstakes wiz))\b/i;
 const BREAKDOWN_CUE = /\b(?:how we (?:rate|score)|rating breakdown|score breakdown)\b/i;
-const THIRD_PARTY_CUE =
-  /\b(?:Trustpilot|Google Play|App Store|player-reported|reader reports?)\b|[a-z0-9.-]+\.com\b|(?:\b(?!Sweepstakes\s+Wiz\b)[A-Z][A-Za-z0-9.-]{2,})\s+rates?\b/;
+const NAMED_THIRD_PARTY_CUE =
+  /\b(?:Trustpilot|Google Play|App Store|Deadspin(?:\.com)?|SweepsKings|player-reported|reader reports?)\b/i;
 const VOID_ELEMENTS = new Set([
   'area',
   'base',
@@ -408,16 +408,13 @@ function isExplicitThirdPartyScore(
   }
   const local = plainText(windowText.slice(clauseStart, clauseEnd));
   if (FIRST_PARTY_CUE.test(local)) return false;
-  if (THIRD_PARTY_CUE.test(local)) return true;
+  if (NAMED_THIRD_PARTY_CUE.test(local)) return true;
 
   const row = ancestors.find((element) => element.tag === 'tr');
   if (!row) return false;
   const rowText = elementText(html, row);
   if (FIRST_PARTY_CUE.test(rowText)) return false;
-  return (
-    THIRD_PARTY_CUE.test(rowText) ||
-    /\bhref\s*=\s*["']https?:\/\//i.test(elementHtml(html, row))
-  );
+  return NAMED_THIRD_PARTY_CUE.test(rowText);
 }
 
 function isBreakdownSubcategory(

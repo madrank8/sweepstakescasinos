@@ -40,24 +40,32 @@ const FIRST_PERSON_TEST_NOUN =
   String.raw`our(?:\s+own)?\s+(?:tests?|checks?|test\s+results?|measurements?|observations?)`;
 const FIRST_PERSON_TEST_ACTION =
   String.raw`we\s+(?:ran|conducted|performed|completed|carried\s+out)\s+(?:(?:[\w-]+)\s+){0,4}(?:tests?|checks?|trials?|measurements?)`;
+const FIRST_PERSON_EDITOR_ACTION =
+  String.raw`our\s+editors?\s+(?:registered|created|opened)\s+(?:(?:[\w-]+)\s+){0,5}(?:accounts?|profiles?)(?:\s+and\s+requested\s+(?:a\s+)?redemption)?`;
 const NUMBERED_TEST = String.raw`test\s*(?:#\s*)?\d+`;
 const SPEC_TESTING_CLAIM =
   String.raw`everything tested and verified|full hands-on expert review|14-day hands-on test|our own funded test account|our test redemption|we created an account|played for 14 days|made two real redemptions|real redemptions tested|tests every site|re-tests? every|our editors register|we(?:'ve| have)? tested|our testers?|testers? confirmed|we confirmed|i signed up|we signed up|we found|our team verified|we verified|we redeemed|we cashed out|observed in our test|payouts tested|tested and verified|hands-on test(?:ed|ing)?|first-hand|hands-on|tested`;
 
 export const TESTING_CLAIM_PATTERN = new RegExp(
-  String.raw`\b(?:${FIRST_PERSON_TEST_ACTION}|${FIRST_PERSON_TEST_NOUN}|${SPEC_TESTING_CLAIM}|${NUMBERED_TEST})\b`,
+  String.raw`\b(?:${FIRST_PERSON_EDITOR_ACTION}|${FIRST_PERSON_TEST_ACTION}|${FIRST_PERSON_TEST_NOUN}|${SPEC_TESTING_CLAIM}|${NUMBERED_TEST})\b`,
   'gi',
 );
 
-const THIRD_PARTY_CONTEXT =
-  /\b(?:trustpilot|deadspin|sweepskings|editorial (?:review|source)|cross-verified|reader(?:s|'s)?|players?\s+(?:report|reported|say|describe)|player-reported|third-party|operator(?:'s)?|published|terms|policy|provider|studio|rng[- ]tested|independently tested|certified|laboratory|payment rails)\b/i;
-const NEGATION_OR_POLICY_CONTEXT =
-  /\b(?:no|not|never|without|unless|if|where|when|future|fabricated|unsupported|unverified|cannot|could not|did not|do not|does not|don't|doesn't|isn't|is not)\b/i;
+const EXPLICIT_NEGATION =
+  /\b(?:no|not|never|without|fabricated|unsupported|unverified|cannot|could not|did not|do not|does not|don't|doesn't|isn't|is not)\b/i;
+const LIMITATION_OR_POLICY_CONTEXT =
+  /\b(?:unless|if|where|when|future|policy)\b/i;
 const EXPLICIT_FIRST_PARTY = /\b(?:we|our|i)\b/i;
 const FIRST_PERSON_TEST_CONTEXT =
-  /\bour\b[^.!?]{0,100}\b(?:tests?|checks?|test\s+results?|measurements?|observations?)\b|\bwe\s+(?:ran|conducted|performed|completed|carried\s+out)\b/i;
+  /\bour\b[^.!?]{0,100}\b(?:tests?|checks?|test\s+results?|measurements?|observations?)\b|\bwe\s+(?:ran|conducted|performed|completed|carried\s+out|tested|found)\b|\bour\s+editors?\s+(?:register(?:ed)?|created|opened|requested)\b/i;
 const DIRECT_ATTRIBUTION =
   /\b(?:operator|provider|laboratory|reader|player|third[- ]party)\b[^.!?]{0,80}\b(?:reports?|reported|says?|said|states?|stated|writes?|wrote|claims?|claimed)\b/i;
+const NAMED_SOURCE_ATTRIBUTION =
+  /\b(?:trustpilot|deadspin(?:\.com)?|sweepskings|google play|app store|[a-z0-9-]+\.(?:com|org|net))\b[^!?]{0,160}$/i;
+const INTRINSIC_EXTERNAL_TEST =
+  /\b(?:rng[- ]tested|independently\s+(?:rng[- ])?tested|certified)\b[^.!?]{0,100}\b(?:games?|slots?|providers?|studios?|laborator(?:y|ies)|fairness)\b|\b(?:games?|slots?|providers?|studios?|laborator(?:y|ies))\b[^.!?]{0,100}\b(?:rng[- ]tested|independently\s+(?:rng[- ])?tested|certified)\b/i;
+const READER_SUBMISSION_REQUEST =
+  /\b(?:share|submit|tell us about)\b[^.!?]{0,100}\bfirst-hand\b[^.!?]{0,140}\b(?:reader|player|experience|report)\b/i;
 
 function phraseOffset(context: string, phrase: string): number {
   return context.toLocaleLowerCase().indexOf(phrase.toLocaleLowerCase());
@@ -66,12 +74,16 @@ function phraseOffset(context: string, phrase: string): number {
 function occurrenceClause(context: string, phrase: string): string {
   const offset = phraseOffset(context, phrase);
   if (offset < 0) return context;
-  const previousBoundary = Math.max(
-    context.lastIndexOf('.', offset - 1),
-    context.lastIndexOf('!', offset - 1),
-    context.lastIndexOf('?', offset - 1),
+  const boundaryText = context.replace(
+    /\b[a-z0-9-]+(?:\.[a-z0-9-]+)+\b/gi,
+    (domain) => domain.replaceAll('.', '·'),
   );
-  const tail = context.slice(offset + phrase.length);
+  const previousBoundary = Math.max(
+    boundaryText.lastIndexOf('.', offset - 1),
+    boundaryText.lastIndexOf('!', offset - 1),
+    boundaryText.lastIndexOf('?', offset - 1),
+  );
+  const tail = boundaryText.slice(offset + phrase.length);
   const nextBoundaryOffset = tail.search(/[.!?]/);
   const nextBoundary =
     nextBoundaryOffset < 0
@@ -95,9 +107,11 @@ export function classifyTestingClaim(input: ClaimClassificationInput): ClaimClas
   const explicitFirstParty =
     EXPLICIT_FIRST_PARTY.test(input.phrase) ||
     FIRST_PERSON_TEST_CONTEXT.test(clause);
-  const hasThirdPartyContext =
-    THIRD_PARTY_CONTEXT.test(clause) || THIRD_PARTY_CONTEXT.test(context);
-  const hasNegationOrPolicyContext = NEGATION_OR_POLICY_CONTEXT.test(clause);
+  const directlyAttributedBefore =
+    DIRECT_ATTRIBUTION.test(beforePhrase) ||
+    NAMED_SOURCE_ATTRIBUTION.test(beforePhrase);
+  const explicitlyNegated = EXPLICIT_NEGATION.test(clause);
+  const limitationOrPolicy = LIMITATION_OR_POLICY_CONTEXT.test(clause);
 
   if (occursInQuestion(context, input.phrase)) {
     return {
@@ -107,22 +121,10 @@ export function classifyTestingClaim(input: ClaimClassificationInput): ClaimClas
   }
 
   if (explicitFirstParty) {
-    if (hasNegationOrPolicyContext) {
-      if (hasThirdPartyContext) {
-        return {
-          classification: 'THIRD_PARTY_OR_READER_DATA',
-          evidenceBasis: 'The same source context explicitly attributes the statement to published, operator, laboratory, third-party, or reader data.',
-        };
-      }
+    if (explicitlyNegated) {
       return {
         classification: 'AMBIGUOUS',
-        evidenceBasis: 'The match occurs in a conditional, limitation, or explicit negation rather than a documented first-hand result.',
-      };
-    }
-    if (DIRECT_ATTRIBUTION.test(beforePhrase)) {
-      return {
-        classification: 'THIRD_PARTY_OR_READER_DATA',
-        evidenceBasis: 'The same source context explicitly attributes the statement to published, operator, laboratory, third-party, or reader data.',
+        evidenceBasis: 'The match is explicitly negated rather than presented as a first-hand result.',
       };
     }
     if (!input.hasDocumentedEvidence) {
@@ -137,14 +139,18 @@ export function classifyTestingClaim(input: ClaimClassificationInput): ClaimClas
     };
   }
 
-  if (hasThirdPartyContext) {
+  if (
+    directlyAttributedBefore ||
+    INTRINSIC_EXTERNAL_TEST.test(clause) ||
+    READER_SUBMISSION_REQUEST.test(clause)
+  ) {
     return {
       classification: 'THIRD_PARTY_OR_READER_DATA',
-      evidenceBasis: 'The same source context explicitly attributes the statement to published, operator, laboratory, third-party, or reader data.',
+      evidenceBasis: 'A named external source or external testing subject is directly tied to the claim.',
     };
   }
 
-  if (hasNegationOrPolicyContext) {
+  if (explicitlyNegated || limitationOrPolicy) {
     return {
       classification: 'AMBIGUOUS',
       evidenceBasis: 'The match occurs in a conditional, limitation, or explicit negation rather than a documented first-hand result.',

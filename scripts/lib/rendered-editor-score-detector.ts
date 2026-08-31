@@ -8,9 +8,76 @@ export interface RenderedEditorScoreContext {
 const SCORE = /(\d{1,3}(?:\.\d+)?)\s*\/\s*(5|100)\b/g;
 const BARE_FIVE_SCORE = /\b([0-5]\.\d+)\b/g;
 const FIRST_PARTY_LANGUAGE =
-  /\b(?:editor(?:ial)?|overall|our (?:score|rating)|we rate|how we (?:rate|score)|earns?(?: its| an?| the)?|is rated|rated by (?:us|sweepstakes wiz))\b/i;
-const EXPLICIT_THIRD_PARTY =
-  /\b(?:Trustpilot|Google Play|App Store|player-reported|reader reports?)\b|[a-z0-9.-]+\.com\b|(?:\b(?!Sweepstakes\s+Wiz\b)[A-Z][A-Za-z0-9.-]{2,})\s+rates?\b/;
+  /\b(?:editor(?:ial)?|overall|our (?:score|rating|verdict|reviewers?)|reviewers?|verdict|final rating|we rate|how we (?:rate|score)|earns?(?: its| an?| the)?|is rated|rated by (?:us|sweepstakes wiz))\b/i;
+const STRONG_FIRST_PARTY_LANGUAGE =
+  /\b(?:editor(?:ial)?(?: score| rating)?|our (?:score|rating|verdict|reviewers?)|from our reviewers?|verdict|final rating|we rate|how we (?:rate|score)|rated by (?:us|sweepstakes wiz))\b/i;
+const NAMED_THIRD_PARTY =
+  /\b(?:Trustpilot|Google Play|App Store|Deadspin(?:\.com)?|SweepsKings|player-reported|reader reports?)\b/i;
+
+function hasNamedThirdPartyAttribution(text: string): boolean {
+  return NAMED_THIRD_PARTY.test(text) && !STRONG_FIRST_PARTY_LANGUAGE.test(text);
+}
+
+function nearestMatchDistance(
+  text: string,
+  offset: number,
+  pattern: RegExp,
+): number {
+  const global = new RegExp(pattern.source, `${pattern.flags.replace('g', '')}g`);
+  let nearest = Number.POSITIVE_INFINITY;
+  for (const match of text.matchAll(global)) {
+    nearest = Math.min(nearest, Math.abs(match.index - offset));
+  }
+  return nearest;
+}
+
+function namedSourceIsNearest(text: string, scoreOffset: number): boolean {
+  const sourceDistance = nearestMatchDistance(
+    text,
+    scoreOffset,
+    NAMED_THIRD_PARTY,
+  );
+  const firstPartyDistance = nearestMatchDistance(
+    text,
+    scoreOffset,
+    STRONG_FIRST_PARTY_LANGUAGE,
+  );
+  return sourceDistance <= 240 && sourceDistance < firstPartyDistance;
+}
+
+function scoreHasNamedThirdPartyAttribution(
+  lines: string[],
+  lineIndex: number,
+  scoreIndex: number,
+  scoreLength: number,
+  scoreOnly: boolean,
+): boolean {
+  const line = lines[lineIndex];
+  if (namedSourceIsNearest(line, scoreIndex)) return true;
+  if (
+    NAMED_THIRD_PARTY.test(lines[lineIndex - 1] ?? '') ||
+    NAMED_THIRD_PARTY.test(lines[lineIndex + 1] ?? '')
+  ) {
+    return true;
+  }
+  if (
+    !scoreOnly &&
+    !/\breviews?\b|\(\s*~?[\d,.]+[Kk]?\+?\s*(?:reviews?)?\s*\)/i.test(line)
+  ) {
+    return false;
+  }
+  const immediate = lines
+    .slice(Math.max(0, lineIndex - 3), lineIndex + 2)
+    .join(' ');
+  if (hasNamedThirdPartyAttribution(immediate)) return true;
+  const start = Math.max(0, lineIndex - 30);
+  const contextLines = lines.slice(start, lineIndex + 4);
+  const beforeScore = contextLines
+    .slice(0, lineIndex - start)
+    .join(' ');
+  const adjacent = contextLines.join(' ');
+  return namedSourceIsNearest(adjacent, beforeScore.length + 1 + scoreIndex);
+}
 
 function decodeText(value: string): string {
   return value
@@ -38,10 +105,7 @@ function removeExplicitExternalRows(html: string): string {
   return html.replace(/<tr\b[\s\S]*?<\/tr\s*>/gi, (row) => {
     const text = plainText(row);
     if (FIRST_PARTY_LANGUAGE.test(text)) return row;
-    if (
-      EXPLICIT_THIRD_PARTY.test(text) ||
-      /\bhref\s*=\s*["']https?:\/\//i.test(row)
-    ) {
+    if (hasNamedThirdPartyAttribution(text)) {
       return '\n';
     }
     return row;
@@ -99,19 +163,14 @@ export function findRenderedEditorScoreContexts(
           .trim().length === 0;
       const previous = lines[lineIndex - 1] ?? '';
       const next = lines[lineIndex + 1] ?? '';
-      const sourceContext = lines
-        .slice(Math.max(0, lineIndex - 3), lineIndex + 4)
-        .join(' ');
-      const extendedSourceContext = lines
-        .slice(Math.max(0, lineIndex - 12), lineIndex + 13)
-        .join(' ');
       if (
-        EXPLICIT_THIRD_PARTY.test(line) ||
-        (EXPLICIT_THIRD_PARTY.test(sourceContext) &&
-          (scoreOnly ||
-            /\breviews?\b/i.test(line) ||
-            /\(\s*~?[\d,.]+[Kk]?\+?\s*\)/.test(line))) ||
-        (line.includes('~') && EXPLICIT_THIRD_PARTY.test(extendedSourceContext))
+        scoreHasNamedThirdPartyAttribution(
+          lines,
+          lineIndex,
+          match.index,
+          match[0].length,
+          scoreOnly,
+        )
       ) {
         continue;
       }
@@ -146,7 +205,6 @@ export function findRenderedEditorScoreContexts(
       line.replace(/\b[0-5]\.\d+\b/g, '').replace(/(?:★|☆|½)+/g, '').trim()
         .length === 0;
     if (
-      EXPLICIT_THIRD_PARTY.test(line) ||
       (!FIRST_PARTY_LANGUAGE.test(line) &&
         !(
           bareScoreOnly &&
@@ -159,6 +217,17 @@ export function findRenderedEditorScoreContexts(
     for (const match of line.matchAll(BARE_FIVE_SCORE)) {
       const trailing = line.slice(match.index + match[0].length);
       if (/^\s*\/\s*(?:5|100)\b/.test(trailing)) continue;
+      if (
+        scoreHasNamedThirdPartyAttribution(
+          lines,
+          lineIndex,
+          match.index,
+          match[0].length,
+          bareScoreOnly,
+        )
+      ) {
+        continue;
+      }
       contexts.push({
         kind: 'first-party-language',
         value: Number(match[1]),
