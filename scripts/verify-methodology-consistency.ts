@@ -51,6 +51,20 @@ for (const surface of SURFACES) {
       errors.push(`${surface.file}: missing weight "${c.weight}%" for "${c.name}"`);
     }
   }
+  if (surface.label === 'how-we-rate') {
+    const description =
+      content.match(/<meta name="description" content="([^"]*)"/i)?.[1] ?? '';
+    if (!/\b(?:four|4)[ -]criteria\b/i.test(description)) {
+      errors.push(
+        `${surface.file}: meta description must describe the four-criteria methodology`,
+      );
+    }
+    if (/\b(?:seven|7)[ -]criteria\b/i.test(description)) {
+      errors.push(
+        `${surface.file}: meta description still describes the retired seven-criteria methodology`,
+      );
+    }
+  }
 }
 
 console.log('\n=== Rating-methodology consistency (single source of truth) ===\n');

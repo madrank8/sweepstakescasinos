@@ -281,6 +281,19 @@ assert.doesNotMatch(
 const aboutHtml = readFileSync(resolve(root, 'about.html'), 'utf8');
 assert.match(aboutHtml, /Rates sites against 4 fixed criteria/i);
 assert.doesNotMatch(aboutHtml, /Rates sites against 7 fixed criteria/i);
+const howWeRateHtml = readFileSync(resolve(root, 'how-we-rate.html'), 'utf8');
+const howWeRateDescription =
+  howWeRateHtml.match(/<meta name="description" content="([^"]*)"/i)?.[1] ?? '';
+assert.match(
+  howWeRateDescription,
+  /\b(?:four|4)[ -]criteria\b/i,
+  'How We Rate metadata must describe the current four-criteria methodology',
+);
+assert.doesNotMatch(
+  howWeRateDescription,
+  /\b(?:seven|7)[ -]criteria\b/i,
+  'How We Rate metadata must not describe the retired seven-criteria methodology',
+);
 for (const unsupportedProcessClaim of [
   /drives roughly half of our re-investigations/i,
   /operators have offered increased commission rates/i,
