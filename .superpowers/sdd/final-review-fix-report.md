@@ -196,3 +196,97 @@ Final full verification:
 - The source audit still records 23 legacy visible/schema score mismatches;
   rendered output suppresses or aligns them without guessing source truth.
 - CI emits the existing non-failing empty `src/content/reviews` MDX warning.
+
+## Whole-branch re-review addendum
+
+### Status
+
+COMPLETE. The remaining Critical/Important findings were reproduced, fixed,
+and verified without adding caching scope. No push was performed. No `.beads`
+data, attached plan/brief, instructions, or controller ledger was edited.
+
+### Findings fixed
+
+- Score normalization now replaces only score-only elements, direct
+  first-party score contexts, and recognizable score chrome. It preserves
+  authored SC amounts, dollar prices, percentages, multipliers, app/third-party
+  ratings, and third-party ranges.
+- An unresolved score replacement carries state only in a data attribute and
+  HTML comment; it emits no reader-visible “unresolved” label. Verified
+  replacements emit the canonical `/100` value only in genuine score contexts.
+- The all-29 request-rendered regression compares authored non-score decimals
+  with rendered output and scans each complete visible document for score
+  governance vocabulary.
+- All production inbound links found describing
+  `/best/sweepstakes-casinos/` as ranked/scored were rewritten as neutral
+  comparison links. A repository gate now rejects ranking language tied to
+  that destination.
+- `/new/` now declares `ItemListUnordered` and exposes the same position, name,
+  and URL for every visible card, allowing built ItemList parity to validate
+  all ten entries.
+- Partial ISO launch dates render as human-readable month/year values. Legacy
+  `index.html` provenance is explicitly historical/not served. State Article
+  schema uses the later real status-change or legal-review event for
+  `dateModified`, and built verification rejects chronology inversion.
+- Dormant odds recommendation rank badges, `/5` scores, and offer amounts were
+  deleted. About now names the four actual methodology criteria.
+
+### Red evidence
+
+- `npm run operator:test` failed first on reader-visible `Editor score:
+  unresolved`, then exposed lost authored decimals (including Casino Click
+  `2.5` values) before the normalizer was narrowed.
+- The all-review detector then exposed genuine sticky score chrome still
+  leaking for High 5, SpinBlitz, and Thrillzz; the green implementation fixed
+  those without deleting app or third-party ratings.
+- `npm run verify:internal-links` failed on the American Luck “ranked picks”
+  inbound link before the repository-wide destination gate was satisfied.
+- `npm run verify:homepage` failed while `/new/` still declared
+  `ItemListOrderDescending` and lacked visible parity attributes.
+- `npm run verify:availability` failed while state schema still passed tracker
+  freshness directly as `dateModified`.
+- `npm run verify:odds`, `npm run seo:audit:test`, and `npm run seo:audit`
+  failed respectively on dormant score/offer/rank copy, the seven-criteria
+  About claim, and deterministic report drift.
+
+### Green evidence
+
+- `npm run operator:test` — 29 canonical reviews rendered and checked,
+  including full-document governance and non-score decimal preservation.
+- `npm run verify:internal-links` — 29 reviews and the inbound comparison
+  language gate passed.
+- `npm run verify:homepage` — unordered `/new/` schema/visible parity source
+  contract passed.
+- `npm run verify:availability` — 51 jurisdictions and state date chronology
+  contract passed.
+- `npm run verify:odds` — cleaned recommendation model/component passed.
+- `npm run seo:audit:test && npm run seo:audit` — deterministic byte parity,
+  54 claim matches, zero unsupported claims, 103 routes, and 1,443 authored
+  links.
+- Final `npm run ci` — exit 0. Review QA rendered all 29 reviews by request
+  with 32 answer blocks, 87 geo/outbound assertions, and zero errors. Built
+  schema validated 115 indexable pages, including `/new/` ItemList parity and
+  state date chronology. Rendered crawl validated 123 pages, 6,013 links, and
+  96 geo renders with zero failures.
+
+### Addendum commits
+
+- `6463c19` — `fix: preserve non-score review decimals`
+- `3d37450` — `fix: remove unsupported comparison ranking claims`
+- `e85f7dc` — `fix: expose unordered new-hub ItemList parity`
+- `115f781` — `fix: preserve state schema date chronology`
+- `8ba7983` — `fix: clarify operator fact presentation`
+- `01b2b33` — `fix: remove dormant odds ranking facts`
+- `b8f771d` — `fix: align About methodology criteria`
+- `40c679f` — `chore: refresh comparison source freshness`
+- `3369082` — `docs: refresh final review audits`
+
+### Remaining concerns after re-review
+
+- The same 25 editor-score and four signup-offer conflicts still require human
+  source resolution; this wave deliberately did not guess values.
+- The six tracker/site-policy differences, Card Crush policy intersection, 29
+  missing operator verification dates, empty first-party evidence, and empty
+  reader aggregates remain unchanged.
+- The source audit still records 23 legacy source/schema score mismatches.
+- CI still emits the existing non-failing empty `src/content/reviews` warning.

@@ -150,3 +150,25 @@ plan/brief, beads data, instructions, or controller ledger was edited.
 - Local Astro dev does not serve one shared `.html` partial observed in the
   preliminary check; built Vercel output does.
 
+## Final re-review addendum
+
+The subsequent whole-branch rejection was also resolved:
+
+- The review normalizer no longer treats arbitrary bare decimals or prose
+  ratios as editor scores. All 29 request-rendered reviews now preserve authored
+  non-score decimals and scan their complete visible documents for internal
+  score-governance language.
+- Unresolved score state is retained only in data/comment markup; verified
+  scores replace only genuine score chrome or explicit score contexts.
+- Production inbound copy no longer claims
+  `/best/sweepstakes-casinos/` is ranked, and a source gate prevents recurrence.
+- `/new/` now has unordered visible/schema ItemList parity.
+- Partial launch dates, historical homepage provenance, state schema date
+  chronology, dormant odds recommendation facts, and the About methodology
+  count were corrected without changing unresolved factual/legal states.
+
+RED evidence came from focused operator, internal-link, homepage, availability,
+odds, and deterministic-audit gates. Final `npm run ci` exited 0: 29 review
+renders, 115 built-schema pages, 123 crawled pages, 6,013 links, and 96 geo
+renders all passed with zero reported errors.
+

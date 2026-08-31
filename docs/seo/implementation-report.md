@@ -1,6 +1,6 @@
 # SEO Implementation Report
 
-Evidence snapshot: `cursor/seo-coherence-5d71` at `a5cb2e8`, verified on
+Evidence snapshot: `cursor/seo-coherence-5d71` at `3369082`, verified on
 2026-08-31 before this report commit.
 
 ## 1. Changes made
@@ -20,6 +20,10 @@ decisions with typed, evidence-gated paths:
   paths so visitor eligibility, CTA presence, and state context cannot freeze
   at build time. Each review has a canonical fact summary, evidence-gated answer
   blocks, disclosure, contextual navigation, and visible/FAQ-schema parity.
+- Legacy editor-score normalization is context-bound: verified values replace
+  only genuine score chrome or explicit score contexts, unresolved state has no
+  visible label, and all 29 rendered reviews preserve authored non-score
+  decimals while undergoing a full-document governance-language scan.
 - Tracker legal display, affiliate commercial availability, and site CTA
   policy remain separate authorities behind one availability facade. Page CTA
   rendering and the bonus gateway fail closed for unknown or site-suppressed
@@ -110,13 +114,18 @@ The generated `src/pages/` tree remains generator-owned. Legacy
   URLs remain unchanged.
 - `/best/sweepstakes-casinos/`, `/new/`, `/bonuses/no-deposit/`, and
   `/state-legality/` now consume canonical facts or the availability facade.
-  No deferred superlative hub was created.
+  The best-casinos route is not described as ranked by production inbound copy,
+  and `/new/` exposes unordered ItemList position/name/URL parity for all ten
+  visible entries. No deferred superlative hub was created.
 - All `/states/<slug>/` pages use tracker freshness for legal display, separate
   offer/site-policy wording, canonical state identity, and parent/review links.
-  Authored state MDX remains distinct from tracker-only state fallback content.
+  Their schema modification date is the later real legal-review or
+  status-change event, so it cannot precede publication. Authored state MDX
+  remains distinct from tracker-only state fallback content.
 - Guide and news article surfaces now receive body-aware contextual parent and
   commercial/state links. Generated sitemap metadata was refreshed for two
-  guide sources changed by that work.
+  guide sources changed by that work and for three additional guide sources
+  whose inbound comparison language was corrected during final re-review.
 
 `/best/` remains a deliberate redirect to
 `/best/sweepstakes-casinos/`. Existing bonus gateway paths and outbound
@@ -125,7 +134,9 @@ destinations remain functional.
 ## 5. Issues intentionally not changed
 
 - 25 editor scores remain unresolved and numeric first-party aggregate
-  presentation is suppressed for those reviews.
+  presentation is suppressed for those reviews. Legacy homepage score
+  provenance is labeled as a historical `index.html` snapshot that is not
+  served.
 - Four signup offers remain unresolved: Crown Coins, Hello Millions,
   SpinBlitz, and Spree.
 - Six tracker/site-policy differences remain unresolved: California, Florida,
@@ -202,6 +213,12 @@ After:
 
 Fresh `npm run ci` exited 0 after the coordinated whole-branch fixes.
 
+- Critical score regression: all 29 request-rendered reviews preserve authored
+  non-score SC, dollar, percentage, multiplier, and range decimals; unresolved
+  score state is not visible and complete-document governance scans pass.
+- ItemList/date contracts: `/new/` visible/schema count, unordered semantics,
+  positions, names, and URLs pass built parity; state Articles pass
+  `dateModified >= datePublished`.
 - Availability: 51 jurisdictions, 13 partners, six tracker/site-policy
   differences, and the Card Crush intersection validated.
 - SEO audit: 29 reviews, 12 homepage decision-support operators, 10 comparison
