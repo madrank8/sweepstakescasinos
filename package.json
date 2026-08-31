@@ -26,13 +26,14 @@
     "testing:anchors": "tsx scripts/add-testing-anchors.ts",
     "content:lint": "tsx scripts/lint-experience-claims.ts",
     "schema:verify": "tsx scripts/verify-schema.ts && tsx scripts/verify-schema-helpers.ts",
+    "schema:check": "tsx scripts/verify-schema-built.ts",
     "methodology:check": "tsx scripts/verify-methodology-consistency.ts",
     "reader-reports:aggregate": "tsx scripts/aggregate-reader-reports.ts",
     "seo:extract": "python3 scripts/seo/extract_guides.py",
     "seo:fingerprint": "python3 scripts/seo/corpus_fingerprint.py --in .seo/pages.json --min-cluster 2",
     "seo:provenance": "python3 scripts/seo/r45_provenance.py --in .seo/pages.json",
     "seo:score": "npm run build && npm run seo:extract && npm run seo:fingerprint && npm run seo:provenance",
-    "ci": "npm run verify:availability && npm run content:lint && npm run tracker:lint && npm run methodology:check && npm run verify:odds && npm run testing:verify && npm run testing:verify-overclaims && npm run build && npm run verify:odds:integration"
+    "ci": "npm run verify:availability && npm run content:lint && npm run tracker:lint && npm run methodology:check && npm run verify:odds && npm run testing:verify && npm run testing:verify-overclaims && npm run build && npm run schema:check && npm run verify:odds:integration"
   },
   "devDependencies": {
     "astro": "^7.0.0",
