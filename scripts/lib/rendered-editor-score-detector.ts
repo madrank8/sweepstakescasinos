@@ -97,9 +97,12 @@ export function findRenderedEditorScoreContexts(
           .length === 0;
       const previous = lines[lineIndex - 1] ?? '';
       const next = lines[lineIndex + 1] ?? '';
+      const sourceContext = lines
+        .slice(Math.max(0, lineIndex - 3), lineIndex + 4)
+        .join(' ');
       if (
         EXPLICIT_THIRD_PARTY.test(line) ||
-        (scoreOnly && EXPLICIT_THIRD_PARTY.test(previous))
+        (scoreOnly && EXPLICIT_THIRD_PARTY.test(sourceContext))
       ) {
         continue;
       }
@@ -130,10 +133,17 @@ export function findRenderedEditorScoreContexts(
 
     const previous = lines[lineIndex - 1] ?? '';
     const next = lines[lineIndex + 1] ?? '';
+    const bareScoreOnly =
+      line.replace(/\b[0-5]\.\d+\b/g, '').replace(/(?:★|☆|½)+/g, '').trim()
+        .length === 0;
     if (
-      !FIRST_PARTY_LANGUAGE.test(line) &&
-      !FIRST_PARTY_LANGUAGE.test(previous) &&
-      !FIRST_PARTY_LANGUAGE.test(next)
+      EXPLICIT_THIRD_PARTY.test(line) ||
+      (!FIRST_PARTY_LANGUAGE.test(line) &&
+        !(
+          bareScoreOnly &&
+          (FIRST_PARTY_LANGUAGE.test(previous) ||
+            FIRST_PARTY_LANGUAGE.test(next))
+        ))
     ) {
       return;
     }
