@@ -140,7 +140,7 @@ function obviousLegacyEditorScoreContexts(html: string): string[] {
     ],
     [
       'sticky score label',
-      /class=["'][^"']*\bsticky-(?:sub|st)\b[^"']*["'][^>]*>[^\n]*?(?:★|&#9733;)[^\n]*?\d(?:\.\d+)?\s*\/\s*5/gi,
+      /class=["'][^"']*\bsticky-(?:sub|st)\b[^"']*["'][^>]*>[^<]*(?:★|&#9733;)[^<]*\d(?:\.\d+)?\s*\/\s*5[^<]*</gi,
     ],
   ];
   for (const [label, pattern] of patterns) {
