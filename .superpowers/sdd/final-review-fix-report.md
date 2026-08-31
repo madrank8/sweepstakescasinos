@@ -280,6 +280,7 @@ data, attached plan/brief, instructions, or controller ledger was edited.
 - `b8f771d` — `fix: align About methodology criteria`
 - `40c679f` — `chore: refresh comparison source freshness`
 - `3369082` — `docs: refresh final review audits`
+- `6252035` — `test: cover verified score decimal preservation`
 
 ### Remaining concerns after re-review
 

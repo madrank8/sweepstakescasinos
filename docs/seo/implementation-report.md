@@ -1,6 +1,6 @@
 # SEO Implementation Report
 
-Evidence snapshot: `cursor/seo-coherence-5d71` at `3369082`, verified on
+Evidence snapshot: `cursor/seo-coherence-5d71` at `6252035`, verified on
 2026-08-31 before this report commit.
 
 ## 1. Changes made
