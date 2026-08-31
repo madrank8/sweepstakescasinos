@@ -460,6 +460,12 @@ function distinctSources(sources: SourceValue[]): SourceValue[] {
   });
 }
 
+function auditProvenanceSource(source: string): string {
+  return source === 'index.html#historical-homepage-snapshot-not-served'
+    ? 'index.html'
+    : source;
+}
+
 export function inventoryOperatorFacts(root = process.cwd()): OperatorAudit {
   const reviews = reviewInventory(root);
   const homepage = homepageInventory(root);
@@ -473,7 +479,7 @@ export function inventoryOperatorFacts(root = process.cwd()): OperatorAudit {
     const canonicalScoreSources =
       canonicalOperator?.editorScore100.status === 'unresolved'
         ? canonicalOperator.editorScore100.sources.map((source) => ({
-            path: source.provenance.source,
+            path: auditProvenanceSource(source.provenance.source),
             value: source.value,
           }))
         : [];
@@ -864,7 +870,7 @@ function operatorReport(audit: OperatorAudit): string {
     reportHeader('Operator Data Conflicts'),
     `Coverage: **${audit.reviews.length} authored reviews**, **${audit.homepage.length} homepage cards**, **${audit.comparison.length} comparison rows**, and **${audit.hubs.length} relevant hub facts**.\n\n`,
     'No conflict below is resolved by this audit. Values remain exactly as authored pending source review.\n\n',
-    '`src/data/operators.ts` records these conflicts as `unresolved`; canonical selectors and Review schema omit them. Verified canonical values retain field-level provenance, while affiliate restrictions and schema identity remain in their separate data modules.\n\n',
+    '`src/data/operators.ts` records these conflicts as `unresolved`; canonical selectors and Review schema omit them. Every `index.html` score source is a historical homepage snapshot that is not served. Verified canonical values retain field-level provenance, while affiliate restrictions and schema identity remain in their separate data modules.\n\n',
     '| Operator | Field | Exact source values | Status |\n',
     '|---|---|---|---|\n',
     ...audit.conflicts.map(

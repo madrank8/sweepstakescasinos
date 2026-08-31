@@ -6,7 +6,7 @@ Coverage: **29 authored reviews**, **12 homepage cards**, **10 comparison rows**
 
 No conflict below is resolved by this audit. Values remain exactly as authored pending source review.
 
-`src/data/operators.ts` records these conflicts as `unresolved`; canonical selectors and Review schema omit them. Verified canonical values retain field-level provenance, while affiliate restrictions and schema identity remain in their separate data modules.
+`src/data/operators.ts` records these conflicts as `unresolved`; canonical selectors and Review schema omit them. Every `index.html` score source is a historical homepage snapshot that is not served. Verified canonical values retain field-level provenance, while affiliate restrictions and schema identity remain in their separate data modules.
 
 | Operator | Field | Exact source values | Status |
 |---|---|---|---|
