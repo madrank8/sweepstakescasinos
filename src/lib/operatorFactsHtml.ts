@@ -13,7 +13,7 @@ const FIELD_SET = new Set<string>(CANONICAL_OPERATOR_FIELDS);
 const SCORE_RATIO = /(?:~\s*)?(\d{1,3}(?:\.\d+)?)\s*\/\s*(5|100)\b/gi;
 const BARE_FIVE_SCORE = /\b[0-5]\.\d+\b/g;
 const FIRST_PARTY_CUE =
-  /\b(?:editor(?:ial)? score|editor(?:'s)? rating|overall(?: score| rating| verdict)?|our (?:score|rating)|we rate|how we rate|earns?(?: its| an?| the)?|is rated|rated by (?:us|sweepstakes wiz))\b/i;
+  /\b(?:editor(?:ial)?|editor(?:ial)? score|editor(?:'s)? rating|overall(?: score| rating| verdict)?|our (?:score|rating)|we rate|how we rate|earns?(?: its| an?| the)?|is rated|rated by (?:us|sweepstakes wiz))\b/i;
 const BREAKDOWN_CUE = /\b(?:how we rate|rating breakdown|score breakdown)\b/i;
 const THIRD_PARTY_CUE =
   /\b(?:Trustpilot|Google Play|App Store|player-reported|reader reports?|customer reviews?)\b|[a-z0-9.-]+\.com\b/i;
@@ -234,6 +234,8 @@ function isBreakdownSubcategory(
       .replace(/\s+/g, ' ')
       .trim();
     if (!/[a-z]{3}/i.test(label)) continue;
+    SCORE_RATIO.lastIndex = 0;
+    if ([...text.matchAll(SCORE_RATIO)].length !== 1) continue;
     if (
       ancestors
         .slice(index + 1, index + 2)
@@ -334,7 +336,9 @@ function normalizeDirectScoreText(
       if (/^\s*\/\s*(?:5|100)\b/.test(trailing)) continue;
       const ancestors = containingElements(elements, start);
       if (
-        ancestors.some((element) => FIRST_PARTY_CUE.test(elementText(html, element))) &&
+        ancestors
+          .slice(0, 4)
+          .some((element) => FIRST_PARTY_CUE.test(elementText(html, element))) &&
         shouldNormalizeScore(html, start, elements)
       ) {
         replacements.push({
