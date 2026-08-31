@@ -10,7 +10,6 @@ import {
 import { prepareSsrAffiliateReviewHtml } from '../src/lib/affiliateHtml';
 import { reviewOutboundAvailabilityView } from '../src/lib/availabilityViews';
 import { selectReviewContextualLinks } from '../src/lib/internalLinks';
-import { getStaticReviewHtml } from '../src/lib/staticHtml.js';
 import { findRenderedEditorScoreContexts } from './lib/rendered-editor-score-detector';
 import { findUnsupportedTestingClaims } from './seo/claim-policy';
 
@@ -230,16 +229,13 @@ export function runReviewQa(root = process.cwd()): ReviewQaResult {
       errors.push(`${slug}: unsupported first-hand source claim`);
     }
 
-    const ssr = /href=["']\/bonuses\//i.test(source);
-    const rendered = ssr
-      ? (ssrRenderCount++,
-        prepareSsrAffiliateReviewHtml(
-          source,
-          null,
-          slug,
-          `review-${slug}`,
-        ))
-      : (staticRenderCount++, getStaticReviewHtml(relativePath, slug));
+    ssrRenderCount += 1;
+    const rendered = prepareSsrAffiliateReviewHtml(
+      source,
+      null,
+      slug,
+      `review-${slug}`,
+    );
     if ((rendered.match(/<h1\b/gi) ?? []).length !== 1) {
       errors.push(`${slug}: rendered review must contain exactly one H1`);
     }

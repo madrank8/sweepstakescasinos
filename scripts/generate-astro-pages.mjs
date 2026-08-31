@@ -123,8 +123,11 @@ function writePage(sourcePath) {
   const reviewSlug = reviewMatch ? reviewMatch[1] : null;
 
   let content;
-  if (isAffiliatePage(sourcePath)) {
-    // SSR + geo-suppression of affiliate CTAs per request.
+  if (reviewSlug || isAffiliatePage(sourcePath)) {
+    // Every review is request-rendered because its canonical availability
+    // summary and contextual state link are geo-dependent, even when the
+    // authored source has no outbound CTA. Other affiliate pages remain SSR
+    // for request-time CTA suppression.
     // Import the HTML via ?raw so it ships inside the Vercel function bundle
     // (runtime fs reads of source files are NOT available in serverless).
     const suppressImport = relImport(destination, join(root, 'src', 'lib', 'affiliateHtml'));
@@ -151,14 +154,6 @@ function writePage(sourcePath) {
         `const html = prepareSsrAffiliateHtml(rawHtml, Astro.locals.usState, '${placement}');\n` +
         `---\n<Fragment set:html={html} />\n`;
     }
-  } else if (reviewSlug) {
-    // Non-partner review -> static, but still gets the Reader Reports section.
-    content =
-      `---\n` +
-      `export const prerender = true;\n` +
-      `import { getStaticReviewHtml } from '${staticHtmlImport}';\n` +
-      `const html = getStaticReviewHtml('${sourcePath}', '${reviewSlug}');\n` +
-      `---\n<Fragment set:html={html} />\n`;
   } else {
     // No affiliate CTAs -> keep static for performance.
     content =
