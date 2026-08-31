@@ -446,6 +446,31 @@ assert.deepEqual(
   ),
   [],
 );
+for (const fixture of [
+  '<p>McLuck.com earns 88/100 from our reviewers.</p>',
+  '<h2>Our verdict on this casino</h2><p>88/100</p>',
+  '<h2>Final rating for the brand</h2><p>88/100</p>',
+]) {
+  assert.ok(
+    findRenderedEditorScoreContexts(fixture).some(
+      (context) => context.value === 88 && context.scale === 100,
+    ),
+    `independent detector must catch first-party aggregate language: ${fixture}`,
+  );
+}
+assert.deepEqual(
+  findRenderedEditorScoreContexts(
+    '<p>Trustpilot rates McLuck 4.6/5 from 29,000 reviews.</p>',
+  ),
+  [],
+  'a named third-party rating directly tied to the score remains exempt',
+);
+assert.ok(
+  findRenderedEditorScoreContexts(
+    '<p>Trustpilot covers this category.</p><p>Our verdict on this casino</p><p>88/100</p>',
+  ).length > 0,
+  'third-party text elsewhere must not exempt a first-party aggregate score',
+);
 
 const builtVerifierSource = readFileSync(
   resolve(root, 'scripts/verify-schema-built.ts'),
