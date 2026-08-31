@@ -1,6 +1,6 @@
 # SEO Implementation Report
 
-Evidence snapshot: `cursor/seo-coherence-5d71` at `6252035`, verified on
+Evidence snapshot: `cursor/seo-coherence-5d71` at `c0854ee`, verified on
 2026-08-31 before this report commit.
 
 ## 1. Changes made
@@ -21,9 +21,12 @@ decisions with typed, evidence-gated paths:
   at build time. Each review has a canonical fact summary, evidence-gated answer
   blocks, disclosure, contextual navigation, and visible/FAQ-schema parity.
 - Legacy editor-score normalization is context-bound: verified values replace
-  only genuine score chrome or explicit score contexts, unresolved state has no
-  visible label, and all 29 rendered reviews preserve authored non-score
-  decimals while undergoing a full-document governance-language scan.
+  only score-only chrome or explicit widgets, never mixed prose or an enclosing
+  named-third-party block. Eleven affected authored review sources now use
+  grammatical non-numeric editorial prose, while attributed external ratings
+  remain unchanged. Unresolved state has no visible label, and all 29 rendered
+  reviews preserve authored non-score decimals while undergoing full-document
+  governance, dangling-language, and attribution scans.
 - Tracker legal display, affiliate commercial availability, and site CTA
   policy remain separate authorities behind one availability facade. Page CTA
   rendering and the bonus gateway fail closed for unknown or site-suppressed
@@ -117,6 +120,9 @@ The generated `src/pages/` tree remains generator-owned. Legacy
   The best-casinos route is not described as ranked by production inbound copy,
   and `/new/` exposes unordered ItemList position/name/URL parity for all ten
   visible entries. No deferred superlative hub was created.
+- `/how-we-rate/` metadata now names the same four-criteria methodology as its
+  visible content, with both the consistency gate and deterministic audit
+  rejecting the retired seven-criteria description.
 - All `/states/<slug>/` pages use tracker freshness for legal display, separate
   offer/site-policy wording, canonical state identity, and parent/review links.
   Their schema modification date is the later real legal-review or
@@ -216,8 +222,11 @@ Fresh `npm run ci` exited 0 after the coordinated whole-branch fixes.
 - Critical score regression: all 29 request-rendered reviews preserve authored
   non-score SC, dollar, percentage, multiplier, and range decimals; unresolved
   score state is not visible and complete-document governance scans pass.
-- ItemList/date contracts: `/new/` visible/schema count, unordered semantics,
-  positions, names, and URLs pass built parity; state Articles pass
+- ItemList/date contracts: every top-level emitted ItemList must opt into
+  visible count/order/name/URL parity. The four previously unmarked
+  `/state-legality/`, `/guides/`, `/guides/social-casinos/`, and `/news/`
+  lists now pass; the gate also exposed and closed the request-rendered
+  legislation tracker's empty/populated parity path. State Articles still pass
   `dateModified >= datePublished`.
 - Availability: 51 jurisdictions, 13 partners, six tracker/site-policy
   differences, and the Card Crush intersection validated.

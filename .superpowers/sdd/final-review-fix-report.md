@@ -291,3 +291,100 @@ data, attached plan/brief, instructions, or controller ledger was edited.
   reader aggregates remain unchanged.
 - The source audit still records 23 legacy source/schema score mismatches.
 - CI still emits the existing non-failing empty `src/content/reviews` warning.
+
+## Final C1/I2/I3/I4 closure
+
+### Status
+
+COMPLETE. The final whole-branch rejection was reproduced and fixed without
+resolving the four offer conflicts, changing state publication semantics,
+adding caching scope, or editing beads, plans, instructions, or controller
+state. No push was performed.
+
+### Findings fixed
+
+- Production score normalization now changes only score-only chrome and
+  explicit widgets. Mixed prose is never rewritten, named-third-party
+  attribution takes precedence over first-party cue words and star chrome, and
+  a third-party source name used as a promo code is not treated as attribution.
+- Eleven review sources with affected aggregate score prose now contain
+  grammatical non-numeric editorial copy. The independent rendered detector,
+  rather than runtime deletion, remains responsible for rejecting future
+  unresolved aggregate prose.
+- All 29 source/rendered pairs now prove that authored named-third-party `N/5`
+  ratings survive, no editorial replacement appears inside a named-third-party
+  block, no score-governance vocabulary is visible, and no dangling
+  score-language punctuation or gaps remain. The identified Trustpilot/app and
+  external-review values were preserved rather than converted into editorial
+  scores.
+- `how-we-rate.html` now describes the four-criteria methodology in metadata.
+  The dedicated consistency gate and SEO audit both reject seven-criteria
+  metadata drift.
+- The built ItemList verifier now fails every top-level emitted ItemList that
+  lacks visible parity markup. `/state-legality/`, `/guides/`,
+  `/guides/social-casinos/`, and `/news/` expose matching item position, name,
+  and URL markers. The stronger gate also exposed the request-rendered
+  legislation tracker, whose populated table and empty notice now opt in.
+
+### Red evidence
+
+- `npm run operator:test` first failed on Acebet's reader-visible dangling
+  “We rate Acebet .” output. After runtime normalization was narrowed, it
+  enumerated the authored first-party aggregate clauses that could no longer be
+  hidden at render time.
+- The same all-29 gate then exposed an iOS `4.8/5` preservation loss caused by
+  missing `iOS App` attribution and promo-code text (`SWEEPSY` /
+  `SWEEPSKINGS`) being mistaken for reviewer attribution.
+- The deliberate mixed fixture retained
+  `Our verdict was 91/100 while Trustpilot ... 4.4/5`; the independent detector
+  continued to reject the unresolved first-party value while the production
+  normalizer left the sentence untouched.
+- `npm run verify:homepage` failed because
+  `itemListParityErrors('', parityGraph)` did not reject an unmarked emitted
+  ItemList.
+- `npm run methodology:check` and `npm run seo:audit:test` failed on the
+  seven-criteria How We Rate meta description.
+- `npm run seo:audit:test` subsequently failed on stale deterministic
+  `testing-claims-audit.md` bytes after authored source lines moved.
+- The first full `npm run ci` failed at built schema on the unmarked
+  `/sweepstakes-tracker/legislation/` ItemList. A focused rebuild then proved
+  the empty-data branch also needed a visible marker.
+
+### Green evidence
+
+- `npm run operator:test` — exit 0; all 29 canonical reviews passed source and
+  rendered score preservation, attribution, governance, dangling-language,
+  and unresolved-leak checks.
+- `npm run operator:verify` — 29 canonical operators passed.
+- `npm run verify:homepage` — ItemList opt-in and parity contracts passed.
+- `npm run methodology:check` — four criteria, weights totaling 100%, matched
+  on every surface.
+- `npm run seo:audit:test && npm run seo:audit` — deterministic byte parity,
+  29 reviews, 54 claim matches, zero unsupported claims, 103 routes, and 1,443
+  authored links.
+- `npm run build && npm run schema:check` — 115 indexable pages passed,
+  including every emitted top-level ItemList.
+- Final `npm run ci` — exit 0. Review QA rendered 29 reviews with 32 answer
+  blocks and 87 geo/outbound assertions. The rendered crawl covered 123 pages,
+  6,013 links, and 96 geo renders with zero failures.
+
+### Commits
+
+- `12a4583` — `fix: prevent mixed-prose score substitution`
+- `36d99fc` — `fix: require ItemList visible parity`
+- `2b2c25b` — `fix: align methodology metadata criteria`
+- `5901976` — `docs: refresh score safety audit`
+- `4f77fab` — `fix: expose legislation ItemList parity`
+- `5e1ea7a` — `chore: refresh source-derived route freshness`
+- `5e047b4` — `fix: mark empty legislation ItemList`
+- `c0854ee` — `chore: refresh tracker source freshness`
+
+### Remaining concerns
+
+- The same 25 editor-score and four signup-offer conflicts still require human
+  source resolution; no conflicting value was selected in this closure.
+- Six tracker/site-policy differences, the Card Crush policy intersection, 29
+  missing operator verification dates, empty first-party evidence, and empty
+  reader aggregates remain unchanged.
+- The source audit still records 23 legacy source/schema score mismatches.
+- CI still emits the existing non-failing empty `src/content/reviews` warning.

@@ -172,3 +172,46 @@ odds, and deterministic-audit gates. Final `npm run ci` exited 0: 29 review
 renders, 115 built-schema pages, 123 crawled pages, 6,013 links, and 96 geo
 renders all passed with zero reported errors.
 
+## Final re-review closure
+
+The final C1/I2/I3/I4 rejection is closed. Runtime score normalization now
+changes only score-only chrome or explicit widgets; it does not rewrite mixed
+sentences, and named third-party context takes precedence over first-party cue
+words or star chrome. Eleven affected review sources were rewritten into
+grammatical non-numeric editorial prose. Authored Trustpilot, app-store, and
+other named-source ratings remain unchanged.
+
+The all-29 operator gate now rejects dangling score-language gaps, editorial
+substitution inside named-third-party blocks, loss of authored third-party
+`N/5` values, internal governance vocabulary, and unresolved first-party
+aggregate prose. A deliberate mixed-prose fixture proves unresolved detection
+still fails rather than relying on runtime deletion.
+
+The How We Rate meta description now names four criteria, enforced by both the
+methodology and audit suites. Built ItemList validation now rejects every
+top-level ItemList without visible parity markup. The four reported pages pass,
+and the stronger invariant also found and closed the legislation tracker's
+empty/populated rendering path.
+
+RED evidence:
+
+- `npm run operator:test` exposed dangling unresolved prose, third-party
+  preservation losses, and the exact authored aggregate contexts before the
+  normalizer and review sources were corrected.
+- `npm run verify:homepage` rejected an emitted ItemList without visible
+  parity opt-in.
+- `npm run methodology:check` and `npm run seo:audit:test` rejected the stale
+  seven-criteria meta description.
+- The first full `npm run ci` reached built schema and rejected the unmarked
+  request-rendered legislation ItemList; the next built check caught its empty
+  data path until that visible notice also carried the marker.
+
+GREEN evidence:
+
+- `npm run operator:test` — all 29 source/rendered review checks passed.
+- `npm run verify:homepage`, `npm run methodology:check`,
+  `npm run seo:audit:test`, and `npm run seo:audit` — exit 0.
+- `npm run build && npm run schema:check` — 115 indexable pages, zero errors.
+- Final `npm run ci` — exit 0; 29 review renders, 32 answer blocks, 115 built
+  schema pages, 123 crawled pages, 6,013 links, and 96 geo renders passed.
+
