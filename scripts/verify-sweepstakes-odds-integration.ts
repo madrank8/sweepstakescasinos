@@ -467,7 +467,7 @@ assert.match(
   /^partnerSlugs:\s*\[\]\s*$/m,
   'unranked comparison leaves calculator recommendation configuration empty',
 );
-const fixtureSlugs = ['legendz', 'playfame', 'roxymoxy'];
+const fixtureSlugs = ['legendz', 'playfame', 'zula'];
 assert.equal(new Set(fixtureSlugs).size, 3, 'fixture recommendation slugs are unique');
 const fixturePartners = fixtureSlugs.map((slug) => {
   assert.ok(existsSync(join(root, `reviews/${slug}.html`)), `review exists for ${slug}`);

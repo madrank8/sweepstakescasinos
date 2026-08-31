@@ -808,7 +808,7 @@ assert.match(
   /^partnerSlugs:\s*\[\]\s*$/m,
   'the unranked comparison must not configure calculator recommendation cards',
 );
-const editorialSlugs = ['legendz', 'playfame', 'roxymoxy'];
+const editorialSlugs = ['legendz', 'playfame', 'zula'];
 assert.equal(new Set(editorialSlugs).size, 3, 'fixture recommendation slugs must be unique');
 const resolvedEditorialPartners = editorialSlugs.map((slug) => {
   const partner = getPartner(slug);
