@@ -181,9 +181,9 @@ because local Supabase credentials are absent.
 - Fourteen launch dates, 25 complete third-party ratings, and all 29
   fact-verification dates remain explicitly missing because the repository does
   not provide sufficient non-conflicting evidence in the required shape.
-- Legacy prose outside canonical selectors can still describe historical
-  source values. The canonical panel and schema do not expose those values as
-  resolved facts.
+- Explicitly named third-party ratings remain visible. Numeric Sweepstakes Wiz
+  aggregate claims in legacy prose, widgets, and comparison rows are normalized
+  with the same unresolved/verified state as the canonical panel.
 
 ## Review-finding fixes
 
@@ -230,10 +230,10 @@ exit 0
 
 ### Fix evidence
 
-- `operatorFactsHtml.ts` now uses semantic element contexts to normalize score
-  totals, star widgets, offer-card scores, score bars, labeled hero/quick-fact
-  items, and sticky labels across all template variants. It does not perform a
-  global number replacement.
+- `operatorFactsHtml.ts` now finds visible score tokens by their textual and
+  structural context rather than by a closed CSS-class list. It normalizes
+  first-party aggregates in prose, widgets, offer cards, tables, hero facts,
+  verdicts, and sticky labels without globally replacing unrelated numbers.
 - The real-review test invokes `getStaticReviewHtml` and
   `prepareSsrAffiliateReviewHtml`, exercises both pipelines, verifies injection
   precedes consolidation, and verifies deterministic/static and idempotent/SSR
@@ -241,10 +241,11 @@ exit 0
 - Repeated review rendering exposed two pre-existing idempotence defects:
   Reader Reports duplicated and global decoration removed canonical analytics.
   Both pipelines are now idempotent.
-- `scripts/lib/rendered-editor-score-detector.ts` independently scans visible
-  semantic score contexts without reading `data-canonical-field`. Its unresolved
-  leak fixture fails on every injected template variant while an explicitly
-  labeled Trustpilot fixture remains accepted.
+- `scripts/lib/rendered-editor-score-detector.ts` independently flattens visible
+  rendered text into statements and classifies first-party language,
+  unattributed ratings, and aggregate totals. It reads neither production class
+  lists nor `data-canonical-field`; named external-rating fixtures remain
+  accepted.
 - Both the full operator validator and post-build schema gate scan fully
   rendered review HTML. Verified contexts must all equal the canonical `/100`
   score; unresolved contexts must contain no numeric editor score.
@@ -281,3 +282,68 @@ exit 0
   editorial conflicts.
 - Explicitly attributed third-party ratings remain visible by design and are
   not treated as Sweepstakes Wiz editor scores.
+
+## Second-review structural correction
+
+### Red evidence
+
+The second-review fixture failed before implementation on the first cited
+surface:
+
+```text
+AssertionError: unresolved semantic claim leaked:
+/We rate Example Casino 4\.6\/5 and 91\/100/
+```
+
+The same fixture covers `earns its 88/100`, `is rated 4.3/5`, unknown
+`oc-rating` and `offer-rating` classes, an `Editor score` comparison row, and an
+aggregate `Overall` score. It also contains category breakdown values and a
+named Trustpilot rating that must survive.
+
+### Green evidence
+
+- Production normalization contains no score-widget CSS-class inventory. It
+  evaluates each visible score from local language, named source attribution,
+  table structure, and heading-bound breakdown structure.
+- The detector uses a separate statement-flattening mechanism and contains no
+  production template classes. The raw fixture produces at least six detected
+  leaks across every cited surface; its normalized form produces none.
+- The integration test explicitly renders all 29 authored reviews through
+  `getStaticReviewHtml` or `prepareSsrAffiliateReviewHtml` and asserts that all
+  25 unresolved pages contain zero detected numeric Sweepstakes Wiz score
+  claims.
+- Category rows such as `Redemption speed 96/100` and `Game library 92/100`
+  remain intact. Explicitly named Trustpilot and other third-party ratings
+  remain intact. Verified first-party contexts resolve only to the canonical
+  `/100` value.
+
+Fresh verification:
+
+```text
+npm run operator:test
+verify-operator-consistency tests: OK — 29 records, markers, validation, rendering
+
+npm run operator:verify
+[verify-operator-consistency] OK — 29 canonical operators validated.
+
+npm run build && npm run schema:check
+[verify-schema-built] OK — 114 indexable built pages validated.
+
+npm run ci
+[verify-schema-built] OK — 114 indexable built pages validated.
+verify-sweepstakes-odds-integration: OK
+exit 0
+```
+
+### Second-review commits
+
+- `d9e27cb` — `test: expose semantic editor score leaks`
+- `a0444fc` — `fix: normalize semantic editor score claims`
+- `720a75d` — `fix: detect semantic score claims independently`
+- `8a18992` — `test: require detector coverage of cited leak surfaces`
+- `5aa063d` — `fix: preserve named third-party score attribution`
+- `f019967` — `fix: retain decimal third-party rating context`
+- `57d2c15` — `test: lock full unresolved review corpus`
+
+Supporting refinements between those commits scope breakdown preservation and
+external-rating attribution without introducing template class lists.
