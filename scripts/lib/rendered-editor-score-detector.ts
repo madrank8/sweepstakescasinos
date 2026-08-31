@@ -103,7 +103,9 @@ export function findRenderedEditorScoreContexts(
       if (
         EXPLICIT_THIRD_PARTY.test(line) ||
         (EXPLICIT_THIRD_PARTY.test(sourceContext) &&
-          (scoreOnly || /\breviews?\b/i.test(line)))
+          (scoreOnly ||
+            /\breviews?\b/i.test(line) ||
+            /\(\s*~?[\d,.]+[Kk]?\+?\s*\)/.test(line)))
       ) {
         continue;
       }
