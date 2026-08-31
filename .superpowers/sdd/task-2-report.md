@@ -184,3 +184,100 @@ because local Supabase credentials are absent.
 - Legacy prose outside canonical selectors can still describe historical
   source values. The canonical panel and schema do not expose those values as
   resolved facts.
+
+## Review-finding fixes
+
+### Status
+
+COMPLETE. Whole-page score normalization now covers all shipped review template
+families before schema consolidation. Unresolved reviews render an explicit
+unresolved state in semantic editor-score contexts instead of legacy numeric
+widgets. Explicitly labeled third-party ratings and unrelated numbers remain.
+
+### Red/green evidence
+
+RED — the real static/SSR integration test rendered all 29 authored reviews and
+reported legacy score leakage in every one of the 25 unresolved records:
+
+```text
+npm run operator:test
+AssertionError: fully rendered unresolved reviews leaked legacy editor scores
+acebet: legacy stars widget, score-bars total, labeled editor score, sticky score label
+...
+zula: legacy stars widget, score-bars total, labeled editor score, sticky score label
+```
+
+The detector contract separately failed with zero recognized contexts against a
+fixture containing hero Editor Score, `v-score`, `v-stars`, score-bars total,
+quick-facts Overall, and sticky score variants.
+
+GREEN:
+
+```text
+npm run operator:test && npm run operator:verify
+verify-operator-consistency tests: OK — 29 records, markers, validation, rendering
+[verify-operator-consistency] OK — 29 canonical operators validated.
+
+npm run schema:verify
+[verify-schema] OK — 36 static pages validated.
+verify-schema-helpers: OK
+
+npm run ci
+[verify-schema-built] OK — 114 indexable built pages validated.
+verify-sweepstakes-odds-integration: OK
+exit 0
+```
+
+### Fix evidence
+
+- `operatorFactsHtml.ts` now uses semantic element contexts to normalize score
+  totals, star widgets, offer-card scores, score bars, labeled hero/quick-fact
+  items, and sticky labels across all template variants. It does not perform a
+  global number replacement.
+- The real-review test invokes `getStaticReviewHtml` and
+  `prepareSsrAffiliateReviewHtml`, exercises both pipelines, verifies injection
+  precedes consolidation, and verifies deterministic/static and idempotent/SSR
+  behavior.
+- Repeated review rendering exposed two pre-existing idempotence defects:
+  Reader Reports duplicated and global decoration removed canonical analytics.
+  Both pipelines are now idempotent.
+- `scripts/lib/rendered-editor-score-detector.ts` independently scans visible
+  semantic score contexts without reading `data-canonical-field`. Its unresolved
+  leak fixture fails on every injected template variant while an explicitly
+  labeled Trustpilot fixture remains accepted.
+- Both the full operator validator and post-build schema gate scan fully
+  rendered review HTML. Verified contexts must all equal the canonical `/100`
+  score; unresolved contexts must contain no numeric editor score.
+- All 25 unresolved score facts now retain three evidence surfaces: authored
+  `/100`, homepage `/5`, and legacy Review JSON-LD `/5`.
+- Review-backed provenance now carries each source Review node's actual
+  `datePublished` and `dateModified` values. This includes American Luck's
+  distinct `2026-07-08` publication date and per-review modification dates
+  ranging through `2026-07-14`.
+
+### Review-fix commits
+
+- `58962d8` — `test: expose rendered legacy score leaks`
+- `72afdfa` — `fix: normalize legacy editor score contexts`
+- `f6217b7` — `fix: retain fallback score-pair scrub`
+- `f84b249` — `test: distinguish labeled third-party ratings`
+- `018367f` — `test: scope sticky rating attribution`
+- `9f81e1e` — `fix: make review report injection idempotent`
+- `bf56bce` — `fix: preserve analytics on repeated decoration`
+- `da384dd` — `test: require independent rendered score detection`
+- `995a0a4` — `test: scaffold rendered score detector contract`
+- `042058d` — `feat: detect rendered semantic editor scores`
+- `5b80bad` — `fix: independently validate rendered score contexts`
+- `332bf81` — `test: require per-review score provenance`
+- `8030a08` — `fix: retain per-review score provenance`
+- `e9b42e8` — `fix: preserve authored score precision`
+- `1c228ee` — `test: fail leaked unresolved score fixtures`
+- `bc0ce4f` — `feat: validate rendered editor score contexts`
+
+### Remaining concerns
+
+- Twenty-five editor scores remain intentionally unresolved; the fix suppresses
+  contradictory numeric editor-score presentation but does not resolve those
+  editorial conflicts.
+- Explicitly attributed third-party ratings remain visible by design and are
+  not treated as Sweepstakes Wiz editor scores.
