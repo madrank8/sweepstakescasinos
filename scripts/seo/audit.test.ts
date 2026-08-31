@@ -99,6 +99,7 @@ const unsupportedFirstHandFixtures = [
   'Our live chat response (test 1) took four minutes.',
   'We ran checks against the redemption flow.',
   'We conducted three support tests.',
+  'We collected our own tests plus published policy and third-party reports.',
 ];
 for (const fixture of unsupportedFirstHandFixtures) {
   const hits = findUnsupportedTestingClaims(
@@ -130,6 +131,15 @@ assert.equal(
   ).length,
   0,
   'attributed operator and laboratory testing remains permitted',
+);
+assert.equal(
+  findUnsupportedTestingClaims(
+    '<script type="application/ld+json">{"name":"How fast does it pay?","text":"Our own tests cleared in two business days."}</script>',
+    'reviews/fixture.html',
+    false,
+  ).length,
+  1,
+  'a nearby FAQ question must not mask an unsupported first-hand answer',
 );
 
 const rollaPath = resolve(root, 'reviews/rolla.html');
