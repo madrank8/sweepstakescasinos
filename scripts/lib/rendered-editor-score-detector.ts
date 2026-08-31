@@ -73,12 +73,6 @@ function visibleLines(html: string): string[] {
   return lines;
 }
 
-function nearby(lines: string[], index: number): string {
-  return lines
-    .slice(Math.max(0, index - 2), Math.min(lines.length, index + 3))
-    .join(' ');
-}
-
 function previousLineIsDescriptive(lines: string[], index: number): boolean {
   const previous = lines[index - 1] ?? '';
   return (
@@ -96,15 +90,28 @@ export function findRenderedEditorScoreContexts(
 
   lines.forEach((line, lineIndex) => {
     for (const match of line.matchAll(SCORE)) {
-      if (EXPLICIT_THIRD_PARTY.test(line)) continue;
       const value = Number(match[1]);
       const scale = Number(match[2]) as 5 | 100;
-      const context = nearby(lines, lineIndex);
-      const firstParty = FIRST_PARTY_LANGUAGE.test(context);
+      const scoreOnly =
+        line.replace(/\d{1,3}(?:\.\d+)?\s*\/\s*(?:5|100)\b/g, '').trim()
+          .length === 0;
+      const previous = lines[lineIndex - 1] ?? '';
+      const next = lines[lineIndex + 1] ?? '';
+      if (
+        EXPLICIT_THIRD_PARTY.test(line) ||
+        (scoreOnly && EXPLICIT_THIRD_PARTY.test(previous))
+      ) {
+        continue;
+      }
+      const firstParty =
+        FIRST_PARTY_LANGUAGE.test(line) ||
+        (scoreOnly &&
+          (FIRST_PARTY_LANGUAGE.test(previous) ||
+            FIRST_PARTY_LANGUAGE.test(next)));
       if (
         scale === 100 &&
         !firstParty &&
-        line.replace(SCORE, '').trim().length === 0 &&
+        scoreOnly &&
         previousLineIsDescriptive(lines, lineIndex)
       ) {
         continue;
@@ -121,7 +128,15 @@ export function findRenderedEditorScoreContexts(
       });
     }
 
-    if (!FIRST_PARTY_LANGUAGE.test(nearby(lines, lineIndex))) return;
+    const previous = lines[lineIndex - 1] ?? '';
+    const next = lines[lineIndex + 1] ?? '';
+    if (
+      !FIRST_PARTY_LANGUAGE.test(line) &&
+      !FIRST_PARTY_LANGUAGE.test(previous) &&
+      !FIRST_PARTY_LANGUAGE.test(next)
+    ) {
+      return;
+    }
     for (const match of line.matchAll(BARE_FIVE_SCORE)) {
       const trailing = line.slice(match.index + match[0].length);
       if (/^\s*\/\s*(?:5|100)\b/.test(trailing)) continue;
