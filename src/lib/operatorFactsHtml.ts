@@ -73,7 +73,7 @@ const LABELS: Record<CanonicalOperatorField, string> = {
   gameCount: 'Published game count',
   externalRatings: 'External rating',
   editorScore100: 'Editor score',
-  lastVerifiedDate: 'Last verified',
+  lastVerifiedDate: 'Operator facts verified',
 };
 
 function escapeHtml(value: string): string {

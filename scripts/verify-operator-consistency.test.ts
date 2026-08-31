@@ -204,6 +204,11 @@ for (const operator of OPERATORS) {
       `${operator.slug} summary must render ${field}`,
     );
   }
+  assert.match(
+    rendered,
+    /<dt>Operator facts verified<\/dt><dd data-canonical-field="lastVerifiedDate"/,
+    `${operator.slug} must label the operator verification date explicitly`,
+  );
 
   const expectedAnswerKinds = [
     operator.cashRedemptionMinimum.status === 'verified' ||
