@@ -9,27 +9,14 @@ import {
 
 const MARKER =
   /<!--sc-operator-facts\s+data-operator="([a-z0-9-]+)"\s+data-fields="([^"]+)"\s*-->/g;
-const LEGACY_SCORE_PAIR =
-  /(<span\b[^>]*class=["'][^"']*\b(?:num|big)\b[^"']*["'][^>]*>)\s*\d{1,3}(?:\.\d+)?\s*(<\/span>\s*<span\b[^>]*class=["'][^"']*\b(?:den|denom)\b[^"']*["'][^>]*>)\s*\/\s*100\s*(<\/span>)/gi;
 const FIELD_SET = new Set<string>(CANONICAL_OPERATOR_FIELDS);
-const SCORE_ONLY_CLASSES = new Set([
-  'v-score',
-  'vb-num',
-  'sh-score',
-  'verdict-score',
-  'sb-num',
-]);
-const SCORE_STARS_CLASSES = new Set([
-  'v-stars',
-  'vb-stars',
-  'sh-stars',
-  'verdict-stars',
-  'sb-stars',
-  'oc-stars',
-  'oc-score',
-]);
-const LABELED_SCORE_ITEM_CLASSES = new Set(['metric', 'stat', 'qp-item', 'qf-item']);
-const STICKY_SCORE_CLASSES = new Set(['sticky-sub', 'sticky-st']);
+const SCORE_RATIO = /(?:~\s*)?(\d{1,3}(?:\.\d+)?)\s*\/\s*(5|100)\b/gi;
+const BARE_FIVE_SCORE = /\b[0-5]\.\d+\b/g;
+const FIRST_PARTY_CUE =
+  /\b(?:editor(?:ial)? score|editor(?:'s)? rating|overall(?: score| rating| verdict)?|our (?:score|rating)|we rate|how we rate|earns?(?: its| an?| the)?|is rated|rated by (?:us|sweepstakes wiz))\b/i;
+const BREAKDOWN_CUE = /\b(?:how we rate|rating breakdown|score breakdown)\b/i;
+const THIRD_PARTY_CUE =
+  /\b(?:Trustpilot|Google Play|App Store|player-reported|reader reports?|customer reviews?)\b|[a-z0-9.-]+\.com\b/i;
 const VOID_ELEMENTS = new Set([
   'area',
   'base',
@@ -54,7 +41,12 @@ interface HtmlElementRange {
   end: number;
   tag: string;
   opening: string;
-  classes: Set<string>;
+}
+
+interface TextReplacement {
+  start: number;
+  end: number;
+  value: string;
 }
 
 const LABELS: Record<CanonicalOperatorField, string> = {
@@ -106,14 +98,9 @@ function formatField(field: CanonicalOperatorField, value: unknown): string {
   return String(value);
 }
 
-function classNames(opening: string): Set<string> {
-  const value = opening.match(/\bclass\s*=\s*["']([^"']*)["']/i)?.[1] ?? '';
-  return new Set(value.split(/\s+/).filter(Boolean));
-}
-
 function elementRanges(html: string): HtmlElementRange[] {
   const ranges: HtmlElementRange[] = [];
-  const stack: Array<Omit<HtmlElementRange, 'closeStart' | 'end' | 'classes'>> = [];
+  const stack: Array<Omit<HtmlElementRange, 'closeStart' | 'end'>> = [];
   const tags = /<\/?([a-z][a-z0-9:-]*)\b[^>]*>/gi;
   let match: RegExpExecArray | null;
 
@@ -129,7 +116,6 @@ function elementRanges(html: string): HtmlElementRange[] {
           ...opening,
           closeStart: match.index,
           end: tags.lastIndex,
-          classes: classNames(opening.opening),
         });
         break;
       }
@@ -153,38 +139,10 @@ function elementRanges(html: string): HtmlElementRange[] {
   return ranges;
 }
 
-function hasAnyClass(classes: Set<string>, expected: Set<string>): boolean {
-  return [...classes].some((name) => expected.has(name));
-}
-
 function scoreStateHtml(score: number | undefined): string {
   const status = score === undefined ? 'unresolved' : 'verified';
   const value = score === undefined ? 'unresolved' : `${score}/100`;
   return `<span class="sc-editor-score-state" data-editor-score-status="${status}">Editor score: ${value}</span>`;
-}
-
-function replaceSemanticElements(
-  html: string,
-  predicate: (element: HtmlElementRange, inner: string) => boolean,
-  replacement: (element: HtmlElementRange, inner: string) => string,
-): string {
-  const matches = elementRanges(html)
-    .filter((element) =>
-      predicate(element, html.slice(element.openEnd, element.closeStart)),
-    )
-    .sort((left, right) => right.start - left.start);
-  let result = html;
-  let replacedStart = Number.POSITIVE_INFINITY;
-  for (const element of matches) {
-    if (element.end > replacedStart) continue;
-    const inner = html.slice(element.openEnd, element.closeStart);
-    result =
-      result.slice(0, element.start) +
-      replacement(element, inner) +
-      result.slice(element.end);
-    replacedStart = element.start;
-  }
-  return result;
 }
 
 function replaceElementContents(
@@ -199,24 +157,216 @@ function replaceElementContents(
   return `${opening}${content}</${element.tag}>`;
 }
 
-function normalizeStickyScore(inner: string, score: number | undefined): string {
-  const scoreMarkup = scoreStateHtml(score);
-  let inserted = false;
-  return inner
-    .split(/(\s*(?:&#183;|·|—|&mdash;)\s*)/)
-    .map((fragment) => {
-      if (!/\d(?:\.\d+)?\s*\/\s*5/i.test(fragment)) return fragment;
-      if (/\b(?:Trustpilot|Google|App Store|iOS|Android)\b/i.test(fragment)) {
-        return fragment;
-      }
-      const scrubbed = fragment
-        .replace(/(?:&#9733;|&#189;|[★☆½])+\s*/gi, '')
-        .replace(/~?\d(?:\.\d+)?\s*\/\s*5(?:\s*Editor)?/gi, '');
-      if (inserted) return scrubbed;
-      inserted = true;
-      return `${scoreMarkup}${scrubbed}`;
+function plainText(html: string): string {
+  return html
+    .replace(/<[^>]+>/g, ' ')
+    .replace(/&(?:#8211|#8212|#183|nbsp);/gi, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function visibleTextSegments(html: string): Array<{ start: number; text: string }> {
+  const segments: Array<{ start: number; text: string }> = [];
+  const hidden =
+    /<script\b[\s\S]*?<\/script\s*>|<style\b[\s\S]*?<\/style\s*>|<[^>]+>/gi;
+  let cursor = 0;
+  for (const match of html.matchAll(hidden)) {
+    if (match.index > cursor) {
+      segments.push({ start: cursor, text: html.slice(cursor, match.index) });
+    }
+    cursor = match.index + match[0].length;
+  }
+  if (cursor < html.length) segments.push({ start: cursor, text: html.slice(cursor) });
+  return segments;
+}
+
+function containingElements(
+  elements: HtmlElementRange[],
+  position: number,
+): HtmlElementRange[] {
+  return elements
+    .filter((element) => element.start <= position && position < element.end)
+    .sort(
+      (left, right) =>
+        left.end - left.start - (right.end - right.start),
+    );
+}
+
+function elementText(html: string, element: HtmlElementRange): string {
+  return plainText(html.slice(element.openEnd, element.closeStart));
+}
+
+function elementHtml(html: string, element: HtmlElementRange): string {
+  return html.slice(element.start, element.end);
+}
+
+function isExplicitThirdPartyScore(
+  html: string,
+  position: number,
+  ancestors: HtmlElementRange[],
+): boolean {
+  const local = plainText(
+    html.slice(Math.max(0, position - 90), Math.min(html.length, position + 100)),
+  );
+  if (FIRST_PARTY_CUE.test(local)) return false;
+  if (THIRD_PARTY_CUE.test(local)) return true;
+
+  const row = ancestors.find((element) => element.tag === 'tr');
+  if (!row) return false;
+  const rowText = elementText(html, row);
+  if (FIRST_PARTY_CUE.test(rowText)) return false;
+  return (
+    THIRD_PARTY_CUE.test(rowText) ||
+    /\bhref\s*=\s*["']https?:\/\//i.test(elementHtml(html, row))
+  );
+}
+
+function isBreakdownSubcategory(
+  html: string,
+  ancestors: HtmlElementRange[],
+): boolean {
+  for (let index = 0; index < ancestors.length; index += 1) {
+    const text = elementText(html, ancestors[index]);
+    if (FIRST_PARTY_CUE.test(text)) return false;
+    const label = text
+      .replace(SCORE_RATIO, ' ')
+      .replace(/(?:&#9733;|&#189;|[★☆½])+/gi, ' ')
+      .replace(/\s+/g, ' ')
+      .trim();
+    if (!/[a-z]{3}/i.test(label)) continue;
+    if (
+      ancestors
+        .slice(index + 1)
+        .some((ancestor) => BREAKDOWN_CUE.test(elementText(html, ancestor)))
+    ) {
+      return true;
+    }
+  }
+  return false;
+}
+
+function shouldNormalizeScore(
+  html: string,
+  position: number,
+  elements: HtmlElementRange[],
+): boolean {
+  const ancestors = containingElements(elements, position);
+  if (
+    ancestors.some((element) =>
+      /\bdata-editor-score-status\s*=/.test(element.opening),
+    )
+  ) {
+    return false;
+  }
+  if (isExplicitThirdPartyScore(html, position, ancestors)) return false;
+  return !isBreakdownSubcategory(html, ancestors);
+}
+
+function applyTextReplacements(
+  html: string,
+  replacements: TextReplacement[],
+): string {
+  let result = html;
+  for (const replacement of replacements.sort((left, right) => right.start - left.start)) {
+    result =
+      result.slice(0, replacement.start) +
+      replacement.value +
+      result.slice(replacement.end);
+  }
+  return result;
+}
+
+function normalizeSplitScoreElements(
+  html: string,
+  score: number | undefined,
+): string {
+  const elements = elementRanges(html);
+  const candidates = elements
+    .filter((element) => {
+      const inner = html.slice(element.openEnd, element.closeStart);
+      SCORE_RATIO.lastIndex = 0;
+      if (SCORE_RATIO.test(inner)) return false;
+      SCORE_RATIO.lastIndex = 0;
+      if (!SCORE_RATIO.test(elementText(html, element))) return false;
+      return shouldNormalizeScore(html, element.openEnd, elements);
     })
-    .join('');
+    .filter(
+      (element, _index, all) =>
+        !all.some(
+          (child) =>
+            child !== element &&
+            child.start > element.start &&
+            child.end < element.end,
+        ),
+    )
+    .sort((left, right) => right.start - left.start);
+  let result = html;
+  for (const element of candidates) {
+    result =
+      result.slice(0, element.start) +
+      replaceElementContents(element, scoreStateHtml(score), score) +
+      result.slice(element.end);
+  }
+  return result;
+}
+
+function normalizeDirectScoreText(
+  html: string,
+  score: number | undefined,
+): string {
+  const elements = elementRanges(html);
+  const replacements: TextReplacement[] = [];
+  for (const segment of visibleTextSegments(html)) {
+    SCORE_RATIO.lastIndex = 0;
+    for (const match of segment.text.matchAll(SCORE_RATIO)) {
+      const start = segment.start + match.index;
+      if (shouldNormalizeScore(html, start, elements)) {
+        replacements.push({
+          start,
+          end: start + match[0].length,
+          value: scoreStateHtml(score),
+        });
+      }
+    }
+    for (const match of segment.text.matchAll(BARE_FIVE_SCORE)) {
+      const start = segment.start + match.index;
+      const trailing = segment.text.slice(match.index + match[0].length);
+      if (/^\s*\/\s*(?:5|100)\b/.test(trailing)) continue;
+      const ancestors = containingElements(elements, start);
+      if (
+        ancestors.some((element) => FIRST_PARTY_CUE.test(elementText(html, element))) &&
+        shouldNormalizeScore(html, start, elements)
+      ) {
+        replacements.push({
+          start,
+          end: start + match[0].length,
+          value: scoreStateHtml(score),
+        });
+      }
+    }
+  }
+  return applyTextReplacements(html, replacements);
+}
+
+function removeFirstPartyStars(html: string): string {
+  const elements = elementRanges(html);
+  const replacements: TextReplacement[] = [];
+  for (const segment of visibleTextSegments(html)) {
+    for (const match of segment.text.matchAll(/(?:&#9733;|&#189;|[★☆½]){3,}/gi)) {
+      const start = segment.start + match.index;
+      const ancestors = containingElements(elements, start);
+      if (
+        ancestors.some((element) =>
+          /\bdata-editor-score-status\s*=/.test(elementHtml(html, element)),
+        ) &&
+        !isExplicitThirdPartyScore(html, start, ancestors) &&
+        !isBreakdownSubcategory(html, ancestors)
+      ) {
+        replacements.push({ start, end: start + match[0].length, value: '' });
+      }
+    }
+  }
+  return applyTextReplacements(html, replacements);
 }
 
 function normalizeLegacyEditorScore(
@@ -224,41 +374,13 @@ function normalizeLegacyEditorScore(
   score: number | undefined,
 ): string {
   const scoreMarkup = scoreStateHtml(score);
-  let normalized = replaceSemanticElements(
-    html,
-    (element) =>
-      hasAnyClass(element.classes, SCORE_ONLY_CLASSES) ||
-      hasAnyClass(element.classes, SCORE_STARS_CLASSES) ||
-      element.classes.has('score-bars'),
-    (element) => replaceElementContents(element, scoreMarkup, score),
-  );
-  normalized = replaceSemanticElements(
-    normalized,
-    (element, inner) =>
-      hasAnyClass(element.classes, LABELED_SCORE_ITEM_CLASSES) &&
-      /\b(?:Editor Score|Overall(?: Score| Rating)?)\b/i.test(
-        inner.replace(/<[^>]+>/g, ' '),
-      ),
-    (element) => replaceElementContents(element, scoreMarkup, score),
-  );
-  normalized = replaceSemanticElements(
-    normalized,
-    (element, inner) =>
-      hasAnyClass(element.classes, STICKY_SCORE_CLASSES) &&
-      /\d(?:\.\d+)?\s*\/\s*5/i.test(inner),
-    (element, inner) =>
-      replaceElementContents(element, normalizeStickyScore(inner, score), score),
-  );
-  const status = score === undefined ? 'unresolved' : 'verified';
+  let normalized = normalizeSplitScoreElements(html, score);
+  normalized = normalizeDirectScoreText(normalized, score);
+  normalized = removeFirstPartyStars(normalized);
+  const escapedMarkup = scoreMarkup.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   return normalized.replace(
-    LEGACY_SCORE_PAIR,
-    (_match, valueOpen: string, denominatorOpen: string, denominatorClose: string) => {
-      const opening = valueOpen.replace(
-        />$/,
-        ` data-editor-score-status="${status}" data-canonical-score-status="${status}">`,
-      );
-      return `${opening}${scoreMarkup}${denominatorOpen}${denominatorClose}`;
-    },
+    new RegExp(`${escapedMarkup}\\s*(?:and|&amp;)\\s*${escapedMarkup}`, 'gi'),
+    scoreMarkup,
   );
 }
 
