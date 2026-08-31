@@ -6,7 +6,7 @@
  * those conclusions separate.
  */
 import type { AffiliatePartner } from '../data/affiliates';
-import type { UsStateCode } from '../data/usStates';
+import { stateName, type UsStateCode } from '../data/usStates';
 import {
   availabilityForPartner,
   availabilityForState,
@@ -66,6 +66,12 @@ function badgeMarkup(options: LegalStatusBadgeOptions): string {
     ? `<br><strong>Site CTA policy verified:</strong> ` +
       `<time datetime="${view.site.verifiedOn}">${view.site.verifiedOn}</time>.`
     : '';
+  const stateContextLink = state
+    ? `<a href="/states/${escapeHtml(
+        options.trackerState?.state_slug ??
+          stateName(state).toLowerCase().replaceAll('.', '').replaceAll(' ', '-'),
+      )}/">${escapeHtml(stateName(state))} availability context</a>`
+    : '<a href="/state-legality/">Choose a state for availability context</a>';
   return `${BADGE_MARKER}
 <style>
 .sc-legal-verified{margin:14px 0 20px;padding:12px 16px;border:1px solid rgba(15,23,42,.16);border-left:5px solid #0a1628;border-radius:10px;background:linear-gradient(180deg,#f1f5f9 0%,#f8fafc 100%);font:600 13.5px/1.55 'DM Sans',system-ui,sans-serif;color:#1e293b;box-shadow:0 1px 2px rgba(15,23,42,.04);}
@@ -76,7 +82,7 @@ function badgeMarkup(options: LegalStatusBadgeOptions): string {
 <p class="sc-legal-verified" role="status">
   ${legalLine}${commercialLine}${policyLine}
   <br><a href="/sweepstakes-tracker/">Legality tracker</a>
-  · <a href="/state-legality/">State legality hub</a>
+  · ${stateContextLink}
 </p>`;
 }
 

@@ -5,6 +5,7 @@ import { injectLegalStatusBadge } from './legalStatusBadge.ts';
 import { decorateChrome } from './pageChrome.ts';
 import { injectReaderReports } from './readerReportsDisplay.ts';
 import { injectOperatorFactsHtml } from './operatorFactsHtml.ts';
+import { injectReviewContextualLinks } from './internalLinks.ts';
 
 const projectRoot = process.cwd();
 
@@ -29,5 +30,9 @@ export function getStaticReviewHtml(relativePath, slug) {
   const source = readFileSync(resolve(projectRoot, relativePath), 'utf8');
   const canonicalFacts = injectOperatorFactsHtml(source, slug);
   const decorated = stampUpdatedDate(decorateChrome(canonicalFacts));
-  return injectReaderReports(injectLegalStatusBadge(decorated), slug);
+  const withContext = injectReviewContextualLinks(
+    injectLegalStatusBadge(decorated),
+    { reviewSlug: slug },
+  );
+  return injectReaderReports(withContext, slug);
 }

@@ -5,6 +5,7 @@ import { injectLegalStatusBadge } from './legalStatusBadge';
 import { decorateChrome } from './pageChrome';
 import { injectReaderReports } from './readerReportsDisplay';
 import { injectOperatorFactsHtml } from './operatorFactsHtml';
+import { injectReviewContextualLinks } from './internalLinks';
 import type { UsStateCode } from '../data/usStates';
 import { availabilityForPartner, siteCtaEligibility } from './availability';
 import type { StateRecord } from './tracker/types';
@@ -109,5 +110,8 @@ export function prepareSsrAffiliateReviewHtml(
       partner: getPartner(slug),
     },
   );
-  return injectReaderReports(withBadge, slug);
+  return injectReaderReports(
+    injectReviewContextualLinks(withBadge, { reviewSlug: slug, state }),
+    slug,
+  );
 }

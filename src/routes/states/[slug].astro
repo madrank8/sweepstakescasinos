@@ -19,9 +19,9 @@ import { getCollection, render } from 'astro:content';
 import ContentLayout from '../../layouts/ContentLayout.astro';
 import { AFFILIATE_PARTNERS } from '../../data/affiliates';
 import {
-  availabilityForPartner,
   availabilityForState,
 } from '../../lib/availability';
+import { selectAvailableStateReviews } from '../../lib/internalLinks';
 import {
   stateName,
   stateWikidataIri,
@@ -75,8 +75,16 @@ const meta = SWEEPS_STATUS_META[trackerState.sweeps_casino_status];
 const ORIGIN = 'https://sweepstakeswiz.com';
 const stateAvailability = availabilityForState(code, trackerState);
 const banned = stateAvailability.site.status === 'suppressed';
-const availablePartners = AFFILIATE_PARTNERS.filter(
-  (partner) => availabilityForPartner(partner, code, trackerState).cta.eligible,
+const availableReviewLinks = selectAvailableStateReviews(
+  code,
+  trackerState,
+  AFFILIATE_PARTNERS,
+);
+const availablePartnerSlugs = new Set(
+  availableReviewLinks.map((link) => link.href.split('/').at(-2)),
+);
+const availablePartners = AFFILIATE_PARTNERS.filter((partner) =>
+  availablePartnerSlugs.has(partner.slug),
 );
 
 const slug = entry ? entry.id : trackerState.state_slug;
@@ -371,16 +379,22 @@ const regulated: Array<[string, string]> = [
           operator&rsquo;s commercial restrictions.
         </p>
       </div>
-    ) : availablePartners.length > 0 ? (
+    ) : availableReviewLinks.length > 0 ? (
       <ul>
-        {availablePartners.map((p) => (
-          <li><a href={`/reviews/${p.slug}/`}>{p.name} review</a></li>
+        {availableReviewLinks.map((link) => (
+          <li><a href={link.href}>{link.label}</a></li>
         ))}
       </ul>
     ) : (
       <p>No reviewed affiliate offers are currently eligible for display in {name}.</p>
     )}
   </section>
+
+  <nav class="state-research-links" aria-label={`More casino research for ${name}`}>
+    <a href="/reviews/">Browse every operator review</a>
+    <a href="/best/sweepstakes-casinos/">Open the deeper casino comparison</a>
+    <a href="/state-legality/">Compare availability across all states</a>
+  </nav>
 
   {!Content && (
     <section aria-label="Practical guidance">
@@ -477,6 +491,8 @@ const regulated: Array<[string, string]> = [
     .bills-list,.src-list{padding-left:20px;} .bills-list li,.src-list li{margin:6px 0;line-height:1.5;}
     .src-list a{word-break:break-all;font-size:.86rem;}
     .bill-status{color:#64748b;font-size:.85rem;}
+    .state-research-links{display:flex;flex-wrap:wrap;gap:8px 16px;margin:0 0 24px;padding:14px 16px;border-left:4px solid #fbbf24;background:#fffbeb;border-radius:0 10px 10px 0;}
+    .state-research-links a{font-weight:700;color:#1d4ed8;}
     .state-siblings{margin:8px 0 22px;}
     .sib-grid{list-style:none;padding:0;margin:10px 0 0;display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:4px 14px;}
     .sib-grid li{margin:3px 0;line-height:1.5;}

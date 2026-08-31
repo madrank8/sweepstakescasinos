@@ -636,9 +636,19 @@ export function auditAuthoredRoutes(root = process.cwd()): RouteAudit {
     (a, b) => a.path.localeCompare(b.path) || a.line - b.line || a.target.localeCompare(b.target),
   );
   const inbound = new Set(links.filter((link) => !link.missing).map((link) => link.normalizedTarget));
+  const redirectOnlyUrls = new Set(
+    routes
+      .filter(
+        (route) =>
+          route.source.startsWith('src/routes/') &&
+          /\breturn\s+Astro\.redirect\s*\(/.test(read(root, route.source)),
+      )
+      .map((route) => route.url),
+  );
   const orphanCandidates = routes.filter(
     (route) =>
       route.url !== '/' &&
+      !redirectOnlyUrls.has(route.url) &&
       !inbound.has(route.url) &&
       !route.url.startsWith('/bonuses/') &&
       !route.url.startsWith('/prototypes/'),
