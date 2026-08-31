@@ -282,7 +282,13 @@ function scoreFact(slug: string): CanonicalFact<number> {
     reason: 'Authored review, homepage, and legacy Review JSON-LD score surfaces disagree.',
     sources: [
       { value: `${conflict[0]}/100`, provenance: reviewSource },
-      { value: `${conflict[1]}/5`, provenance: { source: 'index.html', publishedOn: PUBLISHED_ON } },
+      {
+        value: `${conflict[1]}/5`,
+        provenance: {
+          source: 'index.html#historical-homepage-snapshot-not-served',
+          publishedOn: PUBLISHED_ON,
+        },
+      },
       {
         value: `${LEGACY_REVIEW_JSON_LD_SCORES[slug]}/5`,
         provenance: {
@@ -323,7 +329,12 @@ function signupFact(slug: string): CanonicalFact<string> {
     ? {
         status: 'verified',
         value: SIGNUP_OFFERS[slug],
-        provenance: [{ source: 'index.html', publishedOn: PUBLISHED_ON }],
+        provenance: [
+          {
+            source: 'index.html#historical-homepage-snapshot-not-served',
+            publishedOn: PUBLISHED_ON,
+          },
+        ],
       }
     : missing('No non-conflicting signup offer has been selected.');
 }

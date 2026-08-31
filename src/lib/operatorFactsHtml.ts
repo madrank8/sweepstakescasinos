@@ -19,6 +19,7 @@ import {
   reviewOutboundAvailabilityView,
   type ReviewOutboundAvailabilityView,
 } from './availabilityViews';
+import { formatPartialIsoDate } from './operatorPresentation';
 import type { StateRecord } from './tracker/types';
 
 const MARKER =
@@ -104,6 +105,7 @@ function formatRatings(ratings: ExternalRating[]): string {
 
 function formatField(field: CanonicalOperatorField, value: unknown): string {
   if (field === 'editorScore100') return `${value}/100`;
+  if (field === 'launchDate') return formatPartialIsoDate(String(value));
   if (field === 'gameCount') return Number(value).toLocaleString('en-US');
   if (field === 'paymentMethods') return (value as string[]).join(', ');
   if (field === 'externalRatings') return formatRatings(value as ExternalRating[]);
@@ -231,7 +233,7 @@ function answerSections(operator: OperatorRecord, authoredHtml: string): string 
       html: answerSection(
         'company-launch',
         `Who operates ${escapedName}, and when did it launch?`,
-        `${escapedName} is operated by ${escapeHtml(operatorName)} and has a published launch date of ${escapeHtml(launchDate)}.`,
+        `${escapedName} is operated by ${escapeHtml(operatorName)} and has a published launch date of ${escapeHtml(formatPartialIsoDate(launchDate))}.`,
       ),
     });
   }

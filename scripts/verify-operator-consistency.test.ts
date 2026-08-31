@@ -114,6 +114,41 @@ assert.match(injected, /data-canonical-field="editorScore100"[^>]*>72\/100</);
 assert.match(injected, /data-canonical-field="operatorName"[^>]*>SGSE LLC</);
 assert.equal(injectOperatorFactsHtml(injected, 'american-luck'), injected, 'injection is idempotent');
 
+const partialLaunchFixture =
+  '<main><!--sc-operator-facts data-operator="dexyplay" ' +
+  'data-fields="name,launchDate"--></main>';
+const partialLaunchRendered = injectOperatorFactsHtml(
+  partialLaunchFixture,
+  'dexyplay',
+);
+assert.match(
+  partialLaunchRendered,
+  /data-canonical-field="launchDate"[^>]*>January 2026</,
+  'partial ISO launch dates must be human-readable in review facts',
+);
+assert.doesNotMatch(partialLaunchRendered, />2026-01</);
+
+for (const operator of OPERATORS) {
+  for (const field of CANONICAL_OPERATOR_FIELDS) {
+    const fact = operator[field] as {
+      provenance?: Array<{ source: string }>;
+      sources?: Array<{ provenance: { source: string } }>;
+    };
+    const provenance = [
+      ...(fact.provenance ?? []),
+      ...(fact.sources ?? []).map((source) => source.provenance),
+    ];
+    for (const source of provenance) {
+      if (!source.source.startsWith('index.html')) continue;
+      assert.equal(
+        source.source,
+        'index.html#historical-homepage-snapshot-not-served',
+        `${operator.slug}.${field} must label legacy index.html provenance as historical`,
+      );
+    }
+  }
+}
+
 const unresolvedFixture =
   '<main><div class="verdict-box"><span class="big">88</span>' +
   '<span class="denom">/100</span></div>' +
