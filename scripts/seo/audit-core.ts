@@ -18,11 +18,15 @@ import {
   fallbackOperators,
   fallbackStates,
 } from '../../src/lib/tracker/fallback';
-import { selectRankedRecommendations } from '../../src/lib/homepage';
+import {
+  selectComparisonOperators,
+  selectVerifiedEditorScores,
+} from '../../src/lib/homepage';
+import { operatorFactNote } from '../../src/lib/operatorPresentation';
 import { visibleEditorialScore } from '../../src/lib/pageChrome';
 import { selectReviewContextualLinks } from '../../src/lib/internalLinks';
-import { assessRedemptionIndex } from '../../src/lib/redemptionIndex';
 import { validateAllResults } from '../../src/data/testingResults';
+import { assessProductionRedemptionEvidence } from '../../src/lib/redemptionEvidenceAdapter';
 import { runReviewQa, type ReviewQaResult } from '../verify-reviews';
 import { findTestingClaims, type UnsupportedTestingClaim } from './claim-policy';
 
@@ -342,12 +346,18 @@ function reviewInventory(root: string): ReviewInventory[] {
 
 function homepageInventory(root: string): HomepageOperator[] {
   void root;
-  return selectRankedRecommendations(OPERATORS).map((operator) => ({
+  const scores = new Map(
+    selectVerifiedEditorScores(OPERATORS).map((operator) => [
+      operator.slug,
+      operator.score,
+    ]),
+  );
+  return selectComparisonOperators(OPERATORS).map((operator) => ({
     slug: operator.slug,
     path: 'src/routes/index.astro',
     name: operator.name,
-    score: operator.score,
-    offer: operator.signupOffer ?? '',
+    ...(scores.has(operator.slug) ? { score: scores.get(operator.slug) } : {}),
+    offer: operator.welcomeOffer ?? '',
   }));
 }
 
@@ -361,36 +371,31 @@ function slugForName(name: string, homepage: HomepageOperator[]): string | undef
 }
 
 function comparisonInventory(root: string, homepage: HomepageOperator[]): ComparisonOperator[] {
-  const path = 'src/content/comparisons/sweepstakes-casinos.mdx';
-  const mdx = read(root, path);
-  const rows: ComparisonOperator[] = [];
-  for (const line of mdx.split('\n')) {
-    const match = line.match(
-      /^\|\s*\d+\s*\|\s*\*\*([^*]+)\*\*\s*\|[^|]*\|([^|]+)\|[^|]*\|\s*\[[^\]]+\]\(\/reviews\/([a-z0-9-]+)\/\)\s*\|$/,
-    );
-    if (!match) continue;
-    rows.push({
-      slug: match[3] || slugForName(match[1], homepage) || '',
+  void root;
+  void homepage;
+  const path = 'src/routes/best/[slug].astro';
+  return selectComparisonOperators(OPERATORS, 10)
+    .map((operator) => ({
+      slug: operator.slug,
       path,
-      name: match[1].trim(),
-      offer: plain(match[2]),
-    });
-  }
-  return rows.sort((a, b) => a.slug.localeCompare(b.slug));
+      name: operator.name,
+      offer: operator.welcomeOffer ?? '',
+    }))
+    .sort((a, b) => a.slug.localeCompare(b.slug));
 }
 
 function hubInventory(root: string): HubOperatorFact[] {
   const facts: HubOperatorFact[] = [];
   const newPath = 'src/routes/new/index.astro';
   const newSource = read(root, newPath);
-  for (const match of newSource.matchAll(
-    /\{\s*slug:\s*'([^']+)',[\s\S]*?note:\s*'([^']+)',\s*\}/g,
-  )) {
+  for (const match of newSource.matchAll(/\bslug:\s*'([^']+)'/g)) {
+    const operator = OPERATORS.find((candidate) => candidate.slug === match[1]);
+    if (!operator) continue;
     facts.push({
       slug: match[1],
       path: newPath,
       field: 'curated hub note',
-      value: match[2],
+      value: operatorFactNote(operator),
     });
   }
 
@@ -402,7 +407,7 @@ function hubInventory(root: string): HubOperatorFact[] {
     const signup =
       verifiedValue(operator.signupOffer) ??
       (operator.signupOffer.status === 'unresolved'
-        ? operator.signupOffer.sources.find((source) => source.provenance.source === bonusPath)?.value
+        ? 'Details omitted because canonical offer sources conflict'
         : undefined);
     const gift = verifiedValue(operator.giftCardRedemptionMinimum);
     const cash = verifiedValue(operator.cashRedemptionMinimum);
@@ -522,22 +527,35 @@ export function inventoryOperatorFacts(root = process.cwd()): OperatorAudit {
     const hubOffer = hubs.find(
       (entry) => entry.slug === review.slug && entry.field === 'welcome offer',
     );
-    if (home?.offer && (compared?.offer || hubOffer?.value)) {
+    if (canonicalOperator?.signupOffer.status === 'unresolved') {
+      const canonicalSources = canonicalOperator.signupOffer.sources.map(
+        (source, index) => ({
+          path:
+            `src/data/operators.ts#${review.slug}.signupOffer.sources[${index}] ` +
+            `(${source.provenance.source})`,
+          value: source.value,
+        }),
+      );
+      const servedReviewSources = canonicalOperator.signupOffer.sources
+        .filter((source) => source.provenance.source.startsWith('reviews/'))
+        .map((source) => ({
+          path: source.provenance.source,
+          value: source.value,
+        }));
       const offerSources = distinctSources([
-        { path: home.path, value: home.offer },
-        ...(compared ? [{ path: compared.path, value: compared.offer }] : []),
+        ...canonicalSources,
+        ...servedReviewSources,
+        ...(compared?.offer
+          ? [{ path: compared.path, value: compared.offer }]
+          : []),
         ...(hubOffer ? [{ path: hubOffer.path, value: hubOffer.value }] : []),
       ]);
-      const normalize = (value: string) =>
-        value.toLowerCase().replace(/\b(?:free|welcome|no code|sign-up)\b/g, '').replace(/\W/g, '');
-      if (new Set(offerSources.map((source) => normalize(source.value))).size > 1) {
-        conflicts.push({
-          slug: review.slug,
-          field: 'welcome offer',
-          sources: offerSources,
-          status: 'UNRESOLVED',
-        });
-      }
+      conflicts.push({
+        slug: review.slug,
+        field: 'welcome offer',
+        sources: offerSources,
+        status: 'UNRESOLVED',
+      });
     }
   }
 
@@ -882,12 +900,17 @@ function testingClaimsReport(
 ): string {
   const counts = new Map<string, number>();
   for (const claim of claims) counts.set(claim.classification, (counts.get(claim.classification) ?? 0) + 1);
-  const testingRows = validateAllResults(root).rows.length;
-  const readerAggregates = Object.keys(READER_REPORT_AGGREGATES).length;
-  const indexAssessment = assessRedemptionIndex([], { asOf: redemptionIndexAsOf });
+  const testing = validateAllResults(root);
+  const production = assessProductionRedemptionEvidence({
+    testingRows: testing.rows,
+    testingIssues: testing.issues,
+    readerAggregates: READER_REPORT_AGGREGATES,
+    asOf: redemptionIndexAsOf,
+  });
+  const indexAssessment = production.assessment;
   return [
     reportHeader('Testing Claims Audit'),
-    `Evidence authority: \`evidence/testing-results.csv\` has **${testingRows} data rows** and \`src/data/readerReports.generated.ts\` has **${readerAggregates} aggregates**.\n\n`,
+    `Evidence authority: \`evidence/testing-results.csv\` has **${production.testingRowsLoaded} data rows**, \`src/data/readerReports.generated.ts\` has **${production.readerAggregateOperatorsLoaded} aggregate operators**, and **${production.records.length} exact approved records** were adapted without pseudo-record expansion.\n\n`,
     `Redemption freshness date: ${redemptionIndexAsOf} is an explicit deterministic audit snapshot input, not a future publication default.\n\n`,
     `Redemption index publication state: **${indexAssessment.status === 'publishable' ? 'PUBLISHABLE' : 'NOT PUBLISHABLE'}** — ${
       indexAssessment.status === 'not-publishable' &&
@@ -920,7 +943,7 @@ function schemaReport(audit: SchemaAudit): string {
     reportHeader('Visible and Schema Parity Audit'),
     'Visible legacy scores are parsed with `visibleEditorialScore()` from `src/lib/pageChrome.ts`; schema ratings now use only verified `editorScore100` values from `src/data/operators.ts`.\n\n',
     `Coverage: **${audit.reviews.length} reviews**; source mismatches: **${audit.mismatches.length}**. Build-time consolidation emits **${verifiedCount}** verified canonical Review ratings and omits ratings for unresolved records; it never converts a five-star value.\n\n`,
-    `AggregateRating nodes from empty reader data: **${Object.keys(READER_REPORT_AGGREGATES).length}**. Answer blocks remain visible review content and are not added to FAQPage schema; all FAQPage nodes are rebuilt from visible FAQ questions and answers.\n\n`,
+    `Approved reader aggregate operators available to the rating gate: **${Object.keys(READER_REPORT_AGGREGATES).length}**. Answer blocks remain visible review content and are not added to FAQPage schema; all FAQPage nodes are rebuilt from visible FAQ questions and answers.\n\n`,
     '| Review | Visible score | Source JSON-LD score | Expected `/5` equivalent | Source parity |\n',
     '|---|---:|---:|---:|---|\n',
     ...audit.reviews.map(
@@ -1100,12 +1123,37 @@ export function renderAuditReports(
   ]);
 }
 
+export function findAuditReportDrift(
+  root: string,
+  reports: ReadonlyMap<string, string>,
+): string[] {
+  const drift: string[] = [];
+  for (const [name, rendered] of reports) {
+    const path = join(root, 'docs', 'seo', name);
+    if (!existsSync(path)) {
+      drift.push(`${name}: committed audit is missing`);
+      continue;
+    }
+    if (readFileSync(path, 'utf8') !== rendered) {
+      drift.push(`${name}: committed bytes differ from deterministic output`);
+    }
+  }
+  return drift;
+}
+
 export function auditSummary(root: string, options: AuditSnapshotOptions) {
   const operators = inventoryOperatorFacts(root);
   const claims = scanTestingClaims(root);
   const routes = auditAuthoredRoutes(root);
   const schema = auditSchemaParity(root);
   const reviewQa = runReviewQa(root);
+  const testing = validateAllResults(root);
+  const redemption = assessProductionRedemptionEvidence({
+    testingRows: testing.rows,
+    testingIssues: testing.issues,
+    readerAggregates: READER_REPORT_AGGREGATES,
+    asOf: options.redemptionIndexAsOf,
+  });
   const availability = reconcileAvailabilityAuthorities({
     states: fallbackStates,
     partners: AFFILIATE_PARTNERS,
@@ -1137,9 +1185,11 @@ export function auditSummary(root: string, options: AuditSnapshotOptions) {
     reviewQaErrorCount: reviewQa.errors.length,
     reviewFactSummaryCount: reviewQa.factSummaryCount,
     reviewAnswerBlockCount: reviewQa.answerBlockCount,
-    redemptionIndexStatus: assessRedemptionIndex([], {
-      asOf: options.redemptionIndexAsOf,
-    }).status,
+    redemptionIndexStatus: redemption.assessment.status,
+    redemptionTestingRowsLoaded: redemption.testingRowsLoaded,
+    redemptionReaderAggregateOperatorsLoaded:
+      redemption.readerAggregateOperatorsLoaded,
+    redemptionRecordsAdapted: redemption.records.length,
     stateCount: availability.jurisdictionCount,
     affiliateCount: availability.partnerCount,
     stateAuthorityConflictCount: availability.warnings.filter((warning) =>

@@ -8,6 +8,7 @@
 import {
   DETERMINISTIC_AUDIT_SNAPSHOT_AS_OF,
   auditSummary,
+  findAuditReportDrift,
   renderAuditReports,
 } from './audit-core';
 
@@ -31,6 +32,10 @@ if (reportName) {
 
 const summary = auditSummary(root, snapshot);
 console.log(JSON.stringify(summary, null, 2));
+const reportDrift = findAuditReportDrift(
+  root,
+  renderAuditReports(root, snapshot),
+);
 
 const unsupported =
   Number(summary.testingClaimClassifications.UNSUPPORTED ?? 0);
@@ -56,6 +61,7 @@ const failures = [
   unsupported > 0
     ? `${unsupported} unsupported first-hand/testing claims remain`
     : '',
+  ...reportDrift,
 ].filter(Boolean);
 
 if (failures.length > 0) {

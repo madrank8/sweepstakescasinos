@@ -297,16 +297,26 @@ function scoreFact(slug: string): CanonicalFact<number> {
 function signupFact(slug: string): CanonicalFact<string> {
   const conflict = CONFLICTING_OFFERS[slug];
   if (conflict) {
+    const reviewSource = sourceFor(slug);
     return {
       status: 'unresolved',
       reason: 'Published offer surfaces use different wording or amounts.',
-      sources: conflict.map((value, index) => ({
-        value,
-        provenance: {
-          source: index === 0 ? 'index.html' : 'src/routes/bonuses/no-deposit/index.astro',
-          publishedOn: PUBLISHED_ON,
+      sources: [
+        {
+          value: conflict[0],
+          provenance: {
+            source: 'index.html (historical homepage snapshot; not served)',
+            publishedOn: PUBLISHED_ON,
+          },
         },
-      })),
+        {
+          value: conflict[1],
+          provenance: {
+            ...reviewSource,
+            source: `reviews/${slug}.html`,
+          },
+        },
+      ],
     };
   }
   return SIGNUP_OFFERS[slug]

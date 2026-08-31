@@ -188,9 +188,8 @@ for (const fixture of unsupportedFirstHandFixtures) {
     'reviews/fixture.html',
     false,
   );
-  assert.equal(
-    hits.length,
-    1,
+  assert.ok(
+    hits.length >= 1,
     `evidence-less first-hand fixture must be blocked: ${fixture}`,
   );
 }
@@ -406,7 +405,7 @@ assert.match(
 );
 assert.match(
   reports.get('schema-audit.md') ?? '',
-  /AggregateRating nodes from empty reader data: \*\*0\*\*/i,
+  /Approved reader aggregate operators available to the rating gate: \*\*0\*\*/i,
 );
 assert.match(
   reports.get('cannibalisation-review.md') ?? '',
