@@ -65,6 +65,7 @@ export function renderReaderReportBlock(slug: string): string {
  * last </main>, falling back to </body>). Safe to call on any review HTML.
  */
 export function injectReaderReports(html: string, slug: string): string {
+  if (/<section\b[^>]*\bid=["']reader-reports["']/i.test(html)) return html;
   const block = renderReaderReportBlock(slug);
   const i = html.lastIndexOf('</main>');
   if (i !== -1) return html.slice(0, i) + block + html.slice(i);
