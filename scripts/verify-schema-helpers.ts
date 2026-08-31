@@ -155,25 +155,31 @@ function graphFromHtml(html: string): Array<Record<string, unknown>> {
   return (JSON.parse(block[0][1]) as { '@graph': Array<Record<string, unknown>> })['@graph'];
 }
 
-for (const [file, expected] of [
-  ['big-pirate.html', 79],
-  ['sweepico.html', 85],
+for (const [file, expectedVisible, expectedCanonical] of [
+  ['big-pirate.html', 79, undefined],
+  ['sweepico.html', 85, undefined],
+  ['american-luck.html', 72, 72],
 ] as const) {
   const source = readFileSync(new URL(`../reviews/${file}`, import.meta.url), 'utf8');
   assert.equal(
     visibleEditorialScore(source),
-    expected,
+    expectedVisible,
     `${file} visible verdict score must be detected`,
   );
   const reviewNode = graphFromHtml(consolidateJsonLd(source)).find(
     (node) => node['@type'] === 'Review',
   );
-  assert.deepEqual(reviewNode?.reviewRating, {
-    '@type': 'Rating',
-    ratingValue: expected,
-    bestRating: 100,
-    worstRating: 0,
-  });
+  assert.deepEqual(
+    reviewNode?.reviewRating,
+    expectedCanonical === undefined
+      ? undefined
+      : {
+          '@type': 'Rating',
+          ratingValue: expectedCanonical,
+          bestRating: 100,
+          worstRating: 0,
+        },
+  );
 }
 
 assert.equal(
@@ -276,12 +282,11 @@ for (const id of [
   );
 }
 const review = consolidatedGraph['@graph'].find((node) => node['@type'] === 'Review')!;
-assert.deepEqual(review.reviewRating, {
-  '@type': 'Rating',
-  ratingValue: 88,
-  bestRating: 100,
-  worstRating: 0,
-});
+assert.equal(
+  review.reviewRating,
+  undefined,
+  'reviews outside the canonical operator inventory must not inherit a visible score',
+);
 const finalCrumb = consolidatedGraph['@graph']
   .find((node) => node['@type'] === 'BreadcrumbList')!
   .itemListElement as Array<Record<string, unknown>>;
