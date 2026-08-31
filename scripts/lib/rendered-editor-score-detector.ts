@@ -182,3 +182,27 @@ export function findRenderedEditorScoreContexts(
   }
   return contexts;
 }
+
+export function validateRenderedEditorScoreContexts(
+  expectedScore100: number | undefined,
+  html: string,
+): string[] {
+  const contexts = findRenderedEditorScoreContexts(html);
+  if (expectedScore100 === undefined) {
+    return contexts.map(
+      (context) =>
+        `unresolved editor score leaked in ${context.kind}: ${context.excerpt}`,
+    );
+  }
+  if (contexts.length === 0) {
+    return [`verified editor score ${expectedScore100}/100 is not visibly rendered`];
+  }
+  return contexts.flatMap((context) =>
+    context.scale === 100 && context.value === expectedScore100
+      ? []
+      : [
+          `rendered ${context.kind} score ${context.value}/${context.scale} ` +
+            `does not match ${expectedScore100}/100`,
+        ],
+  );
+}
