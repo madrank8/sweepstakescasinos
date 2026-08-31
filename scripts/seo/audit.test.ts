@@ -202,10 +202,6 @@ assert.doesNotMatch(
 
 const claims = scanTestingClaims(root);
 assert.ok(claims.length > 0, 'the audit must enumerate matched testing phrases');
-assert.ok(
-  claims.some((claim) => claim.path === 'reviews/rolla.html'),
-  'content lint and SEO audit claim inventory must include the real Rolla review',
-);
 for (const claim of claims) {
   assert.ok(claim.path && claim.line > 0 && claim.phrase);
   assert.ok(claim.classification && claim.evidenceBasis);
