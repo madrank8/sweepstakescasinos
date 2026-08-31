@@ -14,16 +14,20 @@ type AggregateRatingNode = {
   worstRating: 1;
 };
 
+export function meetsBrandAggregateRatingThreshold(
+  aggregate: AggregateInput | undefined,
+): aggregate is AggregateInput & { avgRating: number } {
+  return (
+    !!aggregate &&
+    aggregate.count >= BRAND_AGGREGATE_RATING_MIN_REPORTS &&
+    aggregate.avgRating != null
+  );
+}
+
 export function buildBrandAggregateRating(
   aggregate: AggregateInput | undefined,
 ): AggregateRatingNode | undefined {
-  if (
-    !aggregate ||
-    aggregate.count < BRAND_AGGREGATE_RATING_MIN_REPORTS ||
-    aggregate.avgRating == null
-  ) {
-    return undefined;
-  }
+  if (!meetsBrandAggregateRatingThreshold(aggregate)) return undefined;
   return {
     '@type': 'AggregateRating',
     ratingValue: aggregate.avgRating,
