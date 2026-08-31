@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
+import { TESTING_BRANDS } from '../../src/data/testingBrands';
 import {
   auditAuthoredRoutes,
   auditSchemaParity,
@@ -92,8 +93,68 @@ assert.equal(
   'documented evidence permits accurately scoped first-hand labels',
 );
 
+const unsupportedFirstHandFixtures = [
+  'Our own tests cleared in two business days.',
+  'Our test measured a four-minute support response.',
+  'Our live chat response (test 1) took four minutes.',
+  'We ran checks against the redemption flow.',
+  'We conducted three support tests.',
+];
+for (const fixture of unsupportedFirstHandFixtures) {
+  const hits = findUnsupportedTestingClaims(
+    `<p>${fixture}</p>`,
+    'reviews/fixture.html',
+    false,
+  );
+  assert.equal(
+    hits.length,
+    1,
+    `evidence-less first-hand fixture must be blocked: ${fixture}`,
+  );
+}
+
+assert.equal(
+  findUnsupportedTestingClaims(
+    '<p>Our own tests cleared in two business days.</p>',
+    'reviews/fixture.html',
+    true,
+  ).length,
+  0,
+  'documented evidence permits a first-person testing result',
+);
+assert.equal(
+  findUnsupportedTestingClaims(
+    '<p>The operator reports independently tested games from certified studios.</p>',
+    'reviews/fixture.html',
+    false,
+  ).length,
+  0,
+  'attributed operator and laboratory testing remains permitted',
+);
+
+const rollaPath = resolve(root, 'reviews/rolla.html');
+const rollaHtml = readFileSync(rollaPath, 'utf8');
+assert.ok(
+  TESTING_BRANDS.some(
+    (brand) =>
+      brand.slug === 'rolla' &&
+      brand.overclaimFlag &&
+      brand.reviewPath === 'reviews/rolla.html',
+  ),
+  'the overclaim gate must include the real Rolla review',
+);
+assert.doesNotMatch(
+  rollaHtml,
+  /\bour(?: own)? tests?\b|\bour (?:live chat|email) response\s*\(\s*test\s*[123]\s*\)/i,
+  'the real Rolla review must not retain unsupported first-hand test claims',
+);
+
 const claims = scanTestingClaims(root);
 assert.ok(claims.length > 0, 'the audit must enumerate matched testing phrases');
+assert.ok(
+  claims.some((claim) => claim.path === 'reviews/rolla.html'),
+  'content lint and SEO audit claim inventory must include the real Rolla review',
+);
 for (const claim of claims) {
   assert.ok(claim.path && claim.line > 0 && claim.phrase);
   assert.ok(claim.classification && claim.evidenceBasis);
