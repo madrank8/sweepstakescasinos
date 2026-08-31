@@ -47,26 +47,16 @@ export function injectComplianceRibbon(html: string): string {
 }
 
 import { SITE } from '../data/site';
-import { organizationNode, webSiteNode, authorPersonNode } from './schema';
-
-const ORG_MARKER = '<!--sc-org-graph-->';
-
-/**
- * Canonical publisher entity graph (Organization + WebSite + author Person,
- * all with stable @id), referenced by other page schema. The Person ships
- * site-wide because the compliance ribbon credits the author on every page
- * and Organization.founder references his @id. Node definitions live in
- * src/lib/schema.ts (single source of truth for the entity graph).
- * No SearchAction (no site search).
- */
-const ORG_GRAPH = {
-  '@context': 'https://schema.org',
-  '@graph': [organizationNode(), webSiteNode(), authorPersonNode()],
-};
-
-const ORG_SCRIPT = `${ORG_MARKER}\n<script type="application/ld+json">${JSON.stringify(
-  ORG_GRAPH,
-)}</script>`;
+import {
+  AUTHOR_ID,
+  ORG_ID,
+  WEBSITE_ID,
+  brandOrganizationNode,
+  buildPageGraph,
+  serializeJsonLd,
+  type Crumb,
+  type WebPageType,
+} from './schema';
 
 const HEAD_CLOSE = /<\/head>/i;
 
@@ -93,41 +83,243 @@ export function injectGoogleAnalytics(html: string): string {
   return withoutLegacyTags.replace(HEAD_CLOSE, (match) => `${GOOGLE_ANALYTICS}\n${match}`);
 }
 
-/**
- * Inject the publisher Organization + WebSite JSON-LD before </head>.
- * Idempotent; no-op for documents without a </head>.
- */
-export function injectOrgSchema(html: string): string {
-  if (html.includes(ORG_MARKER)) return html;
-  return html.replace(HEAD_CLOSE, (match) => `${ORG_SCRIPT}\n${match}`);
+type JsonLdNode = Record<string, unknown>;
+
+const JSON_LD_MARKER = '<!--sc-jsonld-graph-->';
+const JSON_LD_SCRIPT =
+  /<script\b[^>]*\btype\s*=\s*["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script\s*>/gi;
+const BRAND_ID = new RegExp(`^${SITE.origin}/reviews/([a-z0-9-]+)/#brand$`);
+const WEBPAGE_TYPES = new Set<WebPageType>([
+  'WebPage',
+  'CollectionPage',
+  'ItemPage',
+  'AboutPage',
+  'ContactPage',
+  'ProfilePage',
+  'FAQPage',
+]);
+
+function decodeHtml(value: string): string {
+  const named: Record<string, string> = {
+    amp: '&',
+    apos: "'",
+    gt: '>',
+    lt: '<',
+    quot: '"',
+    ndash: '–',
+    mdash: '—',
+  };
+  return value
+    .replace(/&#x([0-9a-f]+);/gi, (_match, hex: string) =>
+      String.fromCodePoint(Number.parseInt(hex, 16)),
+    )
+    .replace(/&#(\d+);/g, (_match, decimal: string) =>
+      String.fromCodePoint(Number.parseInt(decimal, 10)),
+    )
+    .replace(/&([a-z]+);/gi, (match, name: string) => named[name.toLowerCase()] ?? match);
 }
 
-const WEBPAGE_MARKER = '<!--sc-webpage-node-->';
+function tagAttribute(tag: string, attribute: string): string | undefined {
+  const match = tag.match(
+    new RegExp(`\\b${attribute}\\s*=\\s*(?:"([^"]*)"|'([^']*)')`, 'i'),
+  );
+  return match?.[1] ?? match?.[2];
+}
+
+function metaContent(html: string, name: string): string | undefined {
+  for (const match of html.matchAll(/<meta\b[^>]*>/gi)) {
+    if (tagAttribute(match[0], 'name')?.toLowerCase() === name.toLowerCase()) {
+      return tagAttribute(match[0], 'content');
+    }
+  }
+  return undefined;
+}
+
+function canonicalUrl(html: string): string | undefined {
+  for (const match of html.matchAll(/<link\b[^>]*>/gi)) {
+    if (tagAttribute(match[0], 'rel')?.toLowerCase() === 'canonical') {
+      return tagAttribute(match[0], 'href');
+    }
+  }
+  return undefined;
+}
+
+function pageTitle(html: string): string {
+  const raw = html.match(/<title\b[^>]*>([\s\S]*?)<\/title>/i)?.[1] ?? SITE.name;
+  return decodeHtml(raw.replace(/<[^>]+>/g, '').trim());
+}
+
+function nodesFromJsonLd(html: string): JsonLdNode[] {
+  const nodes: JsonLdNode[] = [];
+  for (const match of html.matchAll(JSON_LD_SCRIPT)) {
+    let parsed: unknown;
+    try {
+      parsed = JSON.parse(match[1]);
+    } catch (error) {
+      throw new Error(
+        `[schema] Legacy JSON-LD does not parse: ${error instanceof Error ? error.message : error}`,
+      );
+    }
+    if (!parsed || typeof parsed !== 'object') continue;
+    const value = parsed as JsonLdNode;
+    const graph = value['@graph'];
+    if (Array.isArray(graph)) {
+      for (const node of graph) {
+        if (node && typeof node === 'object') nodes.push(node as JsonLdNode);
+      }
+    } else {
+      nodes.push(value);
+    }
+  }
+  return nodes;
+}
+
+function breadcrumbCrumbs(
+  nodes: JsonLdNode[],
+  canonical: string,
+  title: string,
+): Crumb[] {
+  const node = nodes.find((candidate) => candidate['@type'] === 'BreadcrumbList');
+  const items = node?.itemListElement;
+  if (Array.isArray(items) && items.length > 0) {
+    const crumbs = items.flatMap((item, index): Crumb[] => {
+      if (!item || typeof item !== 'object') return [];
+      const entry = item as JsonLdNode;
+      const name = typeof entry.name === 'string' ? entry.name : undefined;
+      if (!name) return [];
+      const rawItem = typeof entry.item === 'string' ? entry.item : undefined;
+      let path = index === items.length - 1 ? new URL(canonical).pathname : '/';
+      if (rawItem) {
+        try {
+          const url = new URL(rawItem, SITE.origin);
+          if (url.origin === SITE.origin) path = `${url.pathname}${url.search}${url.hash}`;
+        } catch {
+          // Keep the safe same-origin fallback.
+        }
+      }
+      return [{ name, path }];
+    });
+    if (crumbs.length > 0) {
+      crumbs[crumbs.length - 1].path = new URL(canonical).pathname;
+      return crumbs;
+    }
+  }
+  const currentPath = new URL(canonical).pathname;
+  return currentPath === '/'
+    ? [{ name: 'Home', path: '/' }]
+    : [
+        { name: 'Home', path: '/' },
+        { name: title, path: currentPath },
+      ];
+}
+
+export function visibleEditorialScore(html: string): number | undefined {
+  const verdict =
+    /<(?:div|section)\b[^>]*class=["'][^"']*\b(?:verdict-wrap|verdict-box)\b[^"']*["'][^>]*>[\s\S]{0,1200}?<span\b[^>]*class=["'][^"']*\b(?:num|big)\b[^"']*["'][^>]*>\s*(\d{1,3}(?:\.\d+)?)\s*<\/span>\s*<span\b[^>]*class=["'][^"']*\b(?:den|denom)\b[^"']*["'][^>]*>\s*\/\s*100\s*<\/span>/i;
+  const value = Number(verdict.exec(html)?.[1]);
+  return Number.isFinite(value) && value >= 0 && value <= 100 ? value : undefined;
+}
+
+function contentNodes(nodes: JsonLdNode[], canonical: string, score: number | undefined) {
+  const foundationIds = new Set([
+    ORG_ID,
+    WEBSITE_ID,
+    AUTHOR_ID,
+    `${canonical}#webpage`,
+    `${canonical}#breadcrumb`,
+  ]);
+  const seenIds = new Set<string>();
+  const content: JsonLdNode[] = [];
+  for (const original of nodes) {
+    const { ['@context']: _context, ...node } = original;
+    const id = typeof node['@id'] === 'string' ? node['@id'] : undefined;
+    const brandMatch = id?.match(BRAND_ID);
+    if (
+      node['@type'] === 'BreadcrumbList' ||
+      (node['@type'] === 'ProfilePage' && !id) ||
+      (id &&
+        (foundationIds.has(id) ||
+          (brandMatch && brandOrganizationNode(brandMatch[1]) !== undefined)))
+    ) {
+      continue;
+    }
+    if (node['@type'] === 'Review') {
+      if (score == null) {
+        delete node.reviewRating;
+      } else {
+        node.reviewRating = {
+          '@type': 'Rating',
+          ratingValue: score,
+          bestRating: 100,
+          worstRating: 0,
+        };
+      }
+    }
+    if (id) {
+      if (seenIds.has(id)) continue;
+      seenIds.add(id);
+    }
+    content.push(node);
+  }
+  return content;
+}
 
 /**
- * Inject a per-page WebPage node for static HTML pages, derived from the
- * page's own canonical URL, <title> and meta description. Completes the
- * entity chain Organization -> WebSite -> WebPage on every page
- * (docs/schema-markup-plan.md gap #1). Idempotent; no-op without a canonical.
+ * Replace all legacy JSON-LD blocks with one foundation + content @graph.
+ * Existing content entities survive; canonical foundation/brand identities
+ * are rebuilt from their single sources of truth.
  */
-export function injectWebPageSchema(html: string): string {
-  if (html.includes(WEBPAGE_MARKER)) return html;
-  const canonical = html.match(/<link rel="canonical" href="([^"]+)"/i)?.[1];
+export function consolidateJsonLd(html: string): string {
+  if (html.includes(JSON_LD_MARKER) || !HEAD_CLOSE.test(html)) return html;
+  const canonical = canonicalUrl(html);
   if (!canonical || !canonical.startsWith(SITE.origin)) return html;
-  const title = html.match(/<title>([^<]*)<\/title>/i)?.[1]?.trim();
-  const description = html.match(/<meta name="description" content="([^"]*)"/i)?.[1];
-  const node = {
-    '@context': 'https://schema.org',
-    '@type': 'WebPage',
-    '@id': `${canonical}#webpage`,
+
+  const title = pageTitle(html);
+  const description = decodeHtml(metaContent(html, 'description') ?? '');
+  const legacyNodes = nodesFromJsonLd(html);
+  const legacyPage = legacyNodes.find((node) => {
+    const type = node['@type'];
+    return typeof type === 'string' && WEBPAGE_TYPES.has(type as WebPageType);
+  });
+  const pageType =
+    typeof legacyPage?.['@type'] === 'string'
+      ? (legacyPage['@type'] as WebPageType)
+      : canonical.includes('/reviews/')
+        ? 'ItemPage'
+        : 'WebPage';
+  const review = legacyNodes.find((node) => node['@type'] === 'Review');
+  const profileMain = legacyPage?.mainEntity;
+  const mainEntityId =
+    typeof review?.['@id'] === 'string'
+      ? review['@id']
+      : profileMain &&
+          typeof profileMain === 'object' &&
+          typeof (profileMain as JsonLdNode)['@id'] === 'string'
+        ? ((profileMain as JsonLdNode)['@id'] as string)
+        : undefined;
+  const score = visibleEditorialScore(html);
+  const graph = buildPageGraph({
     url: canonical,
-    ...(title ? { name: title } : {}),
-    ...(description ? { description } : {}),
-    isPartOf: { '@id': `${SITE.origin}/#website` },
-    inLanguage: 'en-US',
-  };
-  const script = `${WEBPAGE_MARKER}\n<script type="application/ld+json">${JSON.stringify(node)}</script>`;
-  return html.replace(HEAD_CLOSE, (match) => `${script}\n${match}`);
+    pageType,
+    title,
+    description,
+    breadcrumbs: breadcrumbCrumbs(legacyNodes, canonical, title),
+    mainEntityId,
+    nodes: contentNodes(legacyNodes, canonical, score),
+  });
+  const script = `${JSON_LD_MARKER}\n<script type="application/ld+json">${serializeJsonLd(graph)}</script>`;
+  const withoutLegacy = html.replace(JSON_LD_SCRIPT, '');
+  return withoutLegacy.replace(HEAD_CLOSE, (match) => `${script}\n${match}`);
+}
+
+/** Backward-compatible entrypoint; consolidation includes publisher schema. */
+export function injectOrgSchema(html: string): string {
+  return consolidateJsonLd(html);
+}
+
+/** Backward-compatible entrypoint; consolidation includes WebPage schema. */
+export function injectWebPageSchema(html: string): string {
+  return consolidateJsonLd(html);
 }
 
 const FAVICON_MARKER = '<!--sc-favicons-->';
@@ -149,7 +341,7 @@ export function injectFavicon(html: string): string {
 /** Apply all global page chrome (favicons + compliance ribbon + publisher/WebPage schema + GA4). */
 export function decorateChrome(html: string): string {
   return injectGoogleAnalytics(
-    injectFavicon(injectWebPageSchema(injectOrgSchema(injectComplianceRibbon(html)))),
+    injectFavicon(consolidateJsonLd(injectComplianceRibbon(html))),
   );
 }
 

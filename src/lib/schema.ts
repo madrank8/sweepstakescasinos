@@ -17,6 +17,8 @@
  */
 import { SITE } from '../data/site';
 import { getBrandEntity, brandEntityId } from '../data/brandEntities';
+import { brandAggregateRating } from './brandAggregateRating';
+import { pngDimensions } from './pngDimensions';
 
 const ORIGIN = SITE.origin;
 
@@ -27,12 +29,24 @@ export const AUTHOR_ID = `${ORIGIN}/author/${SITE.authorSlug}/#person`;
 
 type Node = Record<string, unknown>;
 
+/** Serialize JSON-LD safely inside an HTML script element. */
+export function serializeJsonLd(value: unknown): string {
+  return JSON.stringify(value)
+    .replace(/</g, '\\u003c')
+    .replace(/\u2028/g, '\\u2028')
+    .replace(/\u2029/g, '\\u2029');
+}
+
 /**
  * Publisher entity — the site-wide authority layer (plan §3.3).
  * Only true, verifiable values: no foundingDate / subjectOf / extra sameAs
  * until they exist (plan §6 open items 2-4).
  */
 export function organizationNode(): Node {
+  const logoDimensions = pngDimensions(SITE.logo);
+  if (!logoDimensions) {
+    throw new Error(`[schema] Unable to read publisher logo dimensions: ${SITE.logo}`);
+  }
   return {
     '@type': 'Organization',
     '@id': ORG_ID,
@@ -43,8 +57,7 @@ export function organizationNode(): Node {
       '@type': 'ImageObject',
       '@id': LOGO_ID,
       url: `${ORIGIN}${SITE.logo}`,
-      width: 621,
-      height: 410,
+      ...logoDimensions,
       caption: SITE.name,
     },
     image: { '@id': LOGO_ID },
@@ -124,12 +137,14 @@ export function authorPersonNode(): Node {
 export function brandOrganizationNode(slug: string): Node | undefined {
   const brand = getBrandEntity(slug);
   if (!brand) return undefined;
+  const aggregateRating = brandAggregateRating(slug);
   return {
     '@type': 'Organization',
     '@id': brandEntityId(slug),
     name: brand.name,
     url: brand.officialUrl,
     sameAs: [brand.officialUrl],
+    ...(aggregateRating ? { aggregateRating } : {}),
     ...(brand.operatorName
       ? {
           parentOrganization: {
@@ -283,7 +298,7 @@ export function breadcrumbNode(pageUrl: string, crumbs: Crumb[]): Node {
       '@type': 'ListItem',
       position: i + 1,
       name: c.name,
-      item: `${ORIGIN}${c.path}`,
+      ...(i < crumbs.length - 1 ? { item: `${ORIGIN}${c.path}` } : {}),
     })),
   };
 }

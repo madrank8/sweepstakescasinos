@@ -19,7 +19,12 @@ import { getCollection, render } from 'astro:content';
 import ContentLayout from '../../layouts/ContentLayout.astro';
 import { AFFILIATE_PARTNERS } from '../../data/affiliates';
 import { isPartnerAvailableInState, isStateBannedSitewide } from '../../data/geo';
-import { stateName, isUsStateCode, type UsStateCode } from '../../data/usStates';
+import {
+  stateName,
+  stateWikidataIri,
+  isUsStateCode,
+  type UsStateCode,
+} from '../../data/usStates';
 import { ORG_ID, AUTHOR_ID, faqPageNode, legislationNode } from '../../lib/schema';
 import { pngDimensions } from '../../lib/pngDimensions';
 import { svgDimensions } from '../../lib/svgDimensions';
@@ -62,6 +67,7 @@ interface Props {
 const { entry, code: rawCode, trackerState, bills } = Astro.props as Props;
 const code = (isUsStateCode(rawCode) ? rawCode : 'AL') as UsStateCode;
 const name = stateName(code);
+const stateIri = stateWikidataIri(code);
 const meta = SWEEPS_STATUS_META[trackerState.sweeps_casino_status];
 
 const ORIGIN = 'https://sweepstakeswiz.com';
@@ -130,9 +136,7 @@ const curatedLegs = keyLegislationForState(code).map((b) =>
     legalForce: b.legalForce,
     jurisdictionName: name,
     url: b.url,
-    ...(trackerState.wikidata_id
-      ? { jurisdictionSameAs: `https://www.wikidata.org/wiki/${trackerState.wikidata_id}` }
-      : {}),
+    jurisdictionSameAs: stateIri,
   }),
 );
 
@@ -149,9 +153,7 @@ const trackerLegs = bills
       legalForce: trackerForce(b.status),
       jurisdictionName: name,
       url: b.state_bill_url || b.bill_url || undefined,
-      ...(trackerState.wikidata_id
-        ? { jurisdictionSameAs: `https://www.wikidata.org/wiki/${trackerState.wikidata_id}` }
-        : {}),
+      jurisdictionSameAs: stateIri,
     });
   });
 
@@ -210,6 +212,7 @@ const articleLd = {
   datePublished: updatedIso,
   dateModified: updatedIso,
   about: [
+    { '@type': 'State', '@id': stateIri, name },
     { '@type': 'Thing', name: `Sweepstakes casino legality in ${name}` },
     { '@type': 'Thing', name: 'Sweepstake', sameAs: 'https://en.wikipedia.org/wiki/Sweepstake' },
     ...legislationLd.map((n) => ({ '@id': n['@id'] as string })),
