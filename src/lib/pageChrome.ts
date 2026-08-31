@@ -79,8 +79,8 @@ const LEGACY_GOOGLE_TAG =
  * Idempotent; no-op for documents without a </head>.
  */
 export function injectGoogleAnalytics(html: string): string {
+  if (html.includes(GA_MARKER)) return html;
   const withoutLegacyTags = html.replace(LEGACY_GOOGLE_TAG, '\n');
-  if (withoutLegacyTags.includes(GA_MARKER)) return withoutLegacyTags;
   return withoutLegacyTags.replace(HEAD_CLOSE, (match) => `${GOOGLE_ANALYTICS}\n${match}`);
 }
 
