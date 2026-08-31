@@ -7,7 +7,7 @@
     "node": ">=22.12"
   },
   "scripts": {
-    "verify:availability": "tsx scripts/verify-availability.test.ts && tsx scripts/verify-availability.ts",
+    "verify:availability": "tsx scripts/verify-availability.test.ts && tsx scripts/verify-availability-views.test.ts && tsx scripts/verify-availability.ts",
     "verify:odds": "tsx scripts/verify-sweepstakes-odds.ts",
     "verify:odds:integration": "tsx scripts/verify-sweepstakes-odds-integration.ts",
     "map:generate": "node scripts/generate-us-map.mjs",

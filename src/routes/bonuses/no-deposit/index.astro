@@ -19,9 +19,9 @@ import AffiliateLink from '../../../components/AffiliateLink.astro';
 import CurrencyCompare from '../../../components/CurrencyCompare.astro';
 import { getPartner } from '../../../data/affiliates';
 import {
-  availabilityForPartner,
   siteCtaEligibility,
 } from '../../../lib/availability';
+import { noDepositOfferAvailabilityView } from '../../../lib/availabilityViews';
 import { ALL_US_STATE_CODES, stateName } from '../../../data/usStates';
 import { brandEntityId, getBrandEntity } from '../../../data/brandEntities';
 import {
@@ -118,10 +118,11 @@ const OFFERS: Offer[] = [
 const state = Astro.locals.usState;
 const offers = OFFERS.map((o) => {
   const partner = getPartner(o.slug);
+  const availability = noDepositOfferAvailabilityView(o, partner, state);
   return {
     ...o,
     partner,
-    canCta: partner ? availabilityForPartner(partner, state).cta.eligible : false,
+    ...availability,
   };
 });
 
@@ -282,10 +283,10 @@ const jsonLd = [itemListLd, faqLd];
             <td>{o.daily ?? <em>Not canonicalized</em>}</td>
             <td>{o.min ?? <em>Not canonicalized</em>}</td>
             <td class="nd-verified">
-              {o.verifiedOn ? (
-                <time datetime={o.verifiedOn}>{o.verifiedOn}</time>
+              {o.verification.available ? (
+                <time datetime={o.verification.datetime}>{o.verification.label}</time>
               ) : (
-                <em>Verification unavailable</em>
+                <em>{o.verification.label}</em>
               )}
             </td>
             <td><a href={`/reviews/${o.slug}/`}>{o.reviewLabel}</a></td>
