@@ -251,9 +251,14 @@ function isBreakdownSubcategory(
     if (
       ancestors
         .slice(index + 1, index + 2)
-        .some((ancestor) =>
-          BREAKDOWN_CUE.test(elementText(html, ancestor).slice(0, 140)),
-        )
+        .some((ancestor) => {
+          const openingContent = html
+            .slice(ancestor.openEnd, Math.min(ancestor.closeStart, ancestor.openEnd + 600))
+            .replace(/<!--[\s\S]*?-->/g, '');
+          return /<h[2-4]\b[^>]*>[\s\S]{0,180}?\b(?:how we (?:rate|score)|rating breakdown|score breakdown)\b[\s\S]{0,80}?<\/h[2-4]>/i.test(
+            openingContent,
+          );
+        })
     ) {
       return true;
     }
@@ -274,8 +279,10 @@ function shouldNormalizeScore(
   ) {
     return false;
   }
-  if (isExplicitThirdPartyScore(html, position, ancestors)) return false;
-  return !isBreakdownSubcategory(html, ancestors);
+  const thirdParty = isExplicitThirdPartyScore(html, position, ancestors);
+  const breakdown = isBreakdownSubcategory(html, ancestors);
+  if (thirdParty) return false;
+  return !breakdown;
 }
 
 function applyTextReplacements(
