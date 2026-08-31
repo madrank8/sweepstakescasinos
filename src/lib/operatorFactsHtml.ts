@@ -9,6 +9,8 @@ import {
 
 const MARKER =
   /<!--sc-operator-facts\s+data-operator="([a-z0-9-]+)"\s+data-fields="([^"]+)"\s*-->/g;
+const LEGACY_SCORE_PAIR =
+  /(<span\b[^>]*class=["'][^"']*\b(?:num|big)\b[^"']*["'][^>]*>)\s*\d{1,3}(?:\.\d+)?\s*(<\/span>\s*<span\b[^>]*class=["'][^"']*\b(?:den|denom)\b[^"']*["'][^>]*>)\s*\/\s*100\s*(<\/span>)/gi;
 const FIELD_SET = new Set<string>(CANONICAL_OPERATOR_FIELDS);
 const SCORE_ONLY_CLASSES = new Set([
   'v-score',
@@ -239,13 +241,24 @@ function normalizeLegacyEditorScore(
       ),
     (element) => replaceElementContents(element, scoreMarkup, score),
   );
-  return replaceSemanticElements(
+  normalized = replaceSemanticElements(
     normalized,
     (element, inner) =>
       hasAnyClass(element.classes, STICKY_SCORE_CLASSES) &&
       /\d(?:\.\d+)?\s*\/\s*5/i.test(inner),
     (element, inner) =>
       replaceElementContents(element, normalizeStickyScore(inner, score), score),
+  );
+  const status = score === undefined ? 'unresolved' : 'verified';
+  return normalized.replace(
+    LEGACY_SCORE_PAIR,
+    (_match, valueOpen: string, denominatorOpen: string, denominatorClose: string) => {
+      const opening = valueOpen.replace(
+        />$/,
+        ` data-editor-score-status="${status}" data-canonical-score-status="${status}">`,
+      );
+      return `${opening}${scoreMarkup}${denominatorOpen}${denominatorClose}`;
+    },
   );
 }
 
