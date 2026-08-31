@@ -89,14 +89,13 @@ const JSON_LD_MARKER = '<!--sc-jsonld-graph-->';
 const JSON_LD_SCRIPT =
   /<script\b[^>]*\btype\s*=\s*["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script\s*>/gi;
 const BRAND_ID = new RegExp(`^${SITE.origin}/reviews/([a-z0-9-]+)/#brand$`);
-const WEBPAGE_TYPES = new Set<WebPageType>([
+const LEGACY_PAGE_TYPES = new Set<WebPageType>([
   'WebPage',
   'CollectionPage',
   'ItemPage',
   'AboutPage',
   'ContactPage',
   'ProfilePage',
-  'FAQPage',
 ]);
 
 function decodeHtml(value: string): string {
@@ -215,12 +214,17 @@ function breadcrumbCrumbs(
 
 export function visibleEditorialScore(html: string): number | undefined {
   const verdict =
-    /<(?:div|section)\b[^>]*class=["'][^"']*\b(?:verdict-wrap|verdict-box)\b[^"']*["'][^>]*>[\s\S]{0,1200}?<span\b[^>]*class=["'][^"']*\b(?:num|big)\b[^"']*["'][^>]*>\s*(\d{1,3}(?:\.\d+)?)\s*<\/span>\s*<span\b[^>]*class=["'][^"']*\b(?:den|denom)\b[^"']*["'][^>]*>\s*\/\s*100\s*<\/span>/i;
+    /<(?:div|section)\b[^>]*class=["'][^"']*\b(?:verdict-wrap|verdict-box|score-box|score-hero)\b[^"']*["'][^>]*>[\s\S]{0,1200}?<span\b[^>]*class=["'][^"']*\b(?:num|big)\b[^"']*["'][^>]*>\s*(\d{1,3}(?:\.\d+)?)\s*<\/span>\s*<span\b[^>]*class=["'][^"']*\b(?:den|denom)\b[^"']*["'][^>]*>\s*\/\s*100\s*<\/span>/i;
   const value = Number(verdict.exec(html)?.[1]);
   return Number.isFinite(value) && value >= 0 && value <= 100 ? value : undefined;
 }
 
-function contentNodes(nodes: JsonLdNode[], canonical: string, score: number | undefined) {
+function contentNodes(
+  nodes: JsonLdNode[],
+  canonical: string,
+  score: number | undefined,
+  legacyPage: JsonLdNode | undefined,
+) {
   const foundationIds = new Set([
     ORG_ID,
     WEBSITE_ID,
@@ -231,12 +235,12 @@ function contentNodes(nodes: JsonLdNode[], canonical: string, score: number | un
   const seenIds = new Set<string>();
   const content: JsonLdNode[] = [];
   for (const original of nodes) {
+    if (original === legacyPage) continue;
     const { ['@context']: _context, ...node } = original;
     const id = typeof node['@id'] === 'string' ? node['@id'] : undefined;
     const brandMatch = id?.match(BRAND_ID);
     if (
       node['@type'] === 'BreadcrumbList' ||
-      (node['@type'] === 'ProfilePage' && !id) ||
       (id &&
         (foundationIds.has(id) ||
           (brandMatch && brandOrganizationNode(brandMatch[1]) !== undefined)))
@@ -279,7 +283,7 @@ export function consolidateJsonLd(html: string): string {
   const legacyNodes = nodesFromJsonLd(html);
   const legacyPage = legacyNodes.find((node) => {
     const type = node['@type'];
-    return typeof type === 'string' && WEBPAGE_TYPES.has(type as WebPageType);
+    return typeof type === 'string' && LEGACY_PAGE_TYPES.has(type as WebPageType);
   });
   const pageType =
     typeof legacyPage?.['@type'] === 'string'
@@ -305,7 +309,7 @@ export function consolidateJsonLd(html: string): string {
     description,
     breadcrumbs: breadcrumbCrumbs(legacyNodes, canonical, title),
     mainEntityId,
-    nodes: contentNodes(legacyNodes, canonical, score),
+    nodes: contentNodes(legacyNodes, canonical, score, legacyPage),
   });
   const script = `${JSON_LD_MARKER}\n<script type="application/ld+json">${serializeJsonLd(graph)}</script>`;
   const withoutLegacy = html.replace(JSON_LD_SCRIPT, '');
