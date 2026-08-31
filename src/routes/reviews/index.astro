@@ -2,7 +2,7 @@
 import ContentLayout from '../../layouts/ContentLayout.astro';
 import { OPERATORS, verifiedValue } from '../../data/operators';
 import { SITE } from '../../data/site';
-import { decisionFactCompleteness, formatMinimum } from '../../lib/homepage';
+import { formatMinimum } from '../../lib/homepage';
 
 export const prerender = true;
 
@@ -10,14 +10,13 @@ const canonicalPath = '/reviews/';
 const canonical = `${SITE.origin}${canonicalPath}`;
 const title = 'Sweepstakes Casino Reviews: All 29 Operators | Sweepstakes Wiz';
 const description =
-  'Browse all 29 Sweepstakes Wiz casino reviews alphabetically. This complete directory is not a best-casino ranking and does not infer missing editor scores.';
+  'Browse all 29 Sweepstakes Wiz casino reviews alphabetically. This complete directory is not a best-casino ranking and leaves unsupported details blank.';
 const operators = OPERATORS
   .map((operator) => ({
     slug: operator.slug,
     name: verifiedValue(operator.name) ?? operator.slug,
-    operatorName: verifiedValue(operator.operatorName) ?? 'Operator identity not verified',
+    operatorName: verifiedValue(operator.operatorName),
     redemptionMinimum: formatMinimum(operator),
-    completeness: decisionFactCompleteness(operator),
   }))
   .sort((a, b) => a.name.localeCompare(b.name) || a.slug.localeCompare(b.slug));
 
@@ -54,31 +53,37 @@ const itemList = {
     <h2 id="directory-purpose">Find an operator review</h2>
     <p>
       This directory lists every current review alphabetically. It does not label an
-      operator “best,” reorder brands for commercial reasons, or display unresolved
-      editor scores. For a supported ranked set, start on the
-      <a href="/">homepage</a>; for deeper ranking methodology, use the
-      <a href="/best/sweepstakes-casinos/">best sweepstakes casinos comparison</a>.
+      operator “best” or reorder brands for commercial reasons. For a decision-support
+      comparison, start on the <a href="/">homepage</a> or use the
+      <a href="/best/sweepstakes-casinos/">sweepstakes casinos comparison</a>.
     </p>
   </section>
 
   <p class="directory-count"><strong>{operators.length} reviews</strong> · Alphabetical order</p>
-  <div class="review-directory" role="list">
-    {operators.map((operator) => (
-      <article class="review-entry" role="listitem">
+  <div
+    class="review-directory"
+    role="list"
+    data-item-list={`${canonical}#directory`}
+    data-item-list-order="https://schema.org/ItemListOrderAscending"
+  >
+    {operators.map((operator, index) => (
+      <article
+        class="review-entry"
+        role="listitem"
+        data-item-position={index + 1}
+        data-item-name={operator.name}
+        data-item-url={`${SITE.origin}/reviews/${operator.slug}/`}
+      >
         <div>
           <h2>
             <a href={`/reviews/${operator.slug}/`}>{operator.name}</a>
           </h2>
-          <p>{operator.operatorName}</p>
+          <p>{operator.operatorName ?? <span aria-label="Details unavailable">—</span>}</p>
         </div>
         <dl>
           <div>
             <dt>Published redemption minimum</dt>
-            <dd>{operator.redemptionMinimum}</dd>
-          </div>
-          <div>
-            <dt>Verified decision-fact categories</dt>
-            <dd>{operator.completeness} of 7</dd>
+            <dd>{operator.redemptionMinimum ?? <span aria-label="Details unavailable">—</span>}</dd>
           </div>
         </dl>
         <a class="review-action" href={`/reviews/${operator.slug}/`}>
@@ -91,8 +96,8 @@ const itemList = {
   <aside class="directory-note" aria-label="Review directory data note">
     <h2>How to use this directory</h2>
     <p>
-      “Not verified” means the canonical record cannot support a display value.
-      Review operator rules directly for time-sensitive offers, eligibility and
+      A blank detail means the available records do not support a value we can show.
+      Review operator rules directly for time-sensitive offers, eligibility, and
       redemption requirements.
     </p>
   </aside>
