@@ -214,4 +214,3 @@ GREEN evidence:
 - `npm run build && npm run schema:check` — 115 indexable pages, zero errors.
 - Final `npm run ci` — exit 0; 29 review renders, 32 answer blocks, 115 built
   schema pages, 123 crawled pages, 6,013 links, and 96 geo renders passed.
-

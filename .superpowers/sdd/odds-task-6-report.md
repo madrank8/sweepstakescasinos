@@ -2,9 +2,9 @@
 
 Status: **DONE_WITH_CONCERNS**
 
-Branch: `feat/sweepstakes-odds-calculator`  
-Task base: `011ec9cf2b47b555064d82a6fc59de032ec6170e`  
-Implementation commit: `a9e158c18b882fd0c7e361efb1fb87f7b9c1cf83` (`test: verify odds calculator integration`)  
+Branch: `feat/sweepstakes-odds-calculator`
+Task base: `011ec9cf2b47b555064d82a6fc59de032ec6170e`
+Implementation commit: `a9e158c18b882fd0c7e361efb1fb87f7b9c1cf83` (`test: verify odds calculator integration`)
 Push: intentionally not performed.
 
 ## Files

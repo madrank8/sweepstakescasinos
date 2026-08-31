@@ -282,4 +282,3 @@ the issue; all 29 reviews now use the request-rendered review pipeline.
 6. Investigate the local Astro development-server partial-HTML discrepancy if
    development-server parity is a project requirement; production built output
    and the deployment-oriented gates are unaffected by the observed behavior.
-
