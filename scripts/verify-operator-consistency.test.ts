@@ -301,11 +301,9 @@ const leakedScoreFixture = `
 assert.deepEqual(
   new Set(findRenderedEditorScoreContexts(leakedScoreFixture).map((context) => context.kind)),
   new Set([
-    'labeled-score',
-    'score-total',
-    'star-score',
-    'score-bars-total',
-    'sticky-score',
+    'first-party-language',
+    'aggregate-total',
+    'unattributed-rating',
   ]),
   'independent detector must recognize every shipped semantic editor-score context',
 );

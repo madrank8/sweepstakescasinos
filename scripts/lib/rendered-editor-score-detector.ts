@@ -1,185 +1,138 @@
 export interface RenderedEditorScoreContext {
-  kind:
-    | 'labeled-score'
-    | 'score-total'
-    | 'star-score'
-    | 'score-bars-total'
-    | 'sticky-score';
-  value: number | null;
-  scale: 5 | 100 | null;
+  kind: 'first-party-language' | 'aggregate-total' | 'unattributed-rating';
+  value: number;
+  scale: 5 | 100;
   excerpt: string;
 }
 
-interface VisibleElement {
-  tag: string;
-  opening: string;
-  inner: string;
-  classes: Set<string>;
+const SCORE = /(\d{1,3}(?:\.\d+)?)\s*\/\s*(5|100)\b/g;
+const BARE_FIVE_SCORE = /\b([0-5]\.\d+)\b/g;
+const FIRST_PARTY_LANGUAGE =
+  /\b(?:editor(?:ial)?|overall|our (?:score|rating)|we rate|how we (?:rate|score)|earns?(?: its| an?| the)?|is rated|rated by (?:us|sweepstakes wiz))\b/i;
+const EXPLICIT_THIRD_PARTY =
+  /\b(?:Trustpilot|Google Play|App Store|player-reported|reader reports?)\b|[a-z0-9.-]+\.com\b/i;
+
+function decodeText(value: string): string {
+  return value
+    .replace(/&#(\d+);/g, (_match, digits: string) =>
+      String.fromCodePoint(Number(digits)),
+    )
+    .replace(/&#x([a-f0-9]+);/gi, (_match, digits: string) =>
+      String.fromCodePoint(Number.parseInt(digits, 16)),
+    )
+    .replace(/&nbsp;/gi, ' ')
+    .replace(/&amp;/gi, '&')
+    .replace(/&mdash;/gi, '—')
+    .replace(/&ndash;/gi, '–')
+    .replace(/&quot;/gi, '"')
+    .replace(/&#39;/gi, "'");
 }
 
-const SCORE_TOTAL_CLASSES = new Set([
-  'v-score',
-  'vb-num',
-  'sh-score',
-  'verdict-score',
-  'sb-num',
-]);
-const STAR_SCORE_CLASSES = new Set([
-  'v-stars',
-  'vb-stars',
-  'sh-stars',
-  'verdict-stars',
-  'sb-stars',
-  'oc-stars',
-  'oc-score',
-]);
-const LABELED_SCORE_CLASSES = new Set(['metric', 'stat', 'qp-item', 'qf-item']);
-const STICKY_CLASSES = new Set(['sticky-sub', 'sticky-st']);
-const VOID_TAGS = new Set([
-  'area',
-  'base',
-  'br',
-  'col',
-  'embed',
-  'hr',
-  'img',
-  'input',
-  'link',
-  'meta',
-  'param',
-  'source',
-  'track',
-  'wbr',
-]);
-
-function visibleElements(html: string): VisibleElement[] {
-  const withoutRawBlocks = html
-    .replace(/<script\b[\s\S]*?<\/script\s*>/gi, '')
-    .replace(/<style\b[\s\S]*?<\/style\s*>/gi, '');
-  const elements: VisibleElement[] = [];
-  const stack: Array<{ tag: string; opening: string; innerStart: number }> = [];
-  const tags = /<\/?([a-z][a-z0-9:-]*)\b[^>]*>/gi;
-  let match: RegExpExecArray | null;
-  while ((match = tags.exec(withoutRawBlocks))) {
-    const token = match[0];
-    const tag = match[1].toLowerCase();
-    if (!token.startsWith('</')) {
-      if (!VOID_TAGS.has(tag) && !/\/\s*>$/.test(token)) {
-        stack.push({ tag, opening: token, innerStart: tags.lastIndex });
-      }
-      continue;
-    }
-    for (let index = stack.length - 1; index >= 0; index -= 1) {
-      if (stack[index].tag !== tag) continue;
-      const opening = stack[index];
-      stack.splice(index);
-      const classValue =
-        opening.opening.match(/\bclass\s*=\s*["']([^"']*)["']/i)?.[1] ?? '';
-      elements.push({
-        tag,
-        opening: opening.opening,
-        inner: withoutRawBlocks.slice(opening.innerStart, match.index),
-        classes: new Set(classValue.split(/\s+/).filter(Boolean)),
-      });
-      break;
-    }
-  }
-  return elements;
-}
-
-function plainText(html: string): string {
-  return html
-    .replace(/<[^>]+>/g, ' ')
-    .replace(/&(?:#8211|#8212|#183|nbsp);/gi, ' ')
+function plainText(value: string): string {
+  return decodeText(value.replace(/<[^>]+>/g, ' '))
     .replace(/\s+/g, ' ')
     .trim();
 }
 
-function hasClass(element: VisibleElement, classes: Set<string>): boolean {
-  return [...element.classes].some((name) => classes.has(name));
+function removeExplicitExternalRows(html: string): string {
+  return html.replace(/<tr\b[\s\S]*?<\/tr\s*>/gi, (row) => {
+    const text = plainText(row);
+    if (FIRST_PARTY_LANGUAGE.test(text)) return row;
+    if (
+      EXPLICIT_THIRD_PARTY.test(text) ||
+      /\bhref\s*=\s*["']https?:\/\//i.test(row)
+    ) {
+      return '\n';
+    }
+    return row;
+  });
 }
 
-function rating(text: string, allowBare = false): {
-  value: number | null;
-  scale: 5 | 100 | null;
-} | undefined {
-  const ratio = text.match(/(\d{1,3}(?:\.\d+)?)\s*\/\s*(5|100)\b/);
-  if (ratio) {
-    return {
-      value: Number(ratio[1]),
-      scale: Number(ratio[2]) as 5 | 100,
-    };
+function visibleLines(html: string): string[] {
+  const visible = removeExplicitExternalRows(html)
+    .replace(/<head\b[\s\S]*?<\/head\s*>/gi, '')
+    .replace(/<script\b[\s\S]*?<\/script\s*>/gi, '')
+    .replace(/<style\b[\s\S]*?<\/style\s*>/gi, '')
+    .replace(/<!--[\s\S]*?-->/g, '')
+    .replace(
+      /<\/(?:address|article|aside|blockquote|div|dd|dt|figcaption|footer|h[1-6]|header|li|main|nav|p|section|span|td|th|tr)>/gi,
+      '\n',
+    )
+    .replace(/<br\s*\/?>/gi, '\n')
+    .replace(/<[^>]+>/g, ' ');
+  const lines = decodeText(visible)
+    .split(/\n+/)
+    .map((line) => line.replace(/\s+/g, ' ').trim())
+    .filter(Boolean);
+
+  for (let index = 0; index < lines.length - 1; index += 1) {
+    if (/^\d{1,3}(?:\.\d+)?$/.test(lines[index]) && /^\/\s*(?:5|100)\b/.test(lines[index + 1])) {
+      lines.splice(index, 2, `${lines[index]}${lines[index + 1]}`);
+    }
   }
-  if (allowBare) {
-    const bare = text.match(/\b([0-5](?:\.\d+)?)\b/);
-    if (bare) return { value: Number(bare[1]), scale: 5 };
-  }
-  if (/(?:&#9733;|[★☆]){3,}/i.test(text)) {
-    return { value: null, scale: null };
-  }
-  return undefined;
+  return lines;
 }
 
-function excerpt(element: VisibleElement): string {
-  return plainText(element.inner).slice(0, 180);
+function nearby(lines: string[], index: number): string {
+  return lines
+    .slice(Math.max(0, index - 2), Math.min(lines.length, index + 3))
+    .join(' ');
+}
+
+function previousLineIsDescriptive(lines: string[], index: number): boolean {
+  const previous = lines[index - 1] ?? '';
+  return (
+    /[a-z]{3}/i.test(previous) &&
+    !FIRST_PARTY_LANGUAGE.test(previous) &&
+    !/(?:★|☆){3,}/.test(previous)
+  );
 }
 
 export function findRenderedEditorScoreContexts(
   html: string,
 ): RenderedEditorScoreContext[] {
+  const lines = visibleLines(html);
   const contexts: RenderedEditorScoreContext[] = [];
-  for (const element of visibleElements(html)) {
-    const text = plainText(element.inner);
-    if (hasClass(element, SCORE_TOTAL_CLASSES)) {
-      const found = rating(text);
-      if (found) contexts.push({ kind: 'score-total', ...found, excerpt: excerpt(element) });
-      continue;
-    }
-    if (hasClass(element, STAR_SCORE_CLASSES)) {
-      const found = rating(text);
-      if (found) contexts.push({ kind: 'star-score', ...found, excerpt: excerpt(element) });
-      continue;
-    }
-    if (element.classes.has('score-bars')) {
-      const total =
-        element.inner.match(
-          /class=["'][^"']*\bsbars-total\b[^"']*["'][^>]*>([^<]*)</i,
-        )?.[1] ?? text;
-      const found = rating(plainText(total));
-      if (found) {
-        contexts.push({
-          kind: 'score-bars-total',
-          ...found,
-          excerpt: excerpt(element),
-        });
+
+  lines.forEach((line, lineIndex) => {
+    for (const match of line.matchAll(SCORE)) {
+      if (EXPLICIT_THIRD_PARTY.test(line)) continue;
+      const value = Number(match[1]);
+      const scale = Number(match[2]) as 5 | 100;
+      const context = nearby(lines, lineIndex);
+      const firstParty = FIRST_PARTY_LANGUAGE.test(context);
+      if (
+        scale === 100 &&
+        !firstParty &&
+        line.replace(SCORE, '').trim().length === 0 &&
+        previousLineIsDescriptive(lines, lineIndex)
+      ) {
+        continue;
       }
-      continue;
+      contexts.push({
+        kind: firstParty
+          ? 'first-party-language'
+          : scale === 100
+            ? 'aggregate-total'
+            : 'unattributed-rating',
+        value,
+        scale,
+        excerpt: line.slice(0, 180),
+      });
     }
-    if (
-      hasClass(element, LABELED_SCORE_CLASSES) &&
-      /\b(?:Editor Score|Overall(?: Score| Rating)?)\b/i.test(text)
-    ) {
-      const found = rating(text, true);
-      if (found) contexts.push({ kind: 'labeled-score', ...found, excerpt: excerpt(element) });
-      continue;
+
+    if (!FIRST_PARTY_LANGUAGE.test(nearby(lines, lineIndex))) return;
+    for (const match of line.matchAll(BARE_FIVE_SCORE)) {
+      const trailing = line.slice(match.index + match[0].length);
+      if (/^\s*\/\s*(?:5|100)\b/.test(trailing)) continue;
+      contexts.push({
+        kind: 'first-party-language',
+        value: Number(match[1]),
+        scale: 5,
+        excerpt: line.slice(0, 180),
+      });
     }
-    if (hasClass(element, STICKY_CLASSES)) {
-      for (const fragment of element.inner.split(/(?:&#183;|·|—|&mdash;)/i)) {
-        const fragmentText = plainText(fragment);
-        if (/\b(?:Trustpilot|Google|App Store|iOS|Android)\b/i.test(fragmentText)) {
-          continue;
-        }
-        const found = rating(fragmentText);
-        if (found) {
-          contexts.push({
-            kind: 'sticky-score',
-            ...found,
-            excerpt: fragmentText.slice(0, 180),
-          });
-        }
-      }
-    }
-  }
+  });
   return contexts;
 }
 
