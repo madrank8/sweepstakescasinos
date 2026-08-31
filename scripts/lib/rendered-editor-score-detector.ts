@@ -93,8 +93,10 @@ export function findRenderedEditorScoreContexts(
       const value = Number(match[1]);
       const scale = Number(match[2]) as 5 | 100;
       const scoreOnly =
-        line.replace(/\d{1,3}(?:\.\d+)?\s*\/\s*(?:5|100)\b/g, '').trim()
-          .length === 0;
+        line
+          .replace(/\d{1,3}(?:\.\d+)?\s*\/\s*(?:5|100)\b/g, '')
+          .replace(/[~★☆½]/g, '')
+          .trim().length === 0;
       const previous = lines[lineIndex - 1] ?? '';
       const next = lines[lineIndex + 1] ?? '';
       const sourceContext = lines
