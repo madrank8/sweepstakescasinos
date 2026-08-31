@@ -522,7 +522,8 @@ assert.doesNotMatch(
 );
 const newRoute = readFileSync(resolve(root, 'src/routes/new/index.astro'), 'utf8');
 assert.match(newRoute, /from '\.\.\/\.\.\/data\/operators'/);
-assert.match(newRoute, /canonicalOperatorName/);
+assert.match(newRoute, /operatorFactNote/);
+assert.match(newRoute, /reviewOutboundAvailabilityView/);
 const bestRoute = readFileSync(resolve(root, 'src/routes/best/\[slug\]\.astro'), 'utf8');
 assert.match(bestRoute, /from '\.\.\/\.\.\/data\/operators'/);
 
