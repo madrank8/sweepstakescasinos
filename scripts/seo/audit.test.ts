@@ -370,6 +370,25 @@ assert.match(
   /historical audit evidence/i,
   'cannibalisation report must identify legacy index.html as historical only',
 );
+for (const name of [
+  'cannibalisation-review.md',
+  'commercial-hub-plan.md',
+  'technical-audit.md',
+] as const) {
+  assert.doesNotMatch(
+    reports.get(name) ?? '',
+    /four supported editor picks|supported ranked cards|canonically supported ranked set|deeper ranked[/-]comparison/i,
+    `${name} must not reintroduce an unsupported homepage or comparison ranking`,
+  );
+}
+assert.match(
+  reports.get('commercial-hub-plan.md') ?? '',
+  /12 operator decision-support entries/i,
+);
+assert.match(
+  reports.get('cannibalisation-review.md') ?? '',
+  /verified editor scores as supporting details/i,
+);
 assert.match(
   reports.get('commercial-hub-plan.md') ?? '',
   /0\/29 records have a verified lastVerifiedDate/,

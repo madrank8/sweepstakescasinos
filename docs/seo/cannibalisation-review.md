@@ -4,9 +4,9 @@ Source snapshot: repository authored sources. Generated deterministically withou
 
 | Surface | Exact title value | Distinct search intent | Status |
 |---|---|---|---|
-| `/` from `src/routes/index.astro` | `Compare Sweepstakes Casinos by Published Facts \| Sweepstakes Wiz` | Concise answer, four supported editor picks, and a deterministic facts-first comparison for initial decisions. | DISTINCT |
+| `/` from `src/routes/index.astro` | `Compare Sweepstakes Casinos by Published Facts \| Sweepstakes Wiz` | Concise answer and a 12-entry facts-first decision-support set, with verified editor scores as supporting details only. | DISTINCT |
 | `/reviews/` from `src/routes/reviews/index.astro` | `Sweepstakes Casino Reviews: All 29 Operators \| Sweepstakes Wiz` | Directory intent: find any of the 29 reviews alphabetically; no “best” ordering. | DISTINCT |
-| `/best/sweepstakes-casinos/` from `src/content/comparisons/sweepstakes-casinos.mdx` | `Sweepstakes Casinos to Compare \| Sweepstakes Wiz` | Deeper ranked/comparison intent with expanded methodology and analysis. | DISTINCT |
+| `/best/sweepstakes-casinos/` from `src/content/comparisons/sweepstakes-casinos.mdx` | `Sweepstakes Casinos to Compare \| Sweepstakes Wiz` | Deeper comparison guidance and a 10-entry canonical evidence set without unsupported rank semantics. | DISTINCT |
 
 Freshness-dependent superlative routes remain deferred. “Most free Sweeps Coins” overlaps `/bonuses/no-deposit/`, while a payout-speed route lacks normalized, freshly verified comparison data. No thin route or filter permutation was created.
 
