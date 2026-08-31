@@ -16,7 +16,7 @@ const FIRST_PARTY_CUE =
   /\b(?:editor(?:ial)?|editor(?:ial)? score|editor(?:'s)? rating|overall(?: score| rating| verdict)?|our (?:score|rating)|we rate|how we (?:rate|score)|earns?(?: its| an?| the)?|is rated|rated by (?:us|sweepstakes wiz))\b/i;
 const BREAKDOWN_CUE = /\b(?:how we (?:rate|score)|rating breakdown|score breakdown)\b/i;
 const THIRD_PARTY_CUE =
-  /\b(?:Trustpilot|Google Play|App Store|player-reported|reader reports?)\b|[a-z0-9.-]+\.com\b/i;
+  /\b(?:Trustpilot|Google Play|App Store|player-reported|reader reports?)\b|[a-z0-9.-]+\.com\b|(?:\b(?!Sweepstakes\s+Wiz\b)[A-Z][A-Za-z0-9.-]{2,})\s+rates?\b/;
 const VOID_ELEMENTS = new Set([
   'area',
   'base',

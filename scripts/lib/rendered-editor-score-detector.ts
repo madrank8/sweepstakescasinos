@@ -10,7 +10,7 @@ const BARE_FIVE_SCORE = /\b([0-5]\.\d+)\b/g;
 const FIRST_PARTY_LANGUAGE =
   /\b(?:editor(?:ial)?|overall|our (?:score|rating)|we rate|how we (?:rate|score)|earns?(?: its| an?| the)?|is rated|rated by (?:us|sweepstakes wiz))\b/i;
 const EXPLICIT_THIRD_PARTY =
-  /\b(?:Trustpilot|Google Play|App Store|player-reported|reader reports?)\b|[a-z0-9.-]+\.com\b/i;
+  /\b(?:Trustpilot|Google Play|App Store|player-reported|reader reports?)\b|[a-z0-9.-]+\.com\b|(?:\b(?!Sweepstakes\s+Wiz\b)[A-Z][A-Za-z0-9.-]{2,})\s+rates?\b/;
 
 function decodeText(value: string): string {
   return value
