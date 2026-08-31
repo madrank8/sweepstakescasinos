@@ -8,6 +8,8 @@
  * site-level legal suppression overrides partner availability.
  */
 import { AFFILIATE_PARTNERS } from '../src/data/affiliates';
+import { readFileSync, writeFileSync } from 'node:fs';
+import { resolve } from 'node:path';
 import { ALL_US_STATE_CODES, isUsStateCode, type UsStateCode } from '../src/data/usStates';
 import {
   SITE_BANNED_STATES,
@@ -17,6 +19,15 @@ import {
 } from '../src/data/geo';
 import { resolveBonusGateway } from '../src/lib/bonusGateway';
 import { suppressAffiliateCtas } from '../src/lib/affiliateHtml';
+import {
+  reconcileAvailabilityAuthorities,
+  renderAvailabilityConflictReport,
+} from '../src/lib/availability';
+import {
+  fallbackAvailability,
+  fallbackOperators,
+  fallbackStates,
+} from '../src/lib/tracker/fallback';
 
 let failures = 0;
 const fail = (msg: string) => {
@@ -179,6 +190,43 @@ check('CA removes Zula affiliate CTA', !inCA.includes('/bonuses/zula/'), true);
 check('CA removes non-partner Rolla CTA', !inCA.includes('/bonuses/rolla/'), true);
 check('CA keeps editorial (non-affiliate) link', inCA.includes('/reviews/mcluck/'), true);
 check('CA shows unavailable note', inCA.includes('affiliate-unavailable'), true);
+
+console.log('\n=== 8. Three-authority reconciliation ===');
+const reconciliation = reconcileAvailabilityAuthorities({
+  states: fallbackStates,
+  partners: AFFILIATE_PARTNERS,
+  trackerOperators: fallbackOperators,
+  trackerAvailability: fallbackAvailability,
+});
+for (const error of reconciliation.errors) fail(error.message);
+if (reconciliation.errors.length === 0) {
+  ok(
+    `${reconciliation.jurisdictionCount} jurisdictions and ` +
+      `${reconciliation.partnerCount} partners reconcile without invalid references`,
+  );
+}
+const impossible = reconciliation.warnings.filter(
+  (warning) => warning.kind === 'impossible-commercial-intersection',
+);
+check('one impossible commercial intersection is explicit', impossible.length === 1, true);
+check('Card Crush owns the impossible commercial intersection', impossible[0]?.operatorSlug === 'card-crush', true);
+const policyDifferences = reconciliation.warnings.filter(
+  (warning) => warning.kind === 'tracker-policy-difference',
+);
+check('six tracker/site-policy differences remain distinct', policyDifferences.length === 6, true);
+
+const reportPath = resolve('docs/seo/state-legality-conflicts.md');
+const report = renderAvailabilityConflictReport(reconciliation);
+if (process.argv.includes('--write')) {
+  writeFileSync(reportPath, report);
+  ok('deterministic reconciliation report written');
+} else {
+  check(
+    'committed reconciliation report matches deterministic output',
+    readFileSync(reportPath, 'utf8') === report,
+    true,
+  );
+}
 
 console.log(`\n${failures === 0 ? '✅ ALL CHECKS PASSED' : `❌ ${failures} CHECK(S) FAILED`}\n`);
 process.exit(failures === 0 ? 0 : 1);

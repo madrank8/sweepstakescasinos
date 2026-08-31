@@ -98,7 +98,12 @@ function slugifyState(name: string): string {
   return name.toLowerCase().replaceAll('.', '').replaceAll(' ', '-');
 }
 
-const nowIso = new Date().toISOString();
+/**
+ * Date of the committed baseline snapshot (the tracker integration commit).
+ * This is intentionally fixed: fallback data must never masquerade as freshly
+ * reviewed merely because a page was built today.
+ */
+export const FALLBACK_SNAPSHOT_AT = '2026-07-12T00:00:00.000Z';
 
 export const fallbackStates: StateRecord[] = STATE_INDEX.map(([code, name], index) => {
   const status = statusFor(code);
@@ -109,7 +114,9 @@ export const fallbackStates: StateRecord[] = STATE_INDEX.map(([code, name], inde
     wikidata_id: null,
     sweeps_casino_status: status,
     sweeps_status_confidence: status === 'pending_ban' ? 'medium' : 'high',
-    sweeps_status_changed_at: new Date(Date.now() - index * 86400000 * 3).toISOString(),
+    sweeps_status_changed_at: new Date(
+      new Date(FALLBACK_SNAPSHOT_AT).getTime() - index * 86400000 * 3,
+    ).toISOString(),
     sweeps_status_summary: summaryFor(status),
     sweeps_status_full_text:
       'Sweepstakes Wiz tracks state attorney-general statements, bill text, and documented operator restrictions. This status monitor is informational and not legal advice. We prioritize official government publications and identifiable operator policy changes before updating status labels.',
@@ -122,8 +129,8 @@ export const fallbackStates: StateRecord[] = STATE_INDEX.map(([code, name], inde
     gaming_authority_url: null,
     gaming_authority_name: null,
     sources_json: ['https://legiscan.com/'],
-    last_reviewed_at: nowIso,
-    last_auto_updated_at: nowIso,
+    last_reviewed_at: FALLBACK_SNAPSHOT_AT,
+    last_auto_updated_at: FALLBACK_SNAPSHOT_AT,
     review_required: false,
   };
 });

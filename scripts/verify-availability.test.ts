@@ -103,13 +103,17 @@ assert.ok(
 
 const malformed = reconcileAvailabilityAuthorities({
   states: [
-    ...fallbackStates.slice(1),
     {
       ...fallbackStates[0],
       state_code: 'XX',
       last_reviewed_at: '',
       last_auto_updated_at: 'not-a-date',
     },
+    {
+      ...fallbackStates[1],
+      last_reviewed_at: '2025-01-01T00:00:00Z',
+    },
+    ...fallbackStates.slice(2),
   ],
   partners: [
     {
@@ -133,6 +137,7 @@ assert.ok(malformed.errors.some((error) => error.kind === 'invalid-state-referen
 assert.ok(malformed.errors.some((error) => error.kind === 'invalid-operator-reference'));
 assert.ok(malformed.errors.some((error) => error.kind === 'conflicting-affiliate-rules'));
 assert.ok(malformed.warnings.some((warning) => warning.kind === 'missing-freshness'));
+assert.ok(malformed.warnings.some((warning) => warning.kind === 'stale-freshness'));
 
 const expectedReport = renderAvailabilityConflictReport(reconciliation);
 assert.equal(

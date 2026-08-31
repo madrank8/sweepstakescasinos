@@ -1,91 +1,93 @@
 # State, Legality, and CTA Authority Reconciliation
 
-Source snapshot: repository authored sources. Generated deterministically without a runtime date.
+Source snapshot: repository-authored tracker fallback, affiliate policy, and site CTA policy. Generated deterministically without a runtime date.
 
-This report does not infer legal status. Tracker posture, partner availability, and site CTA suppression remain separate authorities.
+This report does not infer legality. Tracker legal display, partner commercial availability, and site CTA policy remain three distinct authorities.
 
-## Manual-review differences
+Coverage: 51 jurisdictions; 13 affiliate partners; 0 validation errors; 13 reconciliation warnings.
 
-| Subject | Exact authority values | Status | Note |
+## Reconciliation warnings
+
+| Subject | Kind | Exact authority values | Note |
 |---|---|---|---|
-| CA | `src/lib/tracker/fallback.ts#CA` = `gray`<br>`src/data/geo.ts#SITE_BANNED_STATES` = `listed` | MANUAL_REVIEW | The tracker describes legal posture; geo.ts controls site-level CTA suppression. This audit does not infer that either authority should overwrite the other. |
-| FL | `src/lib/tracker/fallback.ts#FL` = `pending_ban`<br>`src/data/geo.ts#SITE_BANNED_STATES` = `not listed` | MANUAL_REVIEW | The tracker describes legal posture; geo.ts controls site-level CTA suppression. This audit does not infer that either authority should overwrite the other. |
-| IN | `src/lib/tracker/fallback.ts#IN` = `legal_unregulated`<br>`src/data/geo.ts#SITE_BANNED_STATES` = `listed` | MANUAL_REVIEW | The tracker describes legal posture; geo.ts controls site-level CTA suppression. This audit does not infer that either authority should overwrite the other. |
-| ME | `src/lib/tracker/fallback.ts#ME` = `legal_unregulated`<br>`src/data/geo.ts#SITE_BANNED_STATES` = `listed` | MANUAL_REVIEW | The tracker describes legal posture; geo.ts controls site-level CTA suppression. This audit does not infer that either authority should overwrite the other. |
-| MS | `src/lib/tracker/fallback.ts#MS` = `restricted`<br>`src/data/geo.ts#SITE_BANNED_STATES` = `not listed` | MANUAL_REVIEW | The tracker describes legal posture; geo.ts controls site-level CTA suppression. This audit does not infer that either authority should overwrite the other. |
-| TN | `src/lib/tracker/fallback.ts#TN` = `legal_unregulated`<br>`src/data/geo.ts#SITE_BANNED_STATES` = `listed` | MANUAL_REVIEW | The tracker describes legal posture; geo.ts controls site-level CTA suppression. This audit does not infer that either authority should overwrite the other. |
-| card-crush | `src/data/affiliates.ts#card-crush.availableOnlyInStates` = `CA, NY`<br>`src/data/geo.ts#SITE_BANNED_STATES` = `CA, NY` | MANUAL_REVIEW | Partner availability and site-wide CTA policy are intentionally separate; the combined CTA decision remains suppressive. |
+| card-crush | commercial / site policy | affiliate states = `CA, NY`<br>CTA states = `none` | Card Crush is commercially unavailable everywhere under current policy: its affiliate authority permits CA, NY, and site CTA policy suppresses every one. This is not a legal conclusion. |
+| CA | tracker / site policy | tracker = `gray`<br>site CTA = `suppressed` | Neither authority overwrites the other. |
+| FL | tracker / site policy | tracker = `pending_ban`<br>site CTA = `eligible` | Neither authority overwrites the other. |
+| IN | tracker / site policy | tracker = `legal_unregulated`<br>site CTA = `suppressed` | Neither authority overwrites the other. |
+| ME | tracker / site policy | tracker = `legal_unregulated`<br>site CTA = `suppressed` | Neither authority overwrites the other. |
+| MS | tracker / site policy | tracker = `restricted`<br>site CTA = `eligible` | Neither authority overwrites the other. |
+| TN | tracker / site policy | tracker = `legal_unregulated`<br>site CTA = `suppressed` | Neither authority overwrites the other. |
 
 ## Tracker and site CTA inventory
 
-| State | Tracker fallback status | Site CTA authority |
-|---|---|---|
-| AK | legal_unregulated | site CTA layer permits evaluation |
-| AL | legal_unregulated | site CTA layer permits evaluation |
-| AR | legal_unregulated | site CTA layer permits evaluation |
-| AZ | legal_unregulated | site CTA layer permits evaluation |
-| CA | gray | suppress all affiliate CTAs |
-| CO | legal_unregulated | site CTA layer permits evaluation |
-| CT | pending_ban | suppress all affiliate CTAs |
-| DC | legal_unregulated | site CTA layer permits evaluation |
-| DE | legal_unregulated | site CTA layer permits evaluation |
-| FL | pending_ban | site CTA layer permits evaluation |
-| GA | gray | site CTA layer permits evaluation |
-| HI | legal_unregulated | site CTA layer permits evaluation |
-| IA | legal_unregulated | site CTA layer permits evaluation |
-| ID | banned | suppress all affiliate CTAs |
-| IL | legal_unregulated | site CTA layer permits evaluation |
-| IN | legal_unregulated | suppress all affiliate CTAs |
-| KS | legal_unregulated | site CTA layer permits evaluation |
-| KY | legal_unregulated | site CTA layer permits evaluation |
-| LA | restricted | suppress all affiliate CTAs |
-| MA | legal_unregulated | site CTA layer permits evaluation |
-| MD | legal_unregulated | site CTA layer permits evaluation |
-| ME | legal_unregulated | suppress all affiliate CTAs |
-| MI | restricted | suppress all affiliate CTAs |
-| MN | legal_unregulated | site CTA layer permits evaluation |
-| MO | legal_unregulated | site CTA layer permits evaluation |
-| MS | restricted | site CTA layer permits evaluation |
-| MT | restricted | suppress all affiliate CTAs |
-| NC | gray | site CTA layer permits evaluation |
-| ND | legal_unregulated | site CTA layer permits evaluation |
-| NE | legal_unregulated | site CTA layer permits evaluation |
-| NH | legal_unregulated | site CTA layer permits evaluation |
-| NJ | pending_ban | suppress all affiliate CTAs |
-| NM | legal_unregulated | site CTA layer permits evaluation |
-| NV | restricted | suppress all affiliate CTAs |
-| NY | pending_ban | suppress all affiliate CTAs |
-| OH | gray | site CTA layer permits evaluation |
-| OK | legal_unregulated | site CTA layer permits evaluation |
-| OR | legal_unregulated | site CTA layer permits evaluation |
-| PA | gray | site CTA layer permits evaluation |
-| RI | legal_unregulated | site CTA layer permits evaluation |
-| SC | legal_unregulated | site CTA layer permits evaluation |
-| SD | legal_unregulated | site CTA layer permits evaluation |
-| TN | legal_unregulated | suppress all affiliate CTAs |
-| TX | gray | site CTA layer permits evaluation |
-| UT | legal_unregulated | site CTA layer permits evaluation |
-| VA | legal_unregulated | site CTA layer permits evaluation |
-| VT | legal_unregulated | site CTA layer permits evaluation |
-| WA | banned | suppress all affiliate CTAs |
-| WI | legal_unregulated | site CTA layer permits evaluation |
-| WV | legal_unregulated | site CTA layer permits evaluation |
-| WY | legal_unregulated | site CTA layer permits evaluation |
+| State | Tracker legal display | Site CTA policy | Eligible partners |
+|---|---|---|---:|
+| AL | legal_unregulated | eligible | 9 |
+| AK | legal_unregulated | eligible | 12 |
+| AZ | legal_unregulated | eligible | 10 |
+| AR | legal_unregulated | eligible | 12 |
+| CA | gray | suppressed | 0 |
+| CO | legal_unregulated | eligible | 12 |
+| CT | pending_ban | suppressed | 0 |
+| DE | legal_unregulated | eligible | 6 |
+| DC | legal_unregulated | eligible | 12 |
+| FL | pending_ban | eligible | 12 |
+| GA | gray | eligible | 10 |
+| HI | legal_unregulated | eligible | 11 |
+| ID | banned | suppressed | 0 |
+| IL | legal_unregulated | eligible | 10 |
+| IN | legal_unregulated | suppressed | 0 |
+| IA | legal_unregulated | eligible | 12 |
+| KS | legal_unregulated | eligible | 12 |
+| KY | legal_unregulated | eligible | 3 |
+| LA | restricted | suppressed | 0 |
+| ME | legal_unregulated | suppressed | 0 |
+| MD | legal_unregulated | eligible | 3 |
+| MA | legal_unregulated | eligible | 12 |
+| MI | restricted | suppressed | 0 |
+| MN | legal_unregulated | eligible | 11 |
+| MS | restricted | eligible | 10 |
+| MO | legal_unregulated | eligible | 12 |
+| MT | restricted | suppressed | 0 |
+| NE | legal_unregulated | eligible | 11 |
+| NV | restricted | suppressed | 0 |
+| NH | legal_unregulated | eligible | 12 |
+| NJ | pending_ban | suppressed | 0 |
+| NM | legal_unregulated | eligible | 12 |
+| NY | pending_ban | suppressed | 0 |
+| NC | gray | eligible | 12 |
+| ND | legal_unregulated | eligible | 11 |
+| OH | gray | eligible | 7 |
+| OK | legal_unregulated | eligible | 12 |
+| OR | legal_unregulated | eligible | 12 |
+| PA | gray | eligible | 11 |
+| RI | legal_unregulated | eligible | 12 |
+| SC | legal_unregulated | eligible | 12 |
+| SD | legal_unregulated | eligible | 12 |
+| TN | legal_unregulated | suppressed | 0 |
+| TX | gray | eligible | 12 |
+| UT | legal_unregulated | eligible | 11 |
+| VT | legal_unregulated | eligible | 12 |
+| VA | legal_unregulated | eligible | 12 |
+| WA | banned | suppressed | 0 |
+| WV | legal_unregulated | eligible | 4 |
+| WI | legal_unregulated | eligible | 12 |
+| WY | legal_unregulated | eligible | 12 |
 
-## Affiliate availability inventory
+## Affiliate commercial inventory
 
-| Operator | Restricted states | Available only in |
-|---|---|---|
-| card-crush | none | CA, NY |
-| casino-click | ID, KY, MI, MD, NV, WA, CA, CT, MT, NY | none |
-| crown-coins | ID, MI, NV, WA, MT, LA, CT, NY, NJ, CA, IN | none |
-| hello-millions | ID, KY, LA, MD, MI, MT, NV, NY, WA, WV, CA, TN, IN, DE, NJ, OH, CT | none |
-| legendz | WA, NV, NE, MD, MI, ID, ND, KY, WV, CT, NY, LA, NJ, CA, TN, IL, IN | none |
-| mcluck | ID, KY, MI, MT, NV, WA, LA, DE, NJ, NY, OH, MD, WV, CT, CA, TN, IN | none |
-| playfame | ID, KY, MI, MT, NV, WA, LA, DE, NJ, NY, OH, MD, WV, CT, CA, TN, IN | none |
-| pulsz | WA, ID, MI, MT, NV, AL, TN, CT, NY, LA, MS, WV, MD, AZ, CA, NJ, IN, ME | none |
-| roxymoxy | CT, DE, ID, LA, MI, MT, NV, NJ, NY, PA, WA, WV, CA, AZ, KY, UT, MN, TN, MD, IN | none |
-| spinblitz | ID, KY, MI, MT, NV, WA, LA, DE, NJ, NY, OH, MD, WV, CT, CA, TN, IN | none |
-| spree | MT, AL, WA, ID, NV, KY, GA, LA, DE, WV, MI, MD, CT, NJ, NY, CA, TN, IL | none |
-| thrillzz | AL, CT, GA, HI, ID, KY, LA, MI, MS, MT, NY, NV, OH, WA | none |
-| zula | ID, MI, WA | none |
+| Operator | Restricted states | Available only in | Commercial states | CTA states |
+|---|---|---|---:|---:|
+| card-crush | none | CA, NY | 2 | 0 |
+| casino-click | ID, KY, MI, MD, NV, WA, CA, CT, MT, NY | none | 41 | 36 |
+| crown-coins | ID, MI, NV, WA, MT, LA, CT, NY, NJ, CA, IN | none | 40 | 38 |
+| hello-millions | ID, KY, LA, MD, MI, MT, NV, NY, WA, WV, CA, TN, IN, DE, NJ, OH, CT | none | 34 | 33 |
+| legendz | WA, NV, NE, MD, MI, ID, ND, KY, WV, CT, NY, LA, NJ, CA, TN, IL, IN | none | 34 | 32 |
+| mcluck | ID, KY, MI, MT, NV, WA, LA, DE, NJ, NY, OH, MD, WV, CT, CA, TN, IN | none | 34 | 33 |
+| playfame | ID, KY, MI, MT, NV, WA, LA, DE, NJ, NY, OH, MD, WV, CT, CA, TN, IN | none | 34 | 33 |
+| pulsz | WA, ID, MI, MT, NV, AL, TN, CT, NY, LA, MS, WV, MD, AZ, CA, NJ, IN, ME | none | 33 | 33 |
+| roxymoxy | CT, DE, ID, LA, MI, MT, NV, NJ, NY, PA, WA, WV, CA, AZ, KY, UT, MN, TN, MD, IN | none | 31 | 30 |
+| spinblitz | ID, KY, MI, MT, NV, WA, LA, DE, NJ, NY, OH, MD, WV, CT, CA, TN, IN | none | 34 | 33 |
+| spree | MT, AL, WA, ID, NV, KY, GA, LA, DE, WV, MI, MD, CT, NJ, NY, CA, TN, IL | none | 33 | 31 |
+| thrillzz | AL, CT, GA, HI, ID, KY, LA, MI, MS, MT, NY, NV, OH, WA | none | 37 | 32 |
+| zula | ID, MI, WA | none | 48 | 38 |
