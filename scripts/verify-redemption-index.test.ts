@@ -1,4 +1,6 @@
 import assert from 'node:assert/strict';
+import { existsSync, readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
 import { READER_REPORT_AGGREGATES } from '../src/data/readerReports.generated';
 import { loadTestingResultsCsv } from '../src/data/testingResults';
 import {
@@ -143,6 +145,43 @@ assert.equal(
   Object.keys(READER_REPORT_AGGREGATES).length,
   0,
   'production reader aggregate dataset must remain empty',
+);
+
+const root = resolve(import.meta.dirname, '..');
+const packageJson = JSON.parse(
+  readFileSync(resolve(root, 'package.json'), 'utf8'),
+) as { scripts: Record<string, string> };
+assert.match(packageJson.scripts['verify:redemption-index'], /verify-redemption-index/);
+assert.match(packageJson.scripts['verify:reviews'], /verify-reviews/);
+assert.match(packageJson.scripts.ci, /\bverify:reviews\b/);
+assert.match(packageJson.scripts.ci, /\bverify:redemption-index\b/);
+
+const methodology = readFileSync(
+  resolve(root, 'docs/seo/redemption-index-methodology.md'),
+  'utf8',
+);
+assert.match(methodology, /approved records only/i);
+assert.match(
+  methodology,
+  new RegExp(`${REDEMPTION_INDEX_MIN_SAMPLE_PER_OPERATOR} approved records`),
+);
+assert.match(
+  methodology,
+  new RegExp(`${REDEMPTION_INDEX_MIN_OPERATORS} publishable operators`),
+);
+assert.match(methodology, /no[- ]seeding/i);
+assert.match(methodology, /median/i);
+assert.match(methodology, /limitations/i);
+
+assert.equal(
+  existsSync(resolve(root, 'src/routes/redemption-index/index.astro')),
+  false,
+  'empty production evidence must not create a public results route',
+);
+assert.doesNotMatch(
+  readFileSync(resolve(root, 'sitemap.xml'), 'utf8'),
+  /redemption-index/,
+  'empty production evidence must not create a sitemap result',
 );
 
 console.log(

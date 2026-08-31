@@ -27,6 +27,8 @@
     "testing:anchors": "tsx scripts/add-testing-anchors.ts",
     "operator:test": "tsx scripts/verify-operator-consistency.test.ts",
     "operator:verify": "tsx scripts/verify-operator-consistency.ts",
+    "verify:reviews": "tsx scripts/verify-reviews.test.ts && tsx scripts/verify-reviews.ts",
+    "verify:redemption-index": "tsx scripts/verify-redemption-index.test.ts && tsx scripts/verify-redemption-index.ts",
     "content:lint": "tsx scripts/lint-experience-claims.ts",
     "schema:verify": "tsx scripts/verify-schema.ts && tsx scripts/verify-schema-helpers.ts",
     "schema:check": "tsx scripts/verify-schema-built.ts",
@@ -40,7 +42,7 @@
     "seo:crawl": "tsx scripts/seo/rendered-link-crawl.ts",
     "verify:internal-links": "tsx scripts/verify-internal-links.test.ts && tsx scripts/seo/rendered-link-crawl.test.ts",
     "seo:score": "npm run build && npm run seo:extract && npm run seo:fingerprint && npm run seo:provenance",
-    "ci": "npm run verify:homepage && npm run verify:availability && npm run verify:internal-links && npm run seo:audit:test && npm run seo:audit && npm run operator:test && npm run operator:verify && npm run content:lint && npm run tracker:lint && npm run methodology:check && npm run verify:odds && npm run testing:verify && npm run testing:verify-overclaims && npm run build && npm run schema:check && npm run verify:odds:integration && npm run seo:crawl"
+    "ci": "npm run verify:homepage && npm run verify:availability && npm run verify:internal-links && npm run seo:audit:test && npm run seo:audit && npm run operator:test && npm run operator:verify && npm run verify:reviews && npm run verify:redemption-index && npm run content:lint && npm run tracker:lint && npm run methodology:check && npm run verify:odds && npm run testing:verify && npm run testing:verify-overclaims && npm run build && npm run schema:check && npm run verify:odds:integration && npm run seo:crawl"
   },
   "devDependencies": {
     "astro": "^7.0.0",
