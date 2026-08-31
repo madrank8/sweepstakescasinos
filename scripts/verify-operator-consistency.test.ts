@@ -167,6 +167,12 @@ for (const operator of OPERATORS) {
 }
 assert.ok(staticReviewCount > 0, 'real review integration must exercise getStaticReviewHtml');
 assert.ok(ssrReviewCount > 0, 'real review integration must exercise prepareSsrAffiliateReviewHtml');
+assert.equal(renderedReviews.size, 29, 'integration must render all 29 authored reviews');
+assert.equal(
+  OPERATORS.filter((operator) => operator.editorScore100.status === 'unresolved').length,
+  25,
+  'integration must enforce score suppression on all 25 unresolved reviews',
+);
 
 const unresolvedLeaks = OPERATORS.filter(
   (operator) => operator.editorScore100.status === 'unresolved',
