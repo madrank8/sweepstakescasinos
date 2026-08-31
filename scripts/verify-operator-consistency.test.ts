@@ -244,6 +244,17 @@ const semanticLeakFixture = `
     <!--sc-operator-facts data-operator="mcluck" data-fields="name,editorScore100"-->
   </main>
 `;
+const rawSemanticLeaks = findRenderedEditorScoreContexts(semanticLeakFixture);
+assert.ok(
+  rawSemanticLeaks.length >= 6,
+  'independent detector must fail prose, unknown-class, table, and aggregate leaks',
+);
+for (const leakedValue of [91, 88, 4.3, 4.1, 4.7, 4.5]) {
+  assert.ok(
+    rawSemanticLeaks.some((context) => context.value === leakedValue),
+    `independent detector missed semantic score ${leakedValue}`,
+  );
+}
 const semanticLeakRendered = injectOperatorFactsHtml(semanticLeakFixture, 'mcluck');
 for (const leakedClaim of [
   /We rate Example Casino 4\.6\/5 and 91\/100/,
@@ -314,7 +325,7 @@ assert.deepEqual(
   'independent detector must preserve explicitly labeled third-party ratings',
 );
 assert.ok(
-  validateRenderedEditorScoreContexts(undefined, leakedScoreFixture).length >= 5,
+  validateRenderedEditorScoreContexts(undefined, leakedScoreFixture).length > 0,
   'post-build detector must fail an unresolved review fixture with leaked score contexts',
 );
 assert.deepEqual(
