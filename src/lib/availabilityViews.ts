@@ -108,7 +108,7 @@ export function noDepositOfferAvailabilityView(
       ? { available: true, label: verifiedOn, datetime: verifiedOn }
       : {
           available: false,
-          label: 'Verification unavailable',
+          label: 'Details unavailable',
           datetime: null,
         },
   };

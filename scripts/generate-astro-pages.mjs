@@ -409,6 +409,20 @@ function writeSitemapAndRobots() {
     }
   }
 
+  const routeLastmod = Object.fromEntries(
+    entries.map(({ url, lastmod }) => [url, lastmod]),
+  );
+  writeFileSync(
+    join(root, 'src', 'data', 'routeLastmod.generated.ts'),
+    `/**
+ * GENERATED FILE — do not edit by hand.
+ *
+ * Written from the same authored-source git dates as sitemap.xml.
+ */
+export const ROUTE_LASTMOD: Readonly<Record<string, string>> = ${JSON.stringify(routeLastmod, null, 2)};
+`,
+  );
+
   const body = entries.map(({ url: u, lastmod }) =>
     `  <url>\n    <loc>${ORIGIN}${u}</loc>\n    <lastmod>${lastmod}</lastmod>\n    <changefreq>weekly</changefreq>\n    <priority>${u === '/' ? '1.0' : '0.8'}</priority>\n  </url>`
   ).join('\n');

@@ -10,10 +10,9 @@ export const prerender = false;
 import { getEntry, render } from 'astro:content';
 import ContentLayout from '../../layouts/ContentLayout.astro';
 import AffiliateLink from '../../components/AffiliateLink.astro';
-import { getPartner, AFFILIATE_PARTNERS } from '../../data/affiliates';
-import { bestPartnerAvailabilityView } from '../../lib/availabilityViews';
 import { brandEntityId, getBrandEntity } from '../../data/brandEntities';
-import { getOperator, verifiedValue } from '../../data/operators';
+import { OPERATORS } from '../../data/operators';
+import { buildComparisonOperatorViews } from '../../lib/homepage';
 import { faqPageNode } from '../../lib/schema';
 
 const ORIGIN = 'https://sweepstakeswiz.com';
@@ -26,13 +25,7 @@ if (!entry || entry.data.draft) {
 const { Content } = await render(entry);
 
 const state = Astro.locals.usState;
-const orderedSlugs =
-  entry.data.partnerSlugs.length > 0
-    ? entry.data.partnerSlugs
-    : AFFILIATE_PARTNERS.map((p) => p.slug);
-const partners = orderedSlugs
-  .map((s) => getPartner(s))
-  .filter((p): p is NonNullable<typeof p> => Boolean(p));
+const comparisonOperators = buildComparisonOperatorViews(OPERATORS, state, 10);
 
 const canonicalPath = `/best/${entry.id}/`;
 const canonical = `${ORIGIN}${canonicalPath}`;
@@ -44,27 +37,24 @@ const breadcrumbs = [
 const toIso = (d: unknown) => (d instanceof Date ? d.toISOString() : undefined);
 const publishedIso = toIso(entry.data.published);
 const updatedIso = toIso(entry.data.updated) ?? publishedIso;
-const canonicalOperatorName = (operatorSlug: string, fallback: string) => {
-  const operator = getOperator(operatorSlug);
-  return operator ? (verifiedValue(operator.name) ?? fallback) : fallback;
-};
 
-// CollectionPage (layout foundation) + ranked ItemList whose items are brand
+// CollectionPage (layout foundation) + ItemList whose items are brand
 // @id refs — the canonical brand Organization nodes are auto-appended to the
-// on-page graph by buildPageGraph. Schema-content parity (plan §4.4): the hub
-// visibly shows rank + name + review link only, so no ratings/pros-cons here.
+// on-page graph by buildPageGraph. Visible markup and schema share this model.
 const itemListLd = {
   '@type': 'ItemList',
   '@id': `${canonical}#itemlist`,
   name: entry.data.title,
-  itemListOrder: 'https://schema.org/ItemListOrderDescending',
-  numberOfItems: partners.length,
-  itemListElement: partners.map((p, i) => ({
+  itemListOrder: 'https://schema.org/ItemListUnordered',
+  numberOfItems: comparisonOperators.length,
+  itemListElement: comparisonOperators.map((operator, index) => ({
     '@type': 'ListItem',
-    position: i + 1,
-    name: canonicalOperatorName(p.slug, p.name),
-    url: `${ORIGIN}/reviews/${p.slug}/`,
-    ...(getBrandEntity(p.slug) ? { item: { '@id': brandEntityId(p.slug) } } : {}),
+    position: index + 1,
+    name: operator.name,
+    url: `${ORIGIN}/reviews/${operator.slug}/`,
+    ...(getBrandEntity(operator.slug)
+      ? { item: { '@id': brandEntityId(operator.slug) } }
+      : {}),
   })),
 };
 const faq = entry.data.faq ?? [];
@@ -86,28 +76,44 @@ const jsonLd = faqLd ? [itemListLd, faqLd] : [itemListLd];
 >
   <Content />
 
-  <h2>Our top-rated sweepstakes casinos</h2>
-  <ol class="best-list">
-    {partners.map((p, i) => {
-      const availability = bestPartnerAvailabilityView(p, state);
-      return (
-        <li class="best-item">
-          <span class="best-rank">#{i + 1}</span>
+  <h2>Operators to compare</h2>
+  <p>
+    This set is ordered by the amount of useful published information available,
+    with a stable tie-break. The sequence is not an editorial ranking.
+  </p>
+  <ol
+    class="best-list"
+    data-comparison-list
+    data-item-list={`${canonical}#itemlist`}
+    data-item-list-order="https://schema.org/ItemListUnordered"
+  >
+    {comparisonOperators.map((operator, index) => (
+        <li
+          class="best-item"
+          data-item-position={index + 1}
+          data-item-name={operator.name}
+          data-item-url={`${ORIGIN}/reviews/${operator.slug}/`}
+        >
           <div class="best-body">
-            <a class="best-name" href={`/reviews/${p.slug}/`}>
-              {canonicalOperatorName(p.slug, p.name)}
+            <a class="best-name" href={`/reviews/${operator.slug}/`}>
+              {operator.name}
             </a>
-          <span class={`best-avail ${availability.canCta ? 'ok' : 'no'}`}>
-            {availability.label}
+          <span class={`best-avail ${operator.canCta ? 'ok' : 'no'}`}>
+            {operator.availabilityLabel}
             </span>
           </div>
           <div class="best-cta">
-            <a class="best-review" href={`/reviews/${p.slug}/`}>Read review</a>
-            <AffiliateLink slug={p.slug} label="Get bonus" clickId={`best-${entry.id}`} />
+            <a class="best-review" href={`/reviews/${operator.slug}/`}>Read review</a>
+            {operator.hasPartner && (
+              <AffiliateLink
+                slug={operator.slug}
+                label="Visit operator"
+                clickId={`best-${entry.id}`}
+              />
+            )}
           </div>
         </li>
-      );
-    })}
+      ))}
   </ol>
 
   {faq.length > 0 && (
@@ -125,7 +131,6 @@ const jsonLd = faqLd ? [itemListLd, faqLd] : [itemListLd];
   <style>
     .best-list{list-style:none;margin:18px 0 8px;padding:0;}
     .best-item{display:flex;align-items:center;gap:14px;padding:14px 16px;border:1px solid #e2e8f0;border-radius:14px;background:linear-gradient(165deg,#fafcff,#eef4ff);margin-bottom:12px;}
-    .best-rank{font-family:'Sora',sans-serif;font-weight:900;color:#1a56db;font-size:1.1rem;min-width:34px;}
     .best-body{flex:1;display:flex;flex-direction:column;gap:2px;}
     .best-name{font-family:'Sora',sans-serif;font-weight:800;color:#0a1628;font-size:1.02rem;text-decoration:none;}
     .best-avail{font-size:.74rem;font-weight:700;}

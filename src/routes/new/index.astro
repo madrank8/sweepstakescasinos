@@ -12,8 +12,10 @@
 import ContentLayout from '../../layouts/ContentLayout.astro';
 import { getOperator, verifiedValue } from '../../data/operators';
 import { SITE } from '../../data/site';
+import { reviewOutboundAvailabilityView } from '../../lib/availabilityViews';
+import { operatorFactNote } from '../../lib/operatorPresentation';
 
-export const prerender = true;
+export const prerender = false;
 
 const ORIGIN = 'https://sweepstakeswiz.com';
 const canonicalPath = '/new/';
@@ -33,7 +35,6 @@ type NewOp = {
   slug: string;
   tier: 'newest' | 'recent';
   added: string;
-  note: string;
 };
 
 const operatorCards: NewOp[] = [
@@ -41,74 +42,70 @@ const operatorCards: NewOp[] = [
     slug: 'american-luck',
     tier: 'newest',
     added: 'Added July 2026',
-    note: 'New US operator (SGSE LLC, Delaware). No-purchase model, 1,500+ games, cash prizes via ACH from a low 50 SC minimum. Cash-out is ACH-only and the track record is short.',
   },
   {
     slug: 'roxymoxy',
     tier: 'recent',
     added: 'In roster since 2026',
-    note: 'US operator (Rainforest LTD, Delaware). No-code 50,000 GC + 2.5 SC welcome; bank-transfer redemptions from 100 SC; 40+ slots, browser-only.',
   },
   {
     slug: 'card-crush',
     tier: 'recent',
     added: 'In roster since 2026',
-    note: 'Card-battle RPG twist on the sweeps model using Mystery Coins (1 MC = $1). Cash from 75 MC, gift cards from 10 MC. Available only in CA & NY; 21+.',
   },
   {
     slug: 'spree',
     tier: 'recent',
     added: 'In roster since 2026',
-    note: 'Play Spree Ltd. 10 SC gift-card redemptions, SpreePotz jackpots and Sit-and-Spin, 800+ games.',
   },
   {
     slug: 'playfame',
     tier: 'recent',
     added: 'In roster since 2026',
-    note: 'PlayFame Operations Ltd. 7,500 GC + 2.5 SC welcome, 10 SC gift cards and bank-transfer cash, plus a dedicated iOS app.',
   },
   {
     slug: 'legendz',
     tier: 'recent',
     added: 'In roster since 2026',
-    note: 'Social sportsbook + casino. No-code 500 GC + 3 SC; Prizeout gift cards from 50 SC, Skrill/bank cash from 100 SC.',
   },
   {
     slug: 'thrillzz',
     tier: 'recent',
     added: 'In roster since 2026',
-    note: 'Social sportsbook (Thrillzz Inc., TN). 50 SC redemptions via bank/PayPal/Skrill in 1–3 days, with native iOS/Android apps.',
   },
   {
     slug: 'big-pirate',
     tier: 'recent',
     added: 'In roster since 2026',
-    note: 'Newer non-partner brand with a three-currency system, a Claw Machine feature and 1,500+ games (editorial, info-only review).',
   },
   {
     slug: 'jackpota',
     tier: 'recent',
     added: 'In roster since 2026',
-    note: 'Gift cards reported in ~2 days from 10 SC; 80,000 GC + 40 SC first-purchase pack; 1,600+ games incl. live dealer (info-only review).',
   },
   {
     slug: 'spinfinite',
     tier: 'recent',
     added: 'In roster since 2026',
-    note: 'Subscription-style Power Pass and instant gift cards from 10 SC, with a 3 SC mail-in AMOE and an Android app (info-only review).',
   },
 ];
 
-function canonicalOperatorName(slug: string): string {
+const state = Astro.locals.usState;
+function canonicalOperator(slug: string) {
   const operator = getOperator(slug);
   if (!operator) throw new Error(`Missing canonical operator: ${slug}`);
-  return verifiedValue(operator.name)!;
+  return operator;
 }
 
-const operators = operatorCards.map((operator) => ({
-  ...operator,
-  name: canonicalOperatorName(operator.slug),
-}));
+const operators = operatorCards.map((card) => {
+  const operator = canonicalOperator(card.slug);
+  return {
+    ...card,
+    name: verifiedValue(operator.name)!,
+    note: operatorFactNote(operator),
+    outbound: reviewOutboundAvailabilityView(card.slug, state),
+  };
+});
 
 const newest = operators.filter((o) => o.tier === 'newest');
 const recent = operators.filter((o) => o.tier === 'recent');
@@ -259,6 +256,7 @@ const jsonLd = [
         <span class="new-tag new-tag--new">{o.added}</span>
         <span class="new-card-title">{o.name}</span>
         <span class="new-card-note">{o.note}</span>
+        <span class="new-card-availability">{o.outbound.label}</span>
         <span class="new-card-cta">Read the full review &#8594;</span>
       </a>
     ))}
@@ -272,6 +270,7 @@ const jsonLd = [
           <span class="new-tag">{o.added}</span>
           <span class="new-card-title">{o.name}</span>
           <span class="new-card-note">{o.note}</span>
+          <span class="new-card-availability">{o.outbound.label}</span>
           <span class="new-card-cta">Read review &#8594;</span>
         </a>
       ))}
@@ -395,6 +394,7 @@ const jsonLd = [
     .new-tag--new { color:#0a1628; background:#fbbf24; border-color:#fbbf24; }
     .new-card-title { font-family:'Sora',sans-serif; font-weight:800; font-size:1.1rem; color:#0a1628; margin-bottom:8px; }
     .new-card-note { color:#475569; font-size:0.92rem; line-height:1.55; flex:1 1 auto; margin-bottom:12px; }
+    .new-card-availability { color:#64748b; font-size:0.78rem; line-height:1.45; margin-bottom:10px; }
     .new-card-cta { color:#b45309; font-weight:600; font-size:0.9rem; }
     .new-card--feature .new-card-cta { color:#fbbf24; }
 

@@ -15,6 +15,7 @@ import {
   WEBSITE_ID,
 } from '../src/lib/schema';
 import { BRAND_AGGREGATE_RATING_MIN_REPORTS } from '../src/lib/brandAggregateRating';
+import { itemListParityErrors } from './lib/itemlist-parity';
 import { findRenderedEditorScoreContexts } from './lib/rendered-editor-score-detector';
 
 type Node = Record<string, unknown>;
@@ -105,6 +106,9 @@ function verifyPage(url: string, html: string): void {
     return;
   }
   const graph = document['@graph'] as Node[];
+  for (const error of itemListParityErrors(html, graph)) {
+    fail(url, error);
+  }
   const canonical = canonicalFromHtml(html);
   if (!canonical) {
     fail(url, 'indexable page has no canonical URL');

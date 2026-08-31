@@ -18,6 +18,7 @@ import ContentLayout from '../../../layouts/ContentLayout.astro';
 import AffiliateLink from '../../../components/AffiliateLink.astro';
 import CurrencyCompare from '../../../components/CurrencyCompare.astro';
 import { getPartner } from '../../../data/affiliates';
+import { ROUTE_LASTMOD } from '../../../data/routeLastmod.generated';
 import { SITE } from '../../../data/site';
 import {
   siteCtaEligibility,
@@ -30,20 +31,24 @@ import {
   verifiedValue,
   type RedemptionMinimum,
 } from '../../../data/operators';
+import { formatPartialIsoDate } from '../../../lib/operatorPresentation';
 
 const ORIGIN = 'https://sweepstakeswiz.com';
 const canonicalPath = '/bonuses/no-deposit/';
 const canonical = `${ORIGIN}${canonicalPath}`;
 
 const DATE_PUBLISHED = '2026-07-12';
-const DATE_MODIFIED = '2026-07-12';
+const sourceLastmod = ROUTE_LASTMOD[canonicalPath];
+if (!sourceLastmod) {
+  throw new Error(`Missing generated source lastmod for ${canonicalPath}`);
+}
 
 const title =
-  'Sweepstakes Casino No Deposit Bonuses — July 2026 | Sweepstakes Wiz';
+  'Sweepstakes Casino No Deposit Bonuses | Sweepstakes Wiz';
 const description =
-  'Published no-deposit sweepstakes casino offers for July 2026 — free Sweeps Coins on signup, daily login rewards, and mail-in entries. No promo codes required, checked against your state.';
+  'Compare published no-deposit sweepstakes casino offers, including free Sweeps Coins on signup, daily login rewards, and mail-in entries, with state-aware links.';
 const heroTitle =
-  'No Deposit Bonuses & <span class="accent">Free Sweeps Coins</span> (July 2026)';
+  'No Deposit Bonuses & <span class="accent">Free Sweeps Coins</span>';
 const heroSubtitle =
   'The no-purchase offers we track across our reviewed roster — free Sweeps Coins on signup, daily logins, and mail-in entries. No promo codes, and every offer is checked against your state.';
 
@@ -64,7 +69,6 @@ type Offer = {
   name: string;
   reviewLabel: string;
   signup?: string;
-  signupSc?: number;
   daily?: string;
   min?: string;
   verifiedOn?: string;
@@ -72,11 +76,6 @@ type Offer = {
 
 function formatMinimum(value: RedemptionMinimum, label: string): string {
   return `${value.amount} ${value.currency} (${label})`;
-}
-
-function signupSc(signup: string | undefined): number | undefined {
-  const matches = signup ? [...signup.matchAll(/(\d+(?:\.\d+)?)\s+SC\b/g)] : [];
-  return matches.length > 0 ? Number(matches.at(-1)![1]) : undefined;
 }
 
 function canonicalOffer(slug: string, reviewLabel: string): Offer {
@@ -94,7 +93,6 @@ function canonicalOffer(slug: string, reviewLabel: string): Offer {
     name: verifiedValue(operator.name)!,
     reviewLabel,
     signup,
-    signupSc: signupSc(signup),
     daily: verifiedValue(operator.dailyOffer),
     min: minima.length > 0 ? minima.join('; ') : undefined,
     verifiedOn: verifiedValue(operator.lastVerifiedDate),
@@ -127,14 +125,6 @@ const offers = OFFERS.map((o) => {
   };
 });
 
-// Signup-SC chart data, derived from the same OFFERS array (single source of
-// truth) and sorted high→low. `maxSc` scales the bar widths.
-const scChart = OFFERS.filter(
-  (offer): offer is Offer & { signupSc: number } => offer.signupSc !== undefined,
-).sort((a, b) => b.signupSc - a.signupSc);
-const maxSc = Math.max(...scChart.map((o) => o.signupSc));
-const fmtSc = (n: number) => (Number.isInteger(n) ? String(n) : n.toFixed(1));
-
 // Suppressed-state list, bound to SITE_BANNED_STATES (the legal-suppression
 // source), rendered alphabetically by full name. Oklahoma is handled separately
 // as a scheduled (not-yet-active) ban so the visual never overstates the count.
@@ -153,12 +143,12 @@ const faq = [
     a: "No. Every offer on this page is credited automatically after you register and verify your account. If a third-party site tells you a code is required for one of these brands, treat it as a red flag — the operators themselves don't require one.",
   },
   {
-    q: 'Which sweepstakes casino gives the most free Sweeps Coins on signup?',
-    a: "Of the brands we cover, Zula Casino currently leads with 10 free SC on signup. Legendz and Thrillzz follow with 3 SC each, and most other operators issue 2–2.5 SC. Signup value isn't everything — daily logins and mail-in entries usually outvalue the welcome within a few weeks of regular play.",
+    q: 'How should I compare free Sweeps Coins offers?',
+    a: "Start with the Sweeps Coin amount, then check playthrough, expiry, state eligibility, and the redemption minimum. Daily logins and mail-in entries can add ongoing free-entry opportunities, but terms change and should be confirmed with the operator.",
   },
   {
     q: 'Can existing players get no-deposit bonuses?',
-    a: 'Yes — daily login streaks, social media drops, in-app promotions, and the mail-in (AMOE) route all issue free Sweeps Coins to existing accounts. Daily logins are the most reliable: claimed consistently, they typically outvalue the one-time welcome bonus.',
+    a: 'Often. Daily login streaks, social media drops, in-app promotions, and the mail-in (AMOE) route can issue free Sweeps Coins to existing accounts. Availability and amounts depend on the current operator terms.',
   },
   {
     q: 'Can you actually win real money from a no-deposit bonus?',
@@ -176,7 +166,8 @@ const faq = [
 const itemListLd = {
   '@type': 'ItemList',
   '@id': `${canonical}#itemlist`,
-  name: 'Published no-deposit sweepstakes casino bonuses — July 2026',
+  name: 'Published no-deposit sweepstakes casino offers',
+  itemListOrder: 'https://schema.org/ItemListUnordered',
   numberOfItems: offers.length,
   itemListElement: offers.map((o, i) => ({
     '@type': 'ListItem',
@@ -209,10 +200,13 @@ const jsonLd = [itemListLd, faqLd];
   pageType="CollectionPage"
   mainEntityId={`${canonical}#itemlist`}
   datePublished={DATE_PUBLISHED}
-  dateModified={DATE_MODIFIED}
+  dateModified={sourceLastmod}
   jsonLd={jsonLd}
 >
   <p>
+    <strong>
+      Updated <time datetime={sourceLastmod}>{formatPartialIsoDate(sourceLastmod)}</time>.
+    </strong>{' '}
     Every bonus below is a genuine <strong>no-purchase offer</strong> — free Gold Coins and Sweeps
     Coins issued for signing up, logging in daily, or mailing a free entry. <strong>None of them
     require a promo code</strong>: they're credited automatically after registration and verification.
@@ -261,10 +255,14 @@ const jsonLd = [itemListLd, faqLd];
     ]}
   />
 
-  <h2>Published no-deposit bonuses — July 2026</h2>
+  <h2>Published no-deposit offers</h2>
 
   <div class="nd-table-wrap">
-    <table class="nd-table">
+    <table
+      class="nd-table"
+      data-item-list={`${canonical}#itemlist`}
+      data-item-list-order="https://schema.org/ItemListUnordered"
+    >
       <thead>
         <tr>
           <th>Operator</th>
@@ -277,17 +275,21 @@ const jsonLd = [itemListLd, faqLd];
         </tr>
       </thead>
       <tbody>
-        {offers.map((o) => (
-          <tr>
+        {offers.map((o, index) => (
+          <tr
+            data-item-position={index + 1}
+            data-item-name={o.name}
+            data-item-url={`${ORIGIN}/reviews/${o.slug}/`}
+          >
             <td><strong>{o.name}</strong></td>
-            <td>{o.signup ?? <em>Not canonicalized</em>}</td>
-            <td>{o.daily ?? <em>Not canonicalized</em>}</td>
-            <td>{o.min ?? <em>Not canonicalized</em>}</td>
+            <td>{o.signup ?? <span aria-label="Details unavailable">—</span>}</td>
+            <td>{o.daily ?? <span aria-label="Details unavailable">—</span>}</td>
+            <td>{o.min ?? <span aria-label="Details unavailable">—</span>}</td>
             <td class="nd-verified">
               {o.verification.available ? (
                 <time datetime={o.verification.datetime}>{o.verification.label}</time>
               ) : (
-                <em>{o.verification.label}</em>
+                <span aria-label="Details unavailable">—</span>
               )}
             </td>
             <td><a href={`/reviews/${o.slug}/`}>{o.reviewLabel}</a></td>
@@ -312,34 +314,13 @@ const jsonLd = [itemListLd, faqLd];
     where the offer is actually available to you.
   </blockquote>
 
-  <h2>Top picks for free SC value</h2>
-  <ul>
-    <li><strong>Biggest signup SC:</strong> Zula Casino (10 SC) — four times the category norm.</li>
-    <li><strong>Best ongoing daily value:</strong> Casino Click — daily logins scale up to 5 SC per day, which outpaces every signup bonus within a week of consistent claiming.</li>
-    <li><strong>Best for small redeemers:</strong> McLuck, Pulsz, HelloMillions and PlayFame — free-play winnings become redeemable from just 10 SC in gift cards.</li>
-    <li><strong>Best combined stack:</strong> PlayFame — signup SC, daily login rewards <em>and</em> daily jackpots on one account.</li>
-  </ul>
-
-  <figure class="nd-chart" role="group" aria-labelledby="nd-chart-cap">
-    <figcaption id="nd-chart-cap" class="nd-chart-cap">
-      Free Sweeps Coins on signup, by brand (July 2026) — highest first
-    </figcaption>
-    <ol class="nd-chart-list">
-      {scChart.map((o) => (
-        <li class={`nd-chart-row${o.signupSc === maxSc ? ' nd-chart-lead' : ''}`}>
-          <span class="nd-chart-name">{o.name}</span>
-          <span class="nd-chart-track">
-            <span class="nd-chart-fill" style={`--pct:${(o.signupSc / maxSc) * 100}%`} aria-hidden="true"></span>
-            <span class="nd-chart-val">{fmtSc(o.signupSc)} SC</span>
-          </span>
-        </li>
-      ))}
-    </ol>
-    <p class="nd-chart-note">
-      Signup SC is a one-time grant. Daily logins and mail-in entries usually outvalue it within a few
-      weeks — and every figure above is Sweeps Coins, the only redeemable currency.
-    </p>
-  </figure>
+  <h2>How to compare free-entry value</h2>
+  <p>
+    Read the signup grant together with recurring free-entry routes, playthrough,
+    expiry, and the redemption minimum. A larger coin headline does not establish
+    better practical value, and no winner is shown without current comparable
+    verification dates.
+  </p>
 
   <h2>What a &ldquo;no deposit bonus&rdquo; actually is</h2>
   <p>
@@ -359,7 +340,7 @@ const jsonLd = [itemListLd, faqLd];
   <h2>The four free-SC routes (and which are worth your time)</h2>
   <ol>
     <li><strong>Signup grant</strong> — one-time GC + SC for registering and verifying. Table above.</li>
-    <li><strong>Daily login</strong> — the workhorse. Small daily SC amounts, often on streak multipliers that grow through the week. Claimed consistently, dailies outvalue the signup bonus at most brands within a few weeks.</li>
+    <li><strong>Daily login</strong> — small recurring SC amounts, sometimes on streak multipliers that grow through the week. Check the current operator terms for amounts and reset rules.</li>
     <li><strong>Mail-in request (AMOE)</strong> — a free postal entry for SC at published rates (for example, SpinBlitz credits 4 SC per envelope). Slow, but purchase-free by design; each operator's official rules list the address and format requirements.</li>
     <li><strong>Social drops &amp; promotions</strong> — SC giveaways on operator social channels and in-app events. Irregular, but free to follow.</li>
   </ol>
@@ -373,7 +354,7 @@ const jsonLd = [itemListLd, faqLd];
   <h2>How to claim (and keep) a no-deposit bonus</h2>
   <ol>
     <li><strong>Check your state first.</strong> Offers on this page are already geo-filtered, but the <a href="/state-legality/">state legality hub</a> has the full picture.</li>
-    <li><strong>Register with accurate details.</strong> Redemptions require identity verification later — mismatched details are the #1 cause of stuck payouts.</li>
+    <li><strong>Register with accurate details.</strong> Redemptions require identity verification later, and mismatched details can delay the process.</li>
     <li><strong>Verify your email.</strong> Most brands credit the signup bonus at this step, no code needed.</li>
     <li><strong>Note the playthrough.</strong> Free SC typically carries a 1x (sometimes higher) playthrough before it's redeemable — the linked reviews list each brand's terms.</li>
     <li><strong>Claim dailies deliberately.</strong> Streak structures reward consistency; a missed day often resets the multiplier.</li>
@@ -390,8 +371,8 @@ const jsonLd = [itemListLd, faqLd];
 
   <h2>Where these offers aren't available</h2>
   <p>
-    Sweepstakes casinos are banned or restricted in 13 states as of July 2026, with Oklahoma scheduled
-    to follow on November 1, 2026. In those states this page is informational only and no offers
+    Site CTA policy currently suppresses offers in {bannedStates.length} states, with Oklahoma scheduled
+    to join on November 1, 2026. In those states this page is informational only and no offers
     render. The <a href="/state-legality/">state legality hub</a> tracks the current status and which
     brands accept players in each remaining state.
   </p>

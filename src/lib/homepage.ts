@@ -31,66 +31,44 @@ export function decisionFactCompleteness(operator: OperatorRecord): number {
   ].filter(Boolean).length;
 }
 
-export interface RankedRecommendation {
+export interface VerifiedEditorScore {
   slug: string;
   name: string;
   score: number;
-  completeness: number;
-  signupOffer: string | undefined;
-  redemptionMinimum: string;
-  publishedRedemptionTiming: string;
 }
 
-export function formatMinimum(operator: OperatorRecord): string {
+export function formatMinimum(operator: OperatorRecord): string | undefined {
   const gift = verifiedValue(operator.giftCardRedemptionMinimum);
   const cash = verifiedValue(operator.cashRedemptionMinimum);
   const parts = [
     ...(gift ? [`${gift.amount} ${gift.currency} gift cards`] : []),
     ...(cash ? [`${cash.amount} ${cash.currency} cash`] : []),
   ];
-  return parts.join(' · ') || 'Not verified';
+  return parts.join(' · ') || undefined;
 }
 
-export function selectRankedRecommendations(
+export function selectVerifiedEditorScores(
   operators: OperatorRecord[],
-): RankedRecommendation[] {
+): VerifiedEditorScore[] {
   return operators
-    .flatMap((operator): RankedRecommendation[] => {
+    .flatMap((operator): VerifiedEditorScore[] => {
       const name = verifiedValue(operator.name);
       const score = verifiedValue(operator.editorScore100);
-      const completeness = decisionFactCompleteness(operator);
-      if (!name || score == null || completeness < MINIMUM_DECISION_FACTS) return [];
-      return [{
-        slug: operator.slug,
-        name,
-        score,
-        completeness,
-        signupOffer: verifiedValue(operator.signupOffer),
-        redemptionMinimum: formatMinimum(operator),
-        publishedRedemptionTiming:
-          verifiedValue(operator.publishedRedemptionTiming) ?? 'Not verified',
-      }];
+      if (!name || score == null) return [];
+      return [{ slug: operator.slug, name, score }];
     })
-    .sort((a, b) => b.score - a.score || a.slug.localeCompare(b.slug));
+    .sort((a, b) => a.name.localeCompare(b.name) || a.slug.localeCompare(b.slug));
 }
 
 export interface ComparisonOperator {
   slug: string;
   name: string;
   completeness: number;
-  editorScore: string;
-  welcomeOffer: string;
-  redemptionMinimum: string;
-  publishedRedemptionTiming: string;
-  gameCount: string;
-}
-
-function factLabel<T>(
-  fact: CanonicalFact<T>,
-  formatter: (value: T) => string = String,
-): string {
-  if (fact.status === 'verified') return formatter(fact.value);
-  return fact.status === 'unresolved' ? 'Unresolved' : 'Not verified';
+  editorScore?: string;
+  welcomeOffer?: string;
+  redemptionMinimum?: string;
+  publishedRedemptionTiming?: string;
+  gameCount?: string;
 }
 
 export function selectComparisonOperators(
@@ -108,11 +86,17 @@ export function selectComparisonOperators(
         slug: operator.slug,
         name,
         completeness,
-        editorScore: factLabel(operator.editorScore100, (score) => `${score}/100`),
-        welcomeOffer: factLabel(operator.signupOffer),
+        editorScore:
+          operator.editorScore100.status === 'verified'
+            ? `${operator.editorScore100.value}/100`
+            : undefined,
+        welcomeOffer: verifiedValue(operator.signupOffer),
         redemptionMinimum: formatMinimum(operator),
-        publishedRedemptionTiming: factLabel(operator.publishedRedemptionTiming),
-        gameCount: factLabel(operator.gameCount, (count) => count.toLocaleString('en-US')),
+        publishedRedemptionTiming: verifiedValue(operator.publishedRedemptionTiming),
+        gameCount:
+          operator.gameCount.status === 'verified'
+            ? operator.gameCount.value.toLocaleString('en-US')
+            : undefined,
       }];
     })
     .sort((a, b) => b.completeness - a.completeness || a.slug.localeCompare(b.slug))
@@ -179,17 +163,18 @@ export function selectUniqueSuperlative<T>(
   };
 }
 
-export interface RankedRecommendationView extends RankedRecommendation {
+export interface ComparisonOperatorView extends ComparisonOperator {
   hasPartner: boolean;
   canCta: boolean;
   availabilityLabel: string;
 }
 
-export function buildRankedRecommendationViews(
+export function buildComparisonOperatorViews(
   operators: OperatorRecord[],
   state: UsStateCode | null | undefined,
-): RankedRecommendationView[] {
-  return selectRankedRecommendations(operators).map((operator) => {
+  limit = COMPARISON_SIZE,
+): ComparisonOperatorView[] {
+  return selectComparisonOperators(operators, limit).map((operator) => {
     const partner = getPartner(operator.slug);
     if (!partner) {
       return {

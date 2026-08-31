@@ -34,7 +34,7 @@ assert.equal(missingVerification.canCta, true);
 assert.equal(missingVerification.reason, 'allowed');
 assert.deepEqual(missingVerification.verification, {
   available: false,
-  label: 'Verification unavailable',
+  label: 'Details unavailable',
   datetime: null,
 });
 assert.doesNotMatch(
