@@ -211,6 +211,31 @@ assert.ok(
   'redirect-only section roots must not be reported as content orphans',
 );
 
+const productionSourcePaths = [
+  ...reviewFiles.map((file) => `reviews/${file}`),
+  ...(readdirSync(resolve(root, 'src'), { recursive: true }) as string[])
+    .filter(
+      (file) =>
+        !file.startsWith('pages/') &&
+        /\.(?:astro|mdx|ts)$/.test(file),
+    )
+    .map((file) => `src/${file}`),
+];
+for (const relativePath of productionSourcePaths) {
+  const lines = readFileSync(resolve(root, relativePath), 'utf8').split('\n');
+  lines.forEach((line, index) => {
+    if (!line.includes('/best/sweepstakes-casinos/')) return;
+    const context = lines
+      .slice(Math.max(0, index - 1), index + 2)
+      .join(' ');
+    assert.doesNotMatch(
+      context,
+      /\b(?:rank(?:ed|ing|s)?|methodology-scored|top(?:-\w+|\s+)(?:pick|casino|operator)|most generous)\b/i,
+      `${relativePath}:${index + 1} must not describe /best/sweepstakes-casinos/ as ranked`,
+    );
+  });
+}
+
 console.log(
   `internal-link tests: OK — ${reviewFiles.length} reviews, ` +
     `${alphabetical.length} Texas review links`,
