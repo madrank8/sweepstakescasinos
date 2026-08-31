@@ -55,10 +55,18 @@ export interface ComparisonOperator {
   offer: string;
 }
 
+export interface HubOperatorFact {
+  slug: string;
+  path: string;
+  field: string;
+  value: string;
+}
+
 export interface OperatorAudit {
   reviews: ReviewInventory[];
   homepage: HomepageOperator[];
   comparison: ComparisonOperator[];
+  hubs: HubOperatorFact[];
   conflicts: OperatorConflict[];
 }
 
@@ -251,6 +259,57 @@ function comparisonInventory(root: string, homepage: HomepageOperator[]): Compar
   return rows.sort((a, b) => a.slug.localeCompare(b.slug));
 }
 
+function hubInventory(root: string): HubOperatorFact[] {
+  const facts: HubOperatorFact[] = [];
+  const newPath = 'src/routes/new/index.astro';
+  const newSource = read(root, newPath);
+  for (const match of newSource.matchAll(
+    /\{\s*slug:\s*'([^']+)',\s*name:\s*'([^']+)',[\s\S]*?note:\s*'([^']+)',\s*\}/g,
+  )) {
+    facts.push({
+      slug: match[1],
+      path: newPath,
+      field: 'curated hub note',
+      value: match[3],
+    });
+  }
+
+  const bonusPath = 'src/routes/bonuses/no-deposit/index.astro';
+  const bonusSource = read(root, bonusPath);
+  for (const match of bonusSource.matchAll(
+    /\{\s*slug:\s*'([^']+)',\s*name:\s*'([^']+)',[\s\S]*?signup:\s*'([^']+)',[\s\S]*?min:\s*'([^']+)'\s*\}/g,
+  )) {
+    facts.push({
+      slug: match[1],
+      path: bonusPath,
+      field: 'welcome offer',
+      value: plain(match[3]),
+    });
+    facts.push({
+      slug: match[1],
+      path: bonusPath,
+      field: 'minimum redemption',
+      value: plain(match[4]),
+    });
+  }
+
+  const statePath = 'src/routes/state-legality/index.astro';
+  for (const partner of AFFILIATE_PARTNERS) {
+    facts.push({
+      slug: partner.slug,
+      path: statePath,
+      field: 'operator availability authority',
+      value: 'AFFILIATE_PARTNERS + tracker status + site CTA policy',
+    });
+  }
+  return facts.sort(
+    (a, b) =>
+      a.path.localeCompare(b.path) ||
+      a.slug.localeCompare(b.slug) ||
+      a.field.localeCompare(b.field),
+  );
+}
+
 function distinctSources(sources: SourceValue[]): SourceValue[] {
   const seen = new Set<string>();
   return sources.filter((source) => {
@@ -265,6 +324,7 @@ export function inventoryOperatorFacts(root = process.cwd()): OperatorAudit {
   const reviews = reviewInventory(root);
   const homepage = homepageInventory(root);
   const comparison = comparisonInventory(root, homepage);
+  const hubs = hubInventory(root);
   const conflicts: OperatorConflict[] = [];
 
   for (const review of reviews) {
@@ -313,10 +373,14 @@ export function inventoryOperatorFacts(root = process.cwd()): OperatorAudit {
     }
 
     const compared = comparison.find((entry) => entry.slug === review.slug);
-    if (home?.offer && compared?.offer) {
+    const hubOffer = hubs.find(
+      (entry) => entry.slug === review.slug && entry.field === 'welcome offer',
+    );
+    if (home?.offer && (compared?.offer || hubOffer?.value)) {
       const offerSources = distinctSources([
         { path: 'index.html', value: home.offer },
-        { path: compared.path, value: compared.offer },
+        ...(compared ? [{ path: compared.path, value: compared.offer }] : []),
+        ...(hubOffer ? [{ path: hubOffer.path, value: hubOffer.value }] : []),
       ]);
       const normalize = (value: string) =>
         value.toLowerCase().replace(/\b(?:free|welcome|no code|sign-up)\b/g, '').replace(/\W/g, '');
@@ -334,7 +398,7 @@ export function inventoryOperatorFacts(root = process.cwd()): OperatorAudit {
   conflicts.sort(
     (a, b) => a.slug.localeCompare(b.slug) || a.field.localeCompare(b.field),
   );
-  return { reviews, homepage, comparison, conflicts };
+  return { reviews, homepage, comparison, hubs, conflicts };
 }
 
 export function documentedTestingSlugs(root: string): Set<string> {
@@ -711,7 +775,7 @@ function reportHeader(title: string): string {
 function operatorReport(audit: OperatorAudit): string {
   const lines = [
     reportHeader('Operator Data Conflicts'),
-    `Coverage: **${audit.reviews.length} authored reviews**, **${audit.homepage.length} homepage cards**, and **${audit.comparison.length} comparison rows**.\n\n`,
+    `Coverage: **${audit.reviews.length} authored reviews**, **${audit.homepage.length} homepage cards**, **${audit.comparison.length} comparison rows**, and **${audit.hubs.length} relevant hub facts**.\n\n`,
     'No conflict below is resolved by this audit. Values remain exactly as authored pending source review.\n\n',
     '| Operator | Field | Exact source values | Status |\n',
     '|---|---|---|---|\n',
@@ -728,6 +792,13 @@ function operatorReport(audit: OperatorAudit): string {
       .map(
         (card) =>
           `- \`${card.slug}\` — \`${md(card.score == null ? 'no parsed score' : `${card.score}/5`)}\`; offer \`${md(card.offer)}\`\n`,
+      )
+      .join(''),
+    '\n## Relevant hub inventory\n\n',
+    audit.hubs
+      .map(
+        (fact) =>
+          `- \`${fact.path}\` — \`${fact.slug}\` ${fact.field}: \`${md(fact.value)}\`\n`,
       )
       .join(''),
   ];
@@ -853,6 +924,7 @@ function commercialHubReport(audit: OperatorAudit): string {
     '## Current factual shape\n\n',
     `- Homepage: ${audit.homepage.length} operator cards at \`/\` from \`index.html\`.\n`,
     `- Comparison: ${audit.comparison.length} operator rows at \`/best/sweepstakes-casinos/\` from \`src/content/comparisons/sweepstakes-casinos.mdx\`.\n`,
+    `- Relevant authored hubs: ${audit.hubs.length} operator facts across the new-casino, no-deposit, and state-legality routes.\n`,
     `- Affiliate authority: ${AFFILIATE_PARTNERS.length} partners in \`src/data/affiliates.ts\`; tracking and economics stay outside editorial facts.\n`,
     '- Geo authority: `src/data/geo.ts` remains the site-level CTA suppression layer.\n\n',
     '## Phase 2/3 plan\n\n',
@@ -922,6 +994,7 @@ export function auditSummary(root = process.cwd()) {
     reviewCount: operators.reviews.length,
     homepageOperatorCount: operators.homepage.length,
     comparisonOperatorCount: operators.comparison.length,
+    hubOperatorFactCount: operators.hubs.length,
     operatorConflictCount: operators.conflicts.length,
     testingClaimCount: claims.length,
     testingClaimClassifications: Object.fromEntries(

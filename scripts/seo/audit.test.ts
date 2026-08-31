@@ -19,6 +19,18 @@ assert.doesNotMatch(generator, /Reviews are hands-on tested and dated/i);
 const operators = inventoryOperatorFacts(root);
 assert.equal(operators.reviews.length, 29, 'all 29 authored reviews must be inventoried');
 assert.equal(operators.homepage.length, 28, 'every homepage operator card must be inventoried');
+assert.ok(
+  operators.hubs.some((entry) => entry.path === 'src/routes/new/index.astro'),
+  'new-casino hub operator facts must be inventoried',
+);
+assert.ok(
+  operators.hubs.some((entry) => entry.path === 'src/routes/bonuses/no-deposit/index.astro'),
+  'no-deposit hub operator facts must be inventoried',
+);
+assert.ok(
+  operators.hubs.some((entry) => entry.path === 'src/routes/state-legality/index.astro'),
+  'state hub operator authority must be inventoried',
+);
 assert.deepEqual(
   operators.reviews.map((review) => review.slug),
   [...operators.reviews.map((review) => review.slug)].sort(),

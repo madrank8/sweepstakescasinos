@@ -6,6 +6,7 @@ Source snapshot: repository authored sources. Generated deterministically withou
 
 - Homepage: 28 operator cards at `/` from `index.html`.
 - Comparison: 10 operator rows at `/best/sweepstakes-casinos/` from `src/content/comparisons/sweepstakes-casinos.mdx`.
+- Relevant authored hubs: 47 operator facts across the new-casino, no-deposit, and state-legality routes.
 - Affiliate authority: 13 partners in `src/data/affiliates.ts`; tracking and economics stay outside editorial facts.
 - Geo authority: `src/data/geo.ts` remains the site-level CTA suppression layer.
 
