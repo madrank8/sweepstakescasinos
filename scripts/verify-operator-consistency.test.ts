@@ -447,6 +447,29 @@ assert.doesNotMatch(
 );
 assert.doesNotMatch(ordinaryDecimalRendered, />88\/100</);
 
+const ordinaryVerifiedRendered = injectOperatorFactsHtml(
+  ordinaryDecimalFixture.replace(
+    'data-operator="mcluck"',
+    'data-operator="american-luck"',
+  ),
+  'american-luck',
+);
+for (const authoredFact of [
+  '2.5 SC',
+  '$4.99',
+  '12.5%',
+  '1.5x',
+  '4.2–4.8/5',
+]) {
+  assert.match(
+    ordinaryVerifiedRendered,
+    new RegExp(authoredFact.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')),
+    `verified-score rendering must preserve ordinary prose decimal: ${authoredFact}`,
+  );
+}
+assert.match(ordinaryVerifiedRendered, /Editor score: 72\/100/);
+assert.doesNotMatch(ordinaryVerifiedRendered, />88\/100</);
+
 const semanticLeakFixture = `
   <main>
     <p>We rate Example Casino 4.6/5 and 91/100.</p>
