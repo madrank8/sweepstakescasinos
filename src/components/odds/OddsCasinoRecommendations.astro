@@ -20,15 +20,10 @@ const items = buildOddsRecommendations(partners, Astro.locals.usState);
     These examples come from explicit editorial configuration, not from your odds
     result. Calculator inputs never change their order.
   </p>
-  <ol class="odds-casino-list">
+  <ul class="odds-casino-list">
     {items.map((item) => (
       <li class:list={['odds-casino-card', 'card']}>
         <div class:list={['card-line', item.accentClass]}></div>
-        <div class="card-rank-wrap">
-          <span class="card-rank">
-            <span aria-hidden="true">{item.rank === 1 ? '🥇 ' : item.rank === 2 ? '🥈 ' : item.rank === 3 ? '🥉 ' : ''}</span>#{item.rank}
-          </span>
-        </div>
         <div class="card-logo-col">
           <img
             class="card-logo"
@@ -39,14 +34,8 @@ const items = buildOddsRecommendations(partners, Astro.locals.usState);
             height="76"
           />
           <div class="card-cname">{item.displayName}</div>
-          <div class="card-stars" aria-hidden="true">{item.stars}</div>
-          <div class="card-score">{item.score}</div>
         </div>
         <div class="card-body">
-          <div class="offer-lbl">Welcome Bonus</div>
-          <h3 class="card-offer">
-            {item.offer}<span class="hl">{item.offerHighlight}</span>{item.offerSuffix}
-          </h3>
           <p class:list={['odds-casino-status', { available: item.available, unavailable: !item.available }]}>
             {item.available ? 'Available in your location' : 'Not available in your location'}
           </p>
@@ -57,7 +46,7 @@ const items = buildOddsRecommendations(partners, Astro.locals.usState);
         <div class="card-cta odds-casino-actions">
           <AffiliateLink
             partner={item.partner}
-            label={`Claim ${item.partner.name} bonus`}
+            label={`Visit ${item.partner.name}`}
             class="btn-claim odds-casino-cta"
             clickId={ODDS_CTA_CLICK_ID}
             showUnavailableNote={false}
@@ -66,7 +55,7 @@ const items = buildOddsRecommendations(partners, Astro.locals.usState);
         </div>
       </li>
     ))}
-  </ol>
+  </ul>
   <p class="odds-casino-disclosure">
     We may earn a referral fee when you use an affiliate link; this does not affect placement.
     See our <a href="/legal/affiliate-disclosure/">Affiliate Disclosure</a>.
@@ -94,15 +83,9 @@ const items = buildOddsRecommendations(partners, Astro.locals.usState);
   .odds-casino-card .card-line.line-pink{background:linear-gradient(90deg,#f472b6,#db2777)}
   .odds-casino-card .card-line.line-green{background:linear-gradient(90deg,#34d399,#059669)}
   .odds-casino-card .card-line.line-red{background:linear-gradient(90deg,#f87171,#dc2626)}
-  .odds-casino-card .card-rank-wrap{position:absolute;top:0;left:0;z-index:2}
-  .odds-casino-card .card-rank{
-    display:inline-block;font-family:'Sora',sans-serif;font-weight:900;font-size:.78rem;
-    letter-spacing:.02em;padding:7px 11px;border-bottom-right-radius:10px;
-    background:linear-gradient(135deg,#07101f,#12233d);color:#fbbf24;
-  }
   .odds-casino-card .card-logo-col{
     display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;
-    padding:28px 10px 14px;background:linear-gradient(170deg,#152a44,#0d1a2e);
+    padding:18px 10px;background:linear-gradient(170deg,#152a44,#0d1a2e);
     border-right:1px solid rgba(255,255,255,.08);
   }
   .odds-casino-card .card-logo{
@@ -112,16 +95,7 @@ const items = buildOddsRecommendations(partners, Astro.locals.usState);
   .odds-casino-card .card-cname{
     font-family:'Sora',sans-serif;font-weight:900;font-size:.72rem;letter-spacing:.04em;color:#fff;
   }
-  .odds-casino-card .card-stars{color:#fbbf24;font-size:.78rem;letter-spacing:1px;line-height:1}
-  .odds-casino-card .card-score{font-size:.68rem;font-weight:700;color:rgba(255,255,255,.55)}
   .odds-casino-card .card-body{padding:22px 16px 14px;display:flex;flex-direction:column;justify-content:center;gap:4px;min-width:0}
-  .odds-casino-card .offer-lbl{
-    font-size:.68rem;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:#fbbf24;
-  }
-  .odds-casino-card .card-offer{
-    margin:0;font-family:'Sora',sans-serif;font-size:1.05rem;font-weight:900;color:#fff;line-height:1.2;
-  }
-  .odds-casino-card .card-offer .hl{color:#fbbf24}
   .odds-casino-status{margin:4px 0 0;font-size:.78rem;font-weight:800}
   .odds-casino-status.available{color:#34d399}
   .odds-casino-status.unavailable{color:#fca5a5}

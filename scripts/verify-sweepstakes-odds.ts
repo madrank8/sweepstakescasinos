@@ -833,11 +833,6 @@ for (const [state, label] of [
     editorialSlugs,
     `${label}: must preserve editorial order`,
   );
-  assert.deepEqual(
-    items.map((item) => item.rank),
-    [1, 2, 3],
-    `${label}: ranks must stay 1..3`,
-  );
   for (const item of items) {
     assert.equal(
       item.available,
@@ -852,7 +847,6 @@ for (const [state, label] of [
 assert.match(recommendationsSource, /from ['"].*oddsRecommendations['"]/);
 assert.match(recommendationsSource, /buildOddsRecommendations\(/);
 assert.match(recommendationsSource, /items\.map\(\(item\)/);
-assert.match(recommendationsSource, /#\{item\.rank\}/);
 assert.match(recommendationsSource, /href=\{item\.reviewHref\}/);
 assert.match(recommendationsSource, /Read review/);
 assert.match(recommendationsSource, /class="card-logo"/);
@@ -870,9 +864,21 @@ assert.match(
   recommendationsSource,
   /explicit editorial configuration, not from your odds/,
 );
+assert.match(recommendationsSource, /<ul class="odds-casino-list">/);
+assert.doesNotMatch(
+  recommendationsSource,
+  /item\.(?:rank|score|stars|offer|offerHighlight|offerSuffix)|Welcome Bonus|card-rank/,
+  'dormant recommendation cards must not retain rank, score, or offer copy',
+);
 assertNoProhibitedRecommendationClaims(recommendationsSource);
 assert.match(recommendationModelSource, /ODDS_PARTNER_CARD_META/);
 assert.match(recommendationModelSource, /logoSrc/);
+assert.doesNotMatch(
+  recommendationModelSource,
+  /\b(?:rank|score|stars|offer|offerHighlight|offerSuffix)\s*:/,
+  'recommendation metadata must not retain unresolved score or offer facts',
+);
+assert.doesNotMatch(recommendationModelSource, /\d(?:\.\d+)?\s*\/\s*5\b/);
 for (const slug of editorialSlugs) {
   const meta = ODDS_PARTNER_CARD_META[slug];
   assert.ok(meta?.logoSrc, `card meta must define a real logo for fixture slug: ${slug}`);
