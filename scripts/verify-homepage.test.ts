@@ -2,6 +2,11 @@ import assert from 'node:assert/strict';
 import { existsSync, readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { OPERATORS, type CanonicalFact } from '../src/data/operators';
+import {
+  formatPartialIsoDate,
+  operatorFactNote,
+} from '../src/lib/operatorPresentation';
+import { itemListParityErrors } from './lib/itemlist-parity';
 
 const root = resolve(import.meta.dirname, '..');
 
@@ -19,10 +24,15 @@ assert.ok(
 );
 
 const homepage = await import('../src/lib/homepage');
+assert.equal(formatPartialIsoDate('2025-12'), 'December 2025');
+assert.equal(formatPartialIsoDate('2024'), '2024');
+const cardCrush = OPERATORS.find((operator) => operator.slug === 'card-crush')!;
+assert.doesNotMatch(operatorFactNote(cardCrush), /CA|NY|available/i);
+assert.match(operatorFactNote(cardCrush), /Vision NL Limited/);
 assert.equal(
-  typeof homepage.selectRankedRecommendations,
+  typeof homepage.selectVerifiedEditorScores,
   'function',
-  'ranked recommendation selector must be exported',
+  'verified editor scores must be available as supporting data',
 );
 assert.equal(
   typeof homepage.selectComparisonOperators,
@@ -35,21 +45,21 @@ assert.equal(
   'fail-closed superlative selector must be exported',
 );
 assert.equal(
-  typeof homepage.buildRankedRecommendationViews,
+  typeof homepage.buildComparisonOperatorViews,
   'function',
-  'availability-aware ranked view builder must be exported',
+  'availability-aware primary comparison view builder must be exported',
 );
 
-const ranked = homepage.selectRankedRecommendations(OPERATORS);
+const verifiedScores = homepage.selectVerifiedEditorScores(OPERATORS);
 assert.deepEqual(
-  ranked.map((entry) => [entry.slug, entry.score]),
+  verifiedScores.map((entry) => [entry.slug, entry.score]),
   [
-    ['playfame', 86],
-    ['legendz', 84],
-    ['roxymoxy', 80],
     ['american-luck', 72],
+    ['legendz', 84],
+    ['playfame', 86],
+    ['roxymoxy', 80],
   ],
-  'only resolved scores with enough verified decision facts may rank',
+  'resolved scores are supporting attributes in alphabetical, non-ranking order',
 );
 
 const comparison = homepage.selectComparisonOperators(OPERATORS);
@@ -75,6 +85,14 @@ assert.deepEqual(
 assert.ok(
   comparison.every((entry) => entry.completeness >= 3),
   'comparison entries must meet the documented completeness threshold',
+);
+assert.ok(
+  comparison.every(
+    (entry) =>
+      entry.editorScore === undefined ||
+      /^\d+\/100$/.test(entry.editorScore),
+  ),
+  'missing or unresolved scores must be omitted from reader-facing view data',
 );
 
 const verified = <T>(value: T): CanonicalFact<T> => ({
@@ -159,23 +177,23 @@ assert.equal(
   'current canonical data has no verified dates, so the homepage must show no superlative',
 );
 
-const texasViews = homepage.buildRankedRecommendationViews(OPERATORS, 'TX');
+const texasViews = homepage.buildComparisonOperatorViews(OPERATORS, 'TX');
 assert.ok(
   texasViews.filter((entry) => entry.hasPartner).every((entry) => entry.canCta),
   'allowed-state partner CTAs should render',
 );
 assert.equal(
-  texasViews.find((entry) => entry.slug === 'american-luck')?.canCta,
+  texasViews.find((entry) => entry.slug === 'acebet')?.canCta,
   false,
-  'non-partner recommendations remain editorial review links only',
+  'non-partner primary candidates remain editorial review links only',
 );
 assert.ok(
-  homepage.buildRankedRecommendationViews(OPERATORS, 'CA').every((entry) => !entry.canCta),
-  'site-banned-state ranked CTAs must be suppressed',
+  homepage.buildComparisonOperatorViews(OPERATORS, 'CA').every((entry) => !entry.canCta),
+  'site-banned-state primary CTAs must be suppressed',
 );
 assert.ok(
-  homepage.buildRankedRecommendationViews(OPERATORS, undefined).every((entry) => !entry.canCta),
-  'unknown-state ranked CTAs must fail closed',
+  homepage.buildComparisonOperatorViews(OPERATORS, undefined).every((entry) => !entry.canCta),
+  'unknown-state primary CTAs must fail closed',
 );
 
 const selectorSource = readFileSync(resolve(root, 'src/lib/homepage.ts'), 'utf8');
@@ -184,18 +202,13 @@ assert.doesNotMatch(
   /\bcpa\b|trackingLink|revshare/i,
   'editorial selectors must not use affiliate economics or tracking links',
 );
-assert.equal(
-  comparison.find((entry) => entry.slug === 'acebet')?.editorScore,
-  'Unresolved',
-  'unresolved editor scores must render without a numeric value',
-);
+assert.equal(comparison.find((entry) => entry.slug === 'acebet')?.editorScore, undefined);
 
 const homeSource = readFileSync(resolve(root, 'src/routes/index.astro'), 'utf8');
 const requiredHomeSections = [
   'id="answer"',
-  'id="recommendations"',
-  'id="use-cases"',
   'id="comparison"',
+  'id="score-context"',
   'id="methodology"',
   'id="legality"',
   'id="buyer-guidance"',
@@ -213,7 +226,100 @@ assert.match(homeSource, /<table\b/, 'homepage comparison must use a semantic ta
 assert.match(homeSource, /<caption\b/, 'homepage comparison table must have a caption');
 assert.match(homeSource, /<th\s+scope="col"/, 'comparison headers must identify column scope');
 assert.match(homeSource, /overflow-x:\s*auto/, 'narrow viewports must contain table overflow');
+assert.match(homeSource, /data-comparison-list/, 'the primary visible set must be marked for parity');
+assert.match(homeSource, /itemListElement:\s*primary\.map/, 'schema must use the primary view model');
+assert.match(homeSource, /\{primary\.map/, 'visible markup must use the primary view model');
+assert.doesNotMatch(
+  homeSource,
+  /4 resolved editor picks|resolved-score|supported ranked set|top recommendations/i,
+  'homepage copy must not expose governance language or an accidental top-four ranking',
+);
+assert.doesNotMatch(
+  homeSource,
+  /selectRankedRecommendations|buildRankedRecommendationViews/,
+  'the homepage must not use editor scores to select its primary set',
+);
 assert.doesNotMatch(homeSource, /index\.html\?raw|prepareSsrAffiliateHtml/);
+
+const bestSource = readFileSync(resolve(root, 'src/routes/best/[slug].astro'), 'utf8');
+const bestContent = readFileSync(
+  resolve(root, 'src/content/comparisons/sweepstakes-casinos.mdx'),
+  'utf8',
+);
+assert.match(bestSource, /data-comparison-list/);
+assert.match(bestSource, /itemListElement:\s*comparisonOperators\.map/);
+assert.match(bestSource, /\{comparisonOperators\.map/);
+assert.doesNotMatch(bestSource, /ranked ItemList|top-rated|best-rank/i);
+assert.doesNotMatch(
+  bestContent,
+  /top overall pick|1,000\+ game library|top 10 ranked|ranked using|###\s*\d+\./i,
+  'the comparison content must not publish unsupported McLuck or ranking claims',
+);
+
+const noDepositSource = readFileSync(
+  resolve(root, 'src/routes/bonuses/no-deposit/index.astro'),
+  'utf8',
+);
+assert.doesNotMatch(noDepositSource, /July 2026|DATE_MODIFIED\s*=/);
+assert.doesNotMatch(
+  noDepositSource,
+  /Not canonicalized|Verification unavailable|Biggest signup SC|Best ongoing daily value|Best combined stack/,
+);
+assert.match(noDepositSource, /aria-label="Details unavailable"/);
+assert.match(noDepositSource, /ROUTE_LASTMOD/);
+
+const newHubSource = readFileSync(resolve(root, 'src/routes/new/index.astro'), 'utf8');
+assert.doesNotMatch(newHubSource, /Available only in CA & NY/i);
+assert.doesNotMatch(
+  newHubSource,
+  /note:\s*'[^']*(?:SC|games|operator|redemption)/i,
+  'duplicated operator facts must not remain hard-coded in new-hub notes',
+);
+assert.match(newHubSource, /operatorFactNote/);
+assert.match(newHubSource, /reviewOutboundAvailabilityView/);
+
+const generatorSource = readFileSync(resolve(root, 'scripts/generate-astro-pages.mjs'), 'utf8');
+const generatedDates = readFileSync(
+  resolve(root, 'src/data/routeLastmod.generated.ts'),
+  'utf8',
+);
+assert.match(generatedDates, /\/bonuses\/no-deposit\//);
+assert.match(generatorSource, /routeLastmod\.generated\.ts/);
+
+const parityFixture = `
+  <ol data-item-list="https://sweepstakeswiz.com/example/#operators">
+    <li data-item-position="1" data-item-name="Alpha" data-item-url="https://sweepstakeswiz.com/reviews/alpha/"></li>
+    <li data-item-position="2" data-item-name="Beta" data-item-url="https://sweepstakeswiz.com/reviews/beta/"></li>
+  </ol>`;
+const parityGraph = [{
+  '@type': 'ItemList',
+  '@id': 'https://sweepstakeswiz.com/example/#operators',
+  numberOfItems: 2,
+  itemListElement: [
+    { '@type': 'ListItem', position: 1, name: 'Alpha', url: 'https://sweepstakeswiz.com/reviews/alpha/' },
+    { '@type': 'ListItem', position: 2, name: 'Beta', url: 'https://sweepstakeswiz.com/reviews/beta/' },
+  ],
+}];
+assert.deepEqual(itemListParityErrors(parityFixture, parityGraph), []);
+assert.ok(
+  itemListParityErrors(
+    parityFixture.replace('data-item-name="Beta"', 'data-item-name="Gamma"'),
+    parityGraph,
+  ).some((error) => /name/i.test(error)),
+  'visible ItemList name drift must fail',
+);
+assert.ok(
+  itemListParityErrors(
+    parityFixture.replace('data-item-position="2"', 'data-item-position="3"'),
+    parityGraph,
+  ).some((error) => /position/i.test(error)),
+  'visible ItemList position drift must fail',
+);
+const builtSchemaVerifier = readFileSync(
+  resolve(root, 'scripts/verify-schema-built.ts'),
+  'utf8',
+);
+assert.match(builtSchemaVerifier, /itemListParityErrors\(html, graph\)/);
 
 const reviewsSource = readFileSync(resolve(root, 'src/routes/reviews/index.astro'), 'utf8');
 assert.match(reviewsSource, /CollectionPage/);
@@ -221,8 +327,12 @@ assert.match(reviewsSource, /ItemList/);
 assert.match(reviewsSource, /Breadcrumb/);
 assert.match(reviewsSource, /OPERATORS/);
 assert.match(reviewsSource, /\/reviews\/\$\{operator\.slug\}\//);
+assert.doesNotMatch(
+  reviewsSource,
+  /Not verified|unresolved editor scores|supported ranked set/i,
+  'the reader-facing directory must not expose canonical governance vocabulary',
+);
 
-const generatorSource = readFileSync(resolve(root, 'scripts/generate-astro-pages.mjs'), 'utf8');
 assert.match(
   generatorSource,
   /if \(url === '\/'\) return \['src\/routes\/index\.astro'\]/,

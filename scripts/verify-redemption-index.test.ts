@@ -2,15 +2,23 @@ import assert from 'node:assert/strict';
 import { existsSync, readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { READER_REPORT_AGGREGATES } from '../src/data/readerReports.generated';
-import { loadTestingResultsCsv } from '../src/data/testingResults';
+import {
+  loadTestingResultsCsv,
+  type TestingResultRow,
+} from '../src/data/testingResults';
 import {
   REDEMPTION_INDEX_MIN_OPERATORS,
   REDEMPTION_INDEX_MIN_SAMPLE_PER_OPERATOR,
   assessRedemptionIndex,
   type RedemptionEvidenceRecord,
 } from '../src/lib/redemptionIndex';
+import {
+  adaptProductionRedemptionEvidence,
+  assessProductionRedemptionEvidence,
+} from '../src/lib/redemptionEvidenceAdapter';
 
 const AS_OF = '2026-08-31';
+const root = resolve(import.meta.dirname, '..');
 
 function record(
   operatorSlug: string,
@@ -140,14 +148,77 @@ if (publishable.status === 'publishable') {
   });
 }
 
-assert.equal(loadTestingResultsCsv().length, 0, 'production testing CSV must remain empty');
-assert.equal(
-  Object.keys(READER_REPORT_AGGREGATES).length,
-  0,
-  'production reader aggregate dataset must remain empty',
+const testingFixture: TestingResultRow = {
+  brand_slug: 'mcluck',
+  date_tested: '2026-08-01',
+  tester_state: 'TX',
+  could_test: 'Y',
+  welcome_credited: '',
+  promo_code_needed: '',
+  redemption_method: 'ACH',
+  min_redemption: '50 SC',
+  request_timestamp: '2026-08-01T00:00:00Z',
+  payout_timestamp: '2026-08-01T18:00:00Z',
+  hours_to_payout: '18',
+  kyc_docs: '',
+  kyc_hours: '',
+  support_channel: '',
+  support_first_response: '',
+  support_resolved: '',
+  games_ok: '',
+  state_availability_ok: '',
+  evidence_files: 'mcluck-redemption-20260801.png',
+  notes: '',
+};
+const adaptedFixture = adaptProductionRedemptionEvidence({
+  testingRows: [testingFixture],
+  testingIssues: [],
+  readerAggregates: {
+    pulsz: {
+      count: 5,
+      medianHours: 20,
+      avgRating: 4,
+      methods: { Skrill: 5 },
+      lastReport: '2026-08-01',
+    },
+  },
+});
+assert.deepEqual(adaptedFixture.records, [
+  record('mcluck', 18, {
+    source: 'first-party-testing',
+    redemptionMethod: 'ACH',
+    redemptionMinimum: { amount: 50, currency: 'SC' },
+    verifiedOn: '2026-08-01',
+  }),
+]);
+assert.ok(
+  adaptedFixture.diagnostics.some(
+    (diagnostic) =>
+      diagnostic.operatorSlug === 'pulsz' &&
+      /aggregate cannot establish an exact redemption minimum/i.test(diagnostic.reason),
+  ),
+  'reader aggregates must be loaded but never expanded into pseudo-records',
 );
 
-const root = resolve(import.meta.dirname, '..');
+const production = assessProductionRedemptionEvidence({
+  testingRows: loadTestingResultsCsv(),
+  testingIssues: [],
+  readerAggregates: READER_REPORT_AGGREGATES,
+  asOf: AS_OF,
+});
+assert.equal(production.testingRowsLoaded, loadTestingResultsCsv().length);
+assert.equal(
+  production.readerAggregateOperatorsLoaded,
+  Object.keys(READER_REPORT_AGGREGATES).length,
+);
+if (production.assessment.status === 'not-publishable') {
+  assert.equal(
+    existsSync(resolve(root, 'src/routes/redemption-index/index.astro')),
+    false,
+    'non-publishable production evidence must not expose a public result route',
+  );
+}
+
 const packageJson = JSON.parse(
   readFileSync(resolve(root, 'package.json'), 'utf8'),
 ) as { scripts: Record<string, string> };
@@ -183,24 +254,13 @@ const productionVerifier = readFileSync(
 );
 assert.match(
   productionVerifier,
-  /process\.env\.REDEMPTION_INDEX_AS_OF/,
-  'the production evidence verifier must accept an explicit evaluation date',
+  /assessProductionRedemptionEvidence/,
+  'the production verifier must evaluate adapted production inputs',
 );
 assert.doesNotMatch(
   productionVerifier,
-  /assessRedemptionIndex\(\[\], \{ asOf: '2026-08-31' \}\)/,
-  'production-facing evaluation must not pass the deterministic snapshot inline',
-);
-
-assert.equal(
-  existsSync(resolve(root, 'src/routes/redemption-index/index.astro')),
-  false,
-  'empty production evidence must not create a public results route',
-);
-assert.doesNotMatch(
-  readFileSync(resolve(root, 'sitemap.xml'), 'utf8'),
-  /redemption-index/,
-  'empty production evidence must not create a sitemap result',
+  /assert\.equal\(testingRows\.length,\s*0|assert\.equal\([^)]*readerAggregateOperators\.length,\s*0|assessRedemptionIndex\(\[\]/s,
+  'production-facing evaluation must not require evidence inputs to stay empty',
 );
 
 console.log(

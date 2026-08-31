@@ -1,5 +1,7 @@
 import assert from 'node:assert/strict';
 import {
+  expectedReviewCtaEligibility,
+  geoDependentPaths,
   geoRequestHeaders,
   parseSitemapPaths,
   validateGeoRenderedRoutes,
@@ -198,6 +200,15 @@ assert.deepEqual(geoRequestHeaders('CA'), {
   'x-vercel-ip-country': 'US',
   'x-vercel-ip-country-region': 'CA',
 });
+assert.equal(expectedReviewCtaEligibility('rolla', 'TX'), true);
+assert.equal(expectedReviewCtaEligibility('rolla', 'CA'), false);
+assert.equal(expectedReviewCtaEligibility('rolla', 'unknown'), false);
+assert.equal(expectedReviewCtaEligibility('american-luck', 'TX'), false);
+assert.equal(
+  geoDependentPaths().filter((path) => /^\/reviews\/[^/]+\/$/.test(path)).length,
+  29,
+  'the built geo crawl must cover all 29 rendered reviews',
+);
 
 const geoPaths = ['/reviews/example/', '/best/sweepstakes-casinos/'];
 const modes: GeoMode[] = ['unknown', 'TX', 'CA'];

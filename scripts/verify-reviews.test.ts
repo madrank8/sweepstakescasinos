@@ -11,7 +11,27 @@ assert.equal(result.uniqueTitleCount, 29);
 assert.ok(result.staticRenderCount > 0, 'QA must exercise the static review pipeline');
 assert.ok(result.ssrRenderCount > 0, 'QA must exercise the SSR review pipeline');
 assert.equal(result.factSummaryCount, 29);
-assert.ok(result.answerBlockCount > 29, 'verified facts must produce reusable answer blocks');
+assert.ok(result.answerBlockCount <= 58, 'reviews may inject at most two answer blocks each');
+assert.equal(
+  result.maxAnswerBlocksPerReview,
+  2,
+  'the QA contract must enforce the two-block maximum',
+);
+assert.equal(
+  result.factSummaryAfterVerdictCount,
+  29,
+  'every fact summary must follow the authored editorial verdict',
+);
+assert.equal(
+  result.visibleInternalStatusLeakCount,
+  0,
+  'reader-facing review summaries must not expose governance status labels',
+);
+assert.equal(
+  result.outboundEligibilityAssertionCount,
+  87,
+  'all 29 reviews must tie CTA eligibility to markup in TX, CA, and unknown modes',
+);
 assert.equal(result.disclosureCount, 29);
 assert.equal(result.contextualNavigationCount, 29);
 assert.equal(result.faqSchemaMismatchCount, 0);

@@ -3,6 +3,7 @@ import { getPartner } from '../src/data/affiliates';
 import {
   bestPartnerAvailabilityView,
   noDepositOfferAvailabilityView,
+  reviewOutboundAvailabilityView,
 } from '../src/lib/availabilityViews';
 
 const mcluck = getPartner('mcluck')!;
@@ -63,4 +64,29 @@ const commerciallyRestrictedOffer = noDepositOfferAvailabilityView(
 assert.equal(commerciallyRestrictedOffer.canCta, false);
 assert.equal(commerciallyRestrictedOffer.reason, 'partner-restricted');
 
-console.log('availability view tests: OK — SSR comparison and no-deposit behavior');
+assert.deepEqual(reviewOutboundAvailabilityView('rolla', 'TX'), {
+  kind: 'editorial',
+  canCta: true,
+  reason: 'allowed',
+  label: 'Editorial outbound link available under site CTA policy.',
+});
+assert.deepEqual(reviewOutboundAvailabilityView('rolla', 'CA'), {
+  kind: 'editorial',
+  canCta: false,
+  reason: 'site-policy-suppressed',
+  label: 'Editorial outbound link hidden under site CTA policy.',
+});
+assert.deepEqual(reviewOutboundAvailabilityView('rolla', undefined), {
+  kind: 'editorial',
+  canCta: false,
+  reason: 'region-unknown',
+  label: 'Editorial outbound link hidden until location is available.',
+});
+assert.deepEqual(reviewOutboundAvailabilityView('american-luck', 'TX'), {
+  kind: 'none',
+  canCta: false,
+  reason: 'no-outbound',
+  label: 'No outbound offer link is provided for this review.',
+});
+
+console.log('availability view tests: OK — partner, editorial, and no-deposit behavior');
