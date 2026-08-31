@@ -211,7 +211,9 @@ const geoPages: GeoRenderedPage[] = geoPaths.flatMap((path) =>
           : '';
     const cta =
       mode === 'TX'
-        ? '<a href="/bonuses/example/?clickId=test" data-affiliate="example">Claim offer</a>'
+        ? path.startsWith('/reviews/')
+          ? '<a href="/bonuses/example/">Claim editorial offer</a>'
+          : '<a href="/bonuses/example/?clickId=test" data-affiliate="example">Claim offer</a>'
         : '<p data-reason="geo-suppressed">Informational only</p>';
     return {
       path,

@@ -1,6 +1,9 @@
-import { spawn, type ChildProcess } from 'node:child_process';
-import { readFileSync, readdirSync } from 'node:fs';
+import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { resolve } from 'node:path';
+import { pathToFileURL } from 'node:url';
+import { getPartner } from '../../src/data/affiliates';
+import { availabilityForPartner } from '../../src/lib/availability';
+import { fallbackStates } from '../../src/lib/tracker/fallback';
 
 export interface RenderedPage {
   path: string;
@@ -35,6 +38,8 @@ export interface GeoValidationFailure {
   mode: GeoMode;
   reason: string;
 }
+
+type PageFetcher = (path: string, mode: GeoMode) => Promise<Response>;
 
 const SITE_ORIGIN = 'https://sweepstakeswiz.com';
 const IMPORTANT_COMMERCIAL_PATHS = [
@@ -259,8 +264,24 @@ export function geoRequestHeaders(mode: GeoMode): Record<string, string> {
 }
 
 function affiliateCtaCount(html: string): number {
-  return [...html.matchAll(/<a\b[^>]*\bdata-affiliate=["'][^"']+["'][^>]*>/gi)]
-    .length;
+  return [...html.matchAll(/<a\b[^>]*>/gi)].filter(({ 0: anchor }) => {
+    const gateway = anchor.match(
+      /\bhref=["']\/bonuses\/([a-z0-9-]+)\/?(?:\?[^"']*)?["']/i,
+    );
+    return (
+      /\bdata-affiliate=["'][^"']+["']/i.test(anchor) ||
+      Boolean(gateway && gateway[1] !== 'no-deposit')
+    );
+  }).length;
+}
+
+function expectsTexasCta(path: string): boolean {
+  const review = path.match(/^\/reviews\/([^/]+)\/$/);
+  if (!review) return true;
+  const partner = getPartner(review[1]);
+  if (!partner) return true;
+  const texas = fallbackStates.find((state) => state.state_code === 'TX');
+  return availabilityForPartner(partner, 'TX', texas).cta.eligible;
 }
 
 export function validateGeoRenderedRoutes(
@@ -284,18 +305,25 @@ export function validateGeoRenderedRoutes(
         continue;
       }
       const ctaCount = affiliateCtaCount(page.html);
-      if (mode === 'TX' && ctaCount === 0) {
+      const shouldHaveCta = mode === 'TX' && expectsTexasCta(path);
+      if (shouldHaveCta && ctaCount === 0) {
         failures.push({
           path,
           mode,
           reason: 'allowed Texas render lacks an affiliate CTA',
         });
       }
-      if (mode !== 'TX' && ctaCount > 0) {
+      if (!shouldHaveCta && ctaCount > 0) {
         failures.push({
           path,
           mode,
-          reason: `${mode === 'CA' ? 'banned California' : 'unknown-region'} render exposes an affiliate CTA`,
+          reason: `${
+            mode === 'CA'
+              ? 'banned California'
+              : mode === 'unknown'
+                ? 'unknown-region'
+                : 'operator-restricted Texas'
+          } render exposes an affiliate CTA`,
         });
       }
 
@@ -358,14 +386,11 @@ export function geoDependentPaths(
 }
 
 async function fetchPage(
-  base: URL,
+  pageFetcher: PageFetcher,
   path: string,
   mode: GeoMode,
 ): Promise<RenderedPage> {
-  const response = await fetch(new URL(path, base), {
-    headers: geoRequestHeaders(mode),
-    redirect: 'manual',
-  });
+  const response = await pageFetcher(path, mode);
   const contentType = response.headers.get('content-type') ?? '';
   const html = contentType.includes('text/html') ? await response.text() : '';
   const locationHeader = response.headers.get('location');
@@ -380,13 +405,10 @@ async function fetchPage(
   };
 }
 
-async function crawl(baseUrl: string): Promise<RenderedPage[]> {
-  const base = new URL(baseUrl);
+async function crawl(pageFetcher: PageFetcher): Promise<RenderedPage[]> {
   const queued = new Set<string>(['/']);
   try {
-    const sitemap = await fetch(new URL('/sitemap.xml', base), {
-      headers: geoRequestHeaders('unknown'),
-    });
+    const sitemap = await pageFetcher('/sitemap.xml', 'unknown');
     if (sitemap.ok) {
       const xml = await sitemap.text();
       for (const path of parseSitemapPaths(xml)) queued.add(path);
@@ -398,7 +420,7 @@ async function crawl(baseUrl: string): Promise<RenderedPage[]> {
   const pages: RenderedPage[] = [];
   for (const path of queued) {
     if (pages.length >= 500) throw new Error('Rendered crawl exceeded 500 pages.');
-    const page = await fetchPage(base, path, 'unknown');
+    const page = await fetchPage(pageFetcher, path, 'unknown');
     pages.push(page);
     if (page.status !== 200) continue;
     for (const target of linksIn(page.html)) {
@@ -410,112 +432,111 @@ async function crawl(baseUrl: string): Promise<RenderedPage[]> {
 }
 
 async function crawlGeoModes(
-  baseUrl: string,
+  pageFetcher: PageFetcher,
   paths: readonly string[],
 ): Promise<GeoRenderedPage[]> {
-  const base = new URL(baseUrl);
   const pages: GeoRenderedPage[] = [];
   const modes: GeoMode[] = ['unknown', 'TX', 'CA'];
   for (const path of paths) {
     for (const mode of modes) {
-      pages.push({ ...(await fetchPage(base, path, mode)), mode });
+      pages.push({ ...(await fetchPage(pageFetcher, path, mode)), mode });
     }
   }
   return pages;
 }
 
-async function waitForPreview(
-  child: ChildProcess,
-  baseUrl: string,
-  output: () => string,
-): Promise<void> {
-  const deadline = Date.now() + 30_000;
-  while (Date.now() < deadline) {
-    if (child.exitCode !== null) {
-      throw new Error(`Preview exited before startup.\n${output()}`);
-    }
-    try {
-      const response = await fetch(baseUrl, {
-        headers: geoRequestHeaders('unknown'),
-      });
-      if (response.status < 500) return;
-    } catch {
-      // Preview has not opened its localhost socket yet.
-    }
-    await new Promise((resolveDelay) => setTimeout(resolveDelay, 100));
-  }
-  throw new Error(`Preview did not start within 30 seconds.\n${output()}`);
+function contentTypeFor(path: string): string {
+  if (path.endsWith('.html') || path.endsWith('/')) return 'text/html; charset=utf-8';
+  if (path.endsWith('.xml')) return 'application/xml; charset=utf-8';
+  if (path.endsWith('.json')) return 'application/json; charset=utf-8';
+  if (path.endsWith('.css')) return 'text/css; charset=utf-8';
+  if (path.endsWith('.js')) return 'text/javascript; charset=utf-8';
+  return 'application/octet-stream';
 }
 
-async function stopPreview(child: ChildProcess): Promise<void> {
-  if (child.exitCode !== null) return;
-  child.kill('SIGTERM');
-  await Promise.race([
-    new Promise<void>((resolveClose) => child.once('close', () => resolveClose())),
-    new Promise<void>((resolveDelay) => setTimeout(resolveDelay, 5_000)),
-  ]);
-  if (child.exitCode === null) child.kill('SIGKILL');
+export async function createBuiltPageFetcher(
+  root = resolve(import.meta.dirname, '../..'),
+): Promise<PageFetcher> {
+  const outputRoot = resolve(root, '.vercel/output');
+  const staticRoot = resolve(outputRoot, 'static');
+  const handlerPath = resolve(
+    outputRoot,
+    'functions/_render.func/dist/server/entry.mjs',
+  );
+  if (!existsSync(handlerPath) || !existsSync(staticRoot)) {
+    throw new Error('Missing .vercel/output build. Run npm run build first.');
+  }
+
+  delete process.env.TRACKER_SUPABASE_URL;
+  delete process.env.TRACKER_SUPABASE_ANON_KEY;
+  const handler = (await import(`${pathToFileURL(handlerPath).href}?rendered-crawl`))
+    .default as { fetch(request: Request): Promise<Response> };
+
+  return async (path, mode) => {
+    const pathname = new URL(path, SITE_ORIGIN).pathname;
+    const relative = pathname.replace(/^\/+/, '');
+    const candidates = pathname === '/'
+      ? [resolve(staticRoot, 'index.html')]
+      : pathname.endsWith('/')
+        ? [resolve(staticRoot, relative, 'index.html')]
+        : [
+            resolve(staticRoot, relative),
+            resolve(staticRoot, relative, 'index.html'),
+            resolve(staticRoot, `${relative}.html`),
+          ];
+    const staticFile = candidates.find((candidate) => existsSync(candidate));
+    if (staticFile) {
+      return new Response(readFileSync(staticFile), {
+        status: 200,
+        headers: { 'content-type': contentTypeFor(staticFile) },
+      });
+    }
+    const realFetch = globalThis.fetch;
+    globalThis.fetch = async () => {
+      throw new Error('External network is disabled during the rendered crawl.');
+    };
+    try {
+      return await handler.fetch(
+        new Request(new URL(path, SITE_ORIGIN), {
+          headers: geoRequestHeaders(mode),
+        }),
+      );
+    } finally {
+      globalThis.fetch = realFetch;
+    }
+  };
 }
 
 async function main(): Promise<void> {
   const baseArg = process.argv.find((arg) => arg.startsWith('--base-url='));
-  const shouldStartPreview = process.argv.includes('--start-preview');
-  const baseUrl =
-    baseArg?.slice('--base-url='.length) ??
-    (shouldStartPreview
-      ? 'http://127.0.0.1:43219'
-      : 'http://127.0.0.1:4321');
-  let preview: ChildProcess | undefined;
-  let previewOutput = '';
-  if (shouldStartPreview) {
-    const url = new URL(baseUrl);
-    preview = spawn(
-      'npm',
-      [
-        'run',
-        'preview',
-        '--',
-        '--host',
-        url.hostname,
-        '--port',
-        url.port,
-      ],
-      { cwd: resolve(import.meta.dirname, '../..'), env: process.env },
-    );
-    preview.stdout?.on('data', (chunk) => {
-      previewOutput = `${previewOutput}${String(chunk)}`.slice(-8_000);
-    });
-    preview.stderr?.on('data', (chunk) => {
-      previewOutput = `${previewOutput}${String(chunk)}`.slice(-8_000);
-    });
-    await waitForPreview(preview, baseUrl, () => previewOutput);
-  }
-
-  try {
-    const pages = await crawl(baseUrl);
-    const graph = validateRenderedLinkGraph(pages);
-    const geoPaths = geoDependentPaths();
-    const geoPages = await crawlGeoModes(baseUrl, geoPaths);
-    const geoFailures = validateGeoRenderedRoutes(geoPages, geoPaths);
-    const result = {
-      ...graph,
-      geoRouteCount: geoPaths.length,
-      geoModePageCount: geoPages.length,
-      geoFailures,
-    };
-    console.log(JSON.stringify(result, null, 2));
-    if (
-      result.missingTargets.length ||
-      result.unintendedRedirects.length ||
-      result.duplicateBlockDestinations.length ||
-      result.hierarchyFailures.length ||
-      result.missingImportantInbound.length ||
-      result.geoFailures.length
-    ) {
-      process.exitCode = 1;
-    }
-  } finally {
-    if (preview) await stopPreview(preview);
+  const pageFetcher: PageFetcher = baseArg
+    ? async (path, mode) =>
+        fetch(new URL(path, baseArg.slice('--base-url='.length)), {
+          headers: geoRequestHeaders(mode),
+          redirect: 'manual',
+        })
+    : await createBuiltPageFetcher();
+  const pages = await crawl(pageFetcher);
+  const graph = validateRenderedLinkGraph(pages);
+  const geoPaths = geoDependentPaths();
+  const geoPages = await crawlGeoModes(pageFetcher, geoPaths);
+  const geoFailures = validateGeoRenderedRoutes(geoPages, geoPaths);
+  const result = {
+    ...graph,
+    geoRouteCount: geoPaths.length,
+    geoModePageCount: geoPages.length,
+    geoFailures,
+  };
+  console.log(JSON.stringify(result, null, 2));
+  if (
+    result.missingTargets.length ||
+    result.unintendedRedirects.length ||
+    result.duplicateBlockDestinations.length ||
+    result.hierarchyFailures.length ||
+    result.missingImportantInbound.length ||
+    result.geoFailures.length
+  ) {
+    process.exitCode = 1;
   }
 }
 

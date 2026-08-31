@@ -37,7 +37,7 @@
     "seo:provenance": "python3 scripts/seo/r45_provenance.py --in .seo/pages.json",
     "seo:audit": "tsx scripts/seo/run-audits.ts",
     "seo:audit:test": "tsx scripts/seo/audit.test.ts",
-    "seo:crawl": "tsx scripts/seo/rendered-link-crawl.ts --start-preview",
+    "seo:crawl": "tsx scripts/seo/rendered-link-crawl.ts",
     "verify:internal-links": "tsx scripts/verify-internal-links.test.ts && tsx scripts/seo/rendered-link-crawl.test.ts",
     "seo:score": "npm run build && npm run seo:extract && npm run seo:fingerprint && npm run seo:provenance",
     "ci": "npm run verify:homepage && npm run verify:availability && npm run verify:internal-links && npm run seo:audit:test && npm run seo:audit && npm run operator:test && npm run operator:verify && npm run content:lint && npm run tracker:lint && npm run methodology:check && npm run verify:odds && npm run testing:verify && npm run testing:verify-overclaims && npm run build && npm run schema:check && npm run verify:odds:integration && npm run seo:crawl"
