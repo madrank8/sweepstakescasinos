@@ -210,7 +210,7 @@ assert.equal(
   'the built geo crawl must cover all 29 rendered reviews',
 );
 
-const geoPaths = ['/reviews/example/', '/best/sweepstakes-casinos/'];
+const geoPaths = ['/reviews/rolla/', '/best/sweepstakes-casinos/'];
 const modes: GeoMode[] = ['unknown', 'TX', 'CA'];
 const geoPages: GeoRenderedPage[] = geoPaths.flatMap((path) =>
   modes.map((mode) => {
@@ -220,29 +220,39 @@ const geoPages: GeoRenderedPage[] = geoPaths.flatMap((path) =>
         : path.startsWith('/reviews/')
           ? `<a href="/states/${mode === 'TX' ? 'texas' : 'california'}/">Availability context</a>`
           : '';
+    const reviewSummary =
+      path === '/reviews/rolla/'
+        ? mode === 'TX'
+          ? '<dd data-review-fact="visitor-offer-eligibility" data-outbound-kind="editorial" data-cta-eligible="true" data-cta-reason="allowed">Editorial outbound link available under site CTA policy.</dd>'
+          : `<dd data-review-fact="visitor-offer-eligibility" data-outbound-kind="editorial" data-cta-eligible="false" data-cta-reason="${
+              mode === 'unknown' ? 'region-unknown' : 'site-policy-suppressed'
+            }">${
+              mode === 'unknown'
+                ? 'Editorial outbound link hidden until location is available.'
+                : 'Editorial outbound link hidden under site CTA policy.'
+            }</dd>`
+        : '';
     const cta =
-      mode === 'TX'
-        ? path.startsWith('/reviews/')
-          ? '<a href="/bonuses/example/">Claim editorial offer</a>'
-          : '<a href="/bonuses/example/?clickId=test" data-affiliate="example">Claim offer</a>'
+      mode === 'TX' && path.startsWith('/reviews/')
+        ? '<a href="/bonuses/rolla/">Claim editorial offer</a>'
         : '<p data-reason="geo-suppressed">Informational only</p>';
     return {
       path,
       mode,
       status: 200,
-      html: `<main><!--sc-contextual-nav--><aside>${stateContext}</aside>${cta}</main>`,
+      html: `<main><!--sc-contextual-nav--><aside>${stateContext}</aside>${reviewSummary}${cta}</main>`,
     };
   }),
 );
 assert.deepEqual(validateGeoRenderedRoutes(geoPages, geoPaths), []);
 
 const brokenGeoPages = geoPages.map((page) =>
-  page.path === '/reviews/example/' && page.mode === 'CA'
+  page.path === '/reviews/rolla/' && page.mode === 'CA'
     ? {
         ...page,
         html: page.html.replace(
           '<p data-reason="geo-suppressed">Informational only</p>',
-          '<a href="/bonuses/example/" data-affiliate="example">Claim offer</a>',
+          '<a href="/bonuses/rolla/" data-affiliate="rolla">Claim offer</a>',
         ),
       }
     : page,
@@ -250,9 +260,29 @@ const brokenGeoPages = geoPages.map((page) =>
 assert.ok(
   validateGeoRenderedRoutes(brokenGeoPages, geoPaths).some(
     (failure) =>
-      failure.path === '/reviews/example/' &&
+      failure.path === '/reviews/rolla/' &&
       failure.mode === 'CA' &&
       /affiliate CTA/.test(failure.reason),
+  ),
+);
+
+const brokenSummaryPages = geoPages.map((page) =>
+  page.path === '/reviews/rolla/' && page.mode === 'TX'
+    ? {
+        ...page,
+        html: page.html.replace(
+          'data-cta-eligible="true"',
+          'data-cta-eligible="false"',
+        ),
+      }
+    : page,
+);
+assert.ok(
+  validateGeoRenderedRoutes(brokenSummaryPages, geoPaths).some(
+    (failure) =>
+      failure.path === '/reviews/rolla/' &&
+      failure.mode === 'TX' &&
+      /summary eligibility/.test(failure.reason),
   ),
 );
 

@@ -1,9 +1,11 @@
 import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
-import { getPartner } from '../../src/data/affiliates';
+import { AFFILIATE_PARTNERS } from '../../src/data/affiliates';
+import { OPERATORS } from '../../src/data/operators';
 import { availabilityForPartner } from '../../src/lib/availability';
-import { fallbackStates } from '../../src/lib/tracker/fallback';
+import { reviewOutboundAvailabilityView } from '../../src/lib/availabilityViews';
+import { buildComparisonOperatorViews } from '../../src/lib/homepage';
 
 export interface RenderedPage {
   path: string;
@@ -275,13 +277,68 @@ function affiliateCtaCount(html: string): number {
   }).length;
 }
 
-function expectsTexasCta(path: string): boolean {
+function stateForMode(mode: GeoMode): 'TX' | 'CA' | null {
+  return mode === 'unknown' ? null : mode;
+}
+
+export function expectedReviewCtaEligibility(
+  slug: string,
+  mode: GeoMode,
+): boolean {
+  return reviewOutboundAvailabilityView(slug, stateForMode(mode)).canCta;
+}
+
+function expectedRouteCtaEligibility(path: string, mode: GeoMode): boolean {
   const review = path.match(/^\/reviews\/([^/]+)\/$/);
-  if (!review) return true;
-  const partner = getPartner(review[1]);
-  if (!partner) return true;
-  const texas = fallbackStates.find((state) => state.state_code === 'TX');
-  return availabilityForPartner(partner, 'TX', texas).cta.eligible;
+  if (review) return expectedReviewCtaEligibility(review[1], mode);
+  const state = stateForMode(mode);
+  if (path === '/bonuses/no-deposit/') {
+    return AFFILIATE_PARTNERS.some(
+      (partner) => availabilityForPartner(partner, state).cta.eligible,
+    );
+  }
+  if (path === '/' || /^\/best\/[^/]+\/$/.test(path)) {
+    const limit = path === '/' ? undefined : 10;
+    return buildComparisonOperatorViews(OPERATORS, state, limit).some(
+      (operator) => operator.hasPartner && operator.canCta,
+    );
+  }
+  return false;
+}
+
+function reviewGatewayCtaCount(html: string, slug: string): number {
+  return [...html.matchAll(/<a\b[^>]*>/gi)].filter(({ 0: anchor }) =>
+    new RegExp(
+      `\\bhref=["']/bonuses/${slug.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}/?(?:\\?[^"']*)?["']`,
+      'i',
+    ).test(anchor),
+  ).length;
+}
+
+function htmlAttribute(markup: string, name: string): string | undefined {
+  const match = markup.match(
+    new RegExp(`\\b${name}\\s*=\\s*(?:"([^"]*)"|'([^']*)')`, 'i'),
+  );
+  return match?.[1] ?? match?.[2];
+}
+
+function renderedReviewEligibilitySummary(html: string): {
+  eligible?: boolean;
+  kind?: string;
+  reason?: string;
+  text: string;
+} | null {
+  const row = html.match(
+    /<dd\b(?=[^>]*\bdata-review-fact\s*=\s*["']visitor-offer-eligibility["'])[^>]*>([\s\S]*?)<\/dd>/i,
+  );
+  if (!row) return null;
+  const eligible = htmlAttribute(row[0], 'data-cta-eligible');
+  return {
+    eligible: eligible === 'true' ? true : eligible === 'false' ? false : undefined,
+    kind: htmlAttribute(row[0], 'data-outbound-kind'),
+    reason: htmlAttribute(row[0], 'data-cta-reason'),
+    text: row[1].replace(/<[^>]+>/g, '').replace(/\s+/g, ' ').trim(),
+  };
 }
 
 export function validateGeoRenderedRoutes(
@@ -304,8 +361,11 @@ export function validateGeoRenderedRoutes(
         });
         continue;
       }
-      const ctaCount = affiliateCtaCount(page.html);
-      const shouldHaveCta = mode === 'TX' && expectsTexasCta(path);
+      const review = path.match(/^\/reviews\/([^/]+)\/$/);
+      const ctaCount = review
+        ? reviewGatewayCtaCount(page.html, review[1])
+        : affiliateCtaCount(page.html);
+      const shouldHaveCta = expectedRouteCtaEligibility(path, mode);
       if (shouldHaveCta && ctaCount === 0) {
         failures.push({
           path,
@@ -327,7 +387,40 @@ export function validateGeoRenderedRoutes(
         });
       }
 
-      if (/^\/reviews\/[^/]+\/$/.test(path)) {
+      if (review) {
+        const expectedSummary = reviewOutboundAvailabilityView(
+          review[1],
+          stateForMode(mode),
+        );
+        const summary = renderedReviewEligibilitySummary(page.html);
+        if (!summary) {
+          failures.push({
+            path,
+            mode,
+            reason: 'review lacks its visitor offer eligibility summary',
+          });
+        } else {
+          if (summary.eligible !== expectedSummary.canCta) {
+            failures.push({
+              path,
+              mode,
+              reason:
+                `review summary eligibility ${String(summary.eligible)} does not match ` +
+                `${expectedSummary.canCta}`,
+            });
+          }
+          if (
+            summary.kind !== expectedSummary.kind ||
+            summary.reason !== expectedSummary.reason ||
+            summary.text !== expectedSummary.label
+          ) {
+            failures.push({
+              path,
+              mode,
+              reason: 'review summary kind, reason, or text does not match the outbound view',
+            });
+          }
+        }
         const block = contextualBlocks(page.html)[0]?.html ?? '';
         const contextLinks = linksIn(block);
         const expectedContext =
@@ -366,7 +459,6 @@ export function geoDependentPaths(
   const paths = new Set<string>([
     '/',
     '/bonuses/no-deposit/',
-    '/tools/sweepstakes-odds-calculator/',
   ]);
   const comparisonsDir = resolve(root, 'src/content/comparisons');
   for (const file of readdirSync(comparisonsDir).filter((name) => name.endsWith('.mdx'))) {
@@ -377,10 +469,7 @@ export function geoDependentPaths(
   }
   const reviewsDir = resolve(root, 'reviews');
   for (const file of readdirSync(reviewsDir).filter((name) => name.endsWith('.html'))) {
-    const source = readFileSync(resolve(reviewsDir, file), 'utf8');
-    if (/\bhref=["']\/bonuses\/[a-z0-9-]+\/?["']/i.test(source)) {
-      paths.add(`/reviews/${file.replace(/\.html$/, '')}/`);
-    }
+    paths.add(`/reviews/${file.replace(/\.html$/, '')}/`);
   }
   return [...paths].sort();
 }
