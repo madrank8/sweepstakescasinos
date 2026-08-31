@@ -36,12 +36,11 @@ const canonical = `${ORIGIN}${canonicalPath}`;
 
 const DATE_PUBLISHED = '2026-07-12';
 const DATE_MODIFIED = '2026-07-12';
-const VERIFIED_LABEL = 'Jul 2026';
 
 const title =
-  'Sweepstakes Casino No Deposit Bonuses — July 2026 (Verified) | Sweepstakes Wiz';
+  'Sweepstakes Casino No Deposit Bonuses — July 2026 | Sweepstakes Wiz';
 const description =
-  "Every no-deposit sweepstakes casino bonus we've verified for July 2026 — free Sweeps Coins on signup, daily login rewards, and mail-in entries. No promo codes required, checked against your state.";
+  'Published no-deposit sweepstakes casino offers for July 2026 — free Sweeps Coins on signup, daily login rewards, and mail-in entries. No promo codes required, checked against your state.';
 const heroTitle =
   'No Deposit Bonuses & <span class="accent">Free Sweeps Coins</span> (July 2026)';
 const heroSubtitle =
@@ -67,6 +66,7 @@ type Offer = {
   signupSc?: number;
   daily?: string;
   min?: string;
+  verifiedOn?: string;
 };
 
 function formatMinimum(value: RedemptionMinimum, label: string): string {
@@ -96,6 +96,7 @@ function canonicalOffer(slug: string, reviewLabel: string): Offer {
     signupSc: signupSc(signup),
     daily: verifiedValue(operator.dailyOffer),
     min: minima.length > 0 ? minima.join('; ') : undefined,
+    verifiedOn: verifiedValue(operator.lastVerifiedDate),
   };
 }
 
@@ -173,7 +174,7 @@ const faq = [
 const itemListLd = {
   '@type': 'ItemList',
   '@id': `${canonical}#itemlist`,
-  name: 'Verified no-deposit sweepstakes casino bonuses — July 2026',
+  name: 'Published no-deposit sweepstakes casino bonuses — July 2026',
   numberOfItems: offers.length,
   itemListElement: offers.map((o, i) => ({
     '@type': 'ListItem',
@@ -213,9 +214,10 @@ const jsonLd = [itemListLd, faqLd];
     Every bonus below is a genuine <strong>no-purchase offer</strong> — free Gold Coins and Sweeps
     Coins issued for signing up, logging in daily, or mailing a free entry. <strong>None of them
     require a promo code</strong>: they're credited automatically after registration and verification.
-    Offers are re-checked against each operator's published terms; the &ldquo;verified&rdquo; date
-    shows when we last confirmed each one. Where an offer isn't legally available in your state, we
-    show that instead of a dead button — see our <a href="/state-legality/">state legality rules</a>
+    Offer facts come from each operator&rsquo;s published terms. We show a verification date only
+    when the canonical operator record has one; otherwise the table says it is unavailable rather
+    than substituting this page&rsquo;s publication date. Where an offer is not commercially
+    available or site CTA policy suppresses it, we show that instead of a dead button — see our <a href="/state-legality/">state legality rules</a>
     and <a href="/legal/affiliate-disclosure/">Affiliate Disclosure</a>.
   </p>
 
@@ -257,7 +259,7 @@ const jsonLd = [itemListLd, faqLd];
     ]}
   />
 
-  <h2>Verified no-deposit bonuses — July 2026</h2>
+  <h2>Published no-deposit bonuses — July 2026</h2>
 
   <div class="nd-table-wrap">
     <table class="nd-table">
@@ -267,7 +269,7 @@ const jsonLd = [itemListLd, faqLd];
           <th>Signup bonus (no code)</th>
           <th>Daily free SC</th>
           <th>Min. redemption</th>
-          <th>Verified</th>
+          <th>Offer verification</th>
           <th>Review</th>
           <th>Bonus</th>
         </tr>
@@ -279,7 +281,13 @@ const jsonLd = [itemListLd, faqLd];
             <td>{o.signup ?? <em>Not canonicalized</em>}</td>
             <td>{o.daily ?? <em>Not canonicalized</em>}</td>
             <td>{o.min ?? <em>Not canonicalized</em>}</td>
-            <td class="nd-verified">{VERIFIED_LABEL}</td>
+            <td class="nd-verified">
+              {o.verifiedOn ? (
+                <time datetime={o.verifiedOn}>{o.verifiedOn}</time>
+              ) : (
+                <em>Verification unavailable</em>
+              )}
+            </td>
             <td><a href={`/reviews/${o.slug}/`}>{o.reviewLabel}</a></td>
             <td class="nd-cta-cell">
               {o.canCta ? (
@@ -296,8 +304,8 @@ const jsonLd = [itemListLd, faqLd];
 
   <blockquote class="nd-note">
     <strong>Reading the table:</strong> the SC figure is what matters — Sweeps Coins are the
-    redeemable currency; Gold Coins are for fun play only. &ldquo;Verified&rdquo; is when we last
-    confirmed the published offer; the linked review always carries the current figure and full terms.
+    redeemable currency; Gold Coins are for fun play only. A verification date appears only when
+    independently present in the canonical operator record; unavailable does not mean the page date.
     The <strong>Bonus</strong> column is checked against your location, so you only see a claim button
     where the offer is actually available to you.
   </blockquote>
