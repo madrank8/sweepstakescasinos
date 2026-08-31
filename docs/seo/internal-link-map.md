@@ -2,7 +2,16 @@
 
 Source snapshot: repository authored sources. Generated deterministically without a runtime date.
 
-Inventory: **103 authored routes**, **1476 internal link occurrences**, **0 missing-target occurrences**, and **1 orphan candidates**.
+Inventory: **103 authored routes**, **1479 internal link occurrences**, **0 missing-target occurrences**, and **0 orphan candidates**.
+
+## Target graph
+
+- Review rendering creates **29 review contextual blocks** with **169 deterministic destinations** before nearby-link de-duplication.
+- Homepage → commercial hubs → reviews: the homepage links the review directory, detailed comparison, new-casino research, and no-purchase offer hub; each commercial hub links to reviews.
+- Review → hubs + related reviews + visitor context: canonical operator facts select hubs and similar/related alternatives. Unknown region points to `/state-legality/`; known region points to its `/states/<slug>/` page.
+- State → reviews + commercial hubs: every state template links `/reviews/`, `/best/sweepstakes-casinos/`, and alphabetically ordered eligible review destinations when available.
+- Guide/article → parent/topic hub + commercial destination: guide and news templates add concise contextual navigation.
+- Affiliate CPA, deal model, tracking URL, and source-array order are not ranking or tie-break inputs.
 
 ## Missing targets
 
@@ -10,7 +19,7 @@ None detected.
 
 ## Orphan candidates
 
-- `/best/` from `src/routes/best/index.astro`
+None detected.
 
 ## Route signals
 

@@ -8,4 +8,6 @@ Source snapshot: repository authored sources. Generated deterministically withou
 | `/reviews/` from `src/routes/reviews/index.astro` | `Sweepstakes Casino Reviews: All 29 Operators \| Sweepstakes Wiz` | Directory intent: find any of the 29 reviews alphabetically; no “best” ordering. | DISTINCT |
 | `/best/sweepstakes-casinos/` from `src/content/comparisons/sweepstakes-casinos.mdx` | `Best Sweepstakes Casinos 2026 — Top 10 Ranked \| Sweepstakes Wiz` | Deeper ranked/comparison intent with expanded methodology and analysis. | DISTINCT |
 
+Freshness-dependent superlative routes remain deferred. “Most free Sweeps Coins” overlaps `/bonuses/no-deposit/`, while a payout-speed route lacks normalized, freshly verified comparison data. No thin route or filter permutation was created.
+
 `index.html` remains historical audit evidence only. The generator copies the authored `src/routes/index.astro` over the generated root wrapper, so legacy markup is not treated as live.

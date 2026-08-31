@@ -299,6 +299,31 @@ assert.match(
   /historical audit evidence/i,
   'cannibalisation report must identify legacy index.html as historical only',
 );
+assert.match(
+  reports.get('commercial-hub-plan.md') ?? '',
+  /0\/29 records have a verified lastVerifiedDate/,
+);
+assert.match(
+  reports.get('commercial-hub-plan.md') ?? '',
+  /DEFER: Most free Sweeps Coins/,
+);
+assert.match(
+  reports.get('internal-link-map.md') ?? '',
+  /29 review contextual blocks/,
+);
+assert.match(
+  reports.get('internal-link-map.md') ?? '',
+  /## Orphan candidates\n\nNone detected\./,
+  'redirect-only /best/ must not be listed as a content orphan',
+);
+assert.match(
+  reports.get('technical-audit.md') ?? '',
+  /redirect-only routes are excluded from content-orphan findings/i,
+);
+assert.match(
+  reports.get('cannibalisation-review.md') ?? '',
+  /freshness-dependent superlative routes remain deferred/i,
+);
 const availability = reconcileAvailabilityAuthorities({
   states: fallbackStates,
   partners: AFFILIATE_PARTNERS,

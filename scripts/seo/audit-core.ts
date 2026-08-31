@@ -19,6 +19,7 @@ import {
 } from '../../src/lib/tracker/fallback';
 import { selectRankedRecommendations } from '../../src/lib/homepage';
 import { visibleEditorialScore } from '../../src/lib/pageChrome';
+import { selectReviewContextualLinks } from '../../src/lib/internalLinks';
 import { validateAllResults } from '../../src/data/testingResults';
 import { findTestingClaims, type UnsupportedTestingClaim } from './claim-policy';
 
@@ -928,6 +929,8 @@ function technicalReport(
       : '- Prototype noindex protection is missing.\n',
     '\n## HIGH IMPACT\n\n',
     `- Internal-link inventory found **${routes.missingTargets.length}** links whose targets are not represented by an authored exact or known dynamic route. These are documented, not redirected.\n`,
+    `- The review pipeline injects deterministic contextual navigation into **${OPERATORS.length} reviews** through both static and SSR transforms. Related-review tie-breaks use canonical editorial facts and slug order; affiliate CPA and tracking data are not inputs.\n`,
+    '- Redirect-only routes are excluded from content-orphan findings; `/best/` remains a deliberate 301 to `/best/sweepstakes-casinos/`, not a content page.\n',
     '- `src/lib/htmlStamp.ts` replaces `__UPDATED_DATE__` with the build month and year. This is build freshness, not a substantive source date; retain for Phase 2/3 review rather than replacing it with another synthetic date.\n',
     '- Legal-page sitemap/noindex policy is internally mixed and requires a policy decision; no legal page was reindexed or removed here:\n',
     legalPolicy,
@@ -957,6 +960,7 @@ function cannibalisationReport(root: string): string {
     `| \`/\` from \`${homePath}\` | \`${md(homeTitle)}\` | Concise answer, four supported editor picks, and a deterministic facts-first comparison for initial decisions. | DISTINCT |\n`,
     `| \`/reviews/\` from \`${reviewsPath}\` | \`${md(reviewsTitle)}\` | Directory intent: find any of the 29 reviews alphabetically; no “best” ordering. | DISTINCT |\n`,
     `| \`/best/sweepstakes-casinos/\` from \`src/content/comparisons/sweepstakes-casinos.mdx\` | \`${md(comparisonTitle)}\` | Deeper ranked/comparison intent with expanded methodology and analysis. | DISTINCT |\n`,
+    '\nFreshness-dependent superlative routes remain deferred. “Most free Sweeps Coins” overlaps `/bonuses/no-deposit/`, while a payout-speed route lacks normalized, freshly verified comparison data. No thin route or filter permutation was created.\n',
     '\n`index.html` remains historical audit evidence only. The generator copies the authored `src/routes/index.astro` over the generated root wrapper, so legacy markup is not treated as live.\n',
   ].join('');
 }
@@ -990,16 +994,30 @@ function commercialHubReport(audit: OperatorAudit): string {
     '\n## Decisions\n\n',
     ...candidates.map(
       (candidate) =>
-        `- **${candidate.decision}: ${candidate.candidate}.** Unmet gates: ${candidate.unmetGates.map(md).join('; ')}\n`,
+        `- **${candidate.decision}: ${candidate.candidate}.** Unmet gates: ${candidate.unmetGates.map((gate) => md(gate).replace(/\.$/, '')).join('; ')}.\n`,
     ),
     '\nNo ranking, offer, legal status, redirect, or canonical winner is asserted here.\n',
   ].join('');
 }
 
 function internalLinkReport(routes: RouteAudit): string {
+  const reviewContextSelections = OPERATORS.map((operator) =>
+    selectReviewContextualLinks(operator.slug),
+  );
+  const injectedEdges = reviewContextSelections.reduce(
+    (count, links) => count + links.length,
+    0,
+  );
   return [
     reportHeader('Internal Link Map'),
     `Inventory: **${routes.routes.length} authored routes**, **${routes.links.length} internal link occurrences**, **${routes.missingTargets.length} missing-target occurrences**, and **${routes.orphanCandidates.length} orphan candidates**.\n\n`,
+    '## Target graph\n\n',
+    `- Review rendering creates **${OPERATORS.length} review contextual blocks** with **${injectedEdges} deterministic destinations** before nearby-link de-duplication.\n`,
+    '- Homepage → commercial hubs → reviews: the homepage links the review directory, detailed comparison, new-casino research, and no-purchase offer hub; each commercial hub links to reviews.\n',
+    '- Review → hubs + related reviews + visitor context: canonical operator facts select hubs and similar/related alternatives. Unknown region points to `/state-legality/`; known region points to its `/states/<slug>/` page.\n',
+    '- State → reviews + commercial hubs: every state template links `/reviews/`, `/best/sweepstakes-casinos/`, and alphabetically ordered eligible review destinations when available.\n',
+    '- Guide/article → parent/topic hub + commercial destination: guide and news templates add concise contextual navigation.\n',
+    '- Affiliate CPA, deal model, tracking URL, and source-array order are not ranking or tie-break inputs.\n\n',
     '## Missing targets\n\n',
     routes.missingTargets.length
       ? '| Source | Target | Normalized target |\n|---|---|---|\n' +
