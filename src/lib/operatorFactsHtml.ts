@@ -208,7 +208,7 @@ function isExplicitThirdPartyScore(
   const windowStart = Math.max(0, position - 110);
   const windowText = html.slice(windowStart, Math.min(html.length, position + 120));
   const relative = position - windowStart;
-  const separators = /(?:&#183;|·|—|&mdash;|[.!?;])/gi;
+  const separators = /(?:&#183;|·|—|&mdash;|[!?;])/gi;
   let clauseStart = 0;
   let clauseEnd = windowText.length;
   for (const separator of windowText.matchAll(separators)) {
