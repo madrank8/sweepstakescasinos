@@ -12,7 +12,7 @@ export type OddsRecommendationTuple = [
   AffiliatePartner,
 ];
 
-/** Homepage-parity card chrome for a partner slug (logos match index.html img.card-logo). */
+/** Card chrome for a partner slug when an explicit editorial set is supplied. */
 export interface OddsPartnerCardMeta {
   logoSrc: string;
   displayName: string;
@@ -25,8 +25,7 @@ export interface OddsPartnerCardMeta {
 }
 
 /**
- * Presentation map keyed by affiliate slug. Logo paths match homepage
- * `img.card-logo` sources so editorial picks stay visually in sync when ranking changes.
+ * Presentation map keyed by affiliate slug.
  * Offer/score copy lives here (not in the Astro template) to keep component-source
  * compliance checks free of hard-coded bonus numerals.
  */

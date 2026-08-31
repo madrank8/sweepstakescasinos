@@ -462,25 +462,25 @@ assert.doesNotMatch(
 const ranking = read('src/content/comparisons/sweepstakes-casinos.mdx');
 assert.match(ranking, /^published:\s*\d{4}-\d{2}-\d{2}$/m);
 assert.match(ranking, /^draft:\s*false$/m);
-const rankingBlock = ranking.match(/^partnerSlugs:\s*\n((?:  - [a-z0-9-]+\n)+)/m);
-assert.ok(rankingBlock, 'ranking contains partnerSlugs frontmatter');
-const rankedSlugs = [...rankingBlock[1].matchAll(/^  - ([a-z0-9-]+)$/gm)].map((m) => m[1]);
-assert.ok(rankedSlugs.length >= 3, 'published ranking supplies at least three valid slugs');
-const firstThree = rankedSlugs.slice(0, 3);
-assert.equal(firstThree.length, 3, 'ranking supplies exactly three ordered recommendation slots');
-assert.equal(new Set(firstThree).size, 3, 'top three ranking slugs are unique');
-const rankedPartners = firstThree.map((slug) => {
+assert.match(
+  ranking,
+  /^partnerSlugs:\s*\[\]\s*$/m,
+  'unranked comparison leaves calculator recommendation configuration empty',
+);
+const fixtureSlugs = ['legendz', 'playfame', 'roxymoxy'];
+assert.equal(new Set(fixtureSlugs).size, 3, 'fixture recommendation slugs are unique');
+const fixturePartners = fixtureSlugs.map((slug) => {
   assert.ok(existsSync(join(root, `reviews/${slug}.html`)), `review exists for ${slug}`);
   const partner = getPartner(slug);
   assert.ok(partner, `affiliate partner resolves for ${slug}`);
   return partner;
 });
 for (const state of ['TX', 'CA', null] as const) {
-  const items = buildOddsRecommendations(rankedPartners as OddsRecommendationTuple, state);
+  const items = buildOddsRecommendations(fixturePartners as OddsRecommendationTuple, state);
   assert.deepEqual(
     items.map((item) => item.partner.slug),
-    firstThree,
-    `${state ?? 'unknown'} preserves current editorial order`,
+    fixtureSlugs,
+    `${state ?? 'unknown'} preserves explicit fixture order`,
   );
   for (const item of items) {
     assert.equal(item.available, shouldRenderAffiliateCta(item.partner, state));

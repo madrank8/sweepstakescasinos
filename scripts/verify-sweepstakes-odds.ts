@@ -115,7 +115,7 @@ function assertNoProhibitedRecommendationClaims(source: string) {
   assert.doesNotMatch(source, /\$\d+/);
   assert.doesNotMatch(source, /\b\d{1,3}(?:,\d{3})+\s*(?:GC|SC|Coins?)\b/i);
   assert.doesNotMatch(source, /\b\d+\s*(?:GC|SC|free\s+coins?)\b/i);
-  assert.match(source, /editorially ranked casinos/);
+  assert.match(source, /explicit editorial configuration/);
 }
 
 function skipWhitespace(source: string, index: number): number {
@@ -796,28 +796,26 @@ assert.deepEqual(
   [...SPEC_ODDS_CTA_ANALYTICS_PAYLOAD_KEYS].sort(),
 );
 
-// --- Pure model: editorial top-three order and geo flags ---
+// --- Pure model: explicitly configured three-card order and geo flags ---
 const rankingSource = readFileSync(
   new URL('../src/content/comparisons/sweepstakes-casinos.mdx', import.meta.url),
   'utf8',
 );
 assert.match(rankingSource, /^published:\s*\d{4}-\d{2}-\d{2}$/m);
 assert.match(rankingSource, /^draft:\s*false$/m);
-const partnerSlugsBlock = rankingSource.match(
-  /^partnerSlugs:\s*\n((?:  - [a-z0-9-]+\n)+)/m,
+assert.match(
+  rankingSource,
+  /^partnerSlugs:\s*\[\]\s*$/m,
+  'the unranked comparison must not configure calculator recommendation cards',
 );
-assert.ok(partnerSlugsBlock, 'ranking must define partnerSlugs');
-const editorialSlugs = [...partnerSlugsBlock[1]!.matchAll(/^  - ([a-z0-9-]+)$/gm)]
-  .slice(0, 3)
-  .map((match) => match[1]!);
-assert.equal(editorialSlugs.length, 3, 'ranking must supply exactly three recommendation slots');
-assert.equal(new Set(editorialSlugs).size, 3, 'top three ranking slugs must be unique');
+const editorialSlugs = ['legendz', 'playfame', 'roxymoxy'];
+assert.equal(new Set(editorialSlugs).size, 3, 'fixture recommendation slugs must be unique');
 const resolvedEditorialPartners = editorialSlugs.map((slug) => {
   const partner = getPartner(slug);
-  assert.ok(partner, `ranking partner must resolve: ${slug}`);
+  assert.ok(partner, `fixture partner must resolve: ${slug}`);
   assert.ok(
     existsSync(new URL(`../reviews/${slug}.html`, import.meta.url)),
-    `ranked review must exist: ${slug}`,
+    `fixture review must exist: ${slug}`,
   );
   return partner;
 });
@@ -870,21 +868,21 @@ assert.doesNotMatch(recommendationsSource, /\/bonuses\//);
 assert.doesNotMatch(recommendationsSource, /partner\.trackingLink/);
 assert.match(
   recommendationsSource,
-  /editorially ranked casinos, not recommendations produced by your odds result/,
+  /explicit editorial configuration, not from your odds/,
 );
 assertNoProhibitedRecommendationClaims(recommendationsSource);
 assert.match(recommendationModelSource, /ODDS_PARTNER_CARD_META/);
 assert.match(recommendationModelSource, /logoSrc/);
 for (const slug of editorialSlugs) {
   const meta = ODDS_PARTNER_CARD_META[slug];
-  assert.ok(meta?.logoSrc, `card meta must define a real logo for ranked slug: ${slug}`);
+  assert.ok(meta?.logoSrc, `card meta must define a real logo for fixture slug: ${slug}`);
   assert.match(meta.logoSrc, /^\/sweepstakeslogo\/.+\.webp$/);
   // Logos live in repo-root sweepstakeslogo/ (tracked). public/ is gitignored and
   // only populated later by generate:pages → copyPublicAssets(), so CI must not
   // require public/ to exist before that step.
   assert.ok(
     existsSync(new URL(`..${meta.logoSrc}`, import.meta.url)),
-    `homepage logo asset must exist for ranked slug: ${slug}`,
+    `logo asset must exist for fixture slug: ${slug}`,
   );
   const item = buildOddsRecommendations(editorialTopThree, 'TX').find(
     (entry) => entry.partner.slug === slug,

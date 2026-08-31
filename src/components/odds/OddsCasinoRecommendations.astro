@@ -17,8 +17,8 @@ const items = buildOddsRecommendations(partners, Astro.locals.usState);
   aria-labelledby="odds-recommendations-title">
   <h2 id="odds-recommendations-title">Get more free entries at these sweepstakes casinos</h2>
   <p>
-    These are editorially ranked casinos, not recommendations produced by your odds result.
-    Calculator inputs never change this order.
+    These examples come from explicit editorial configuration, not from your odds
+    result. Calculator inputs never change their order.
   </p>
   <ol class="odds-casino-list">
     {items.map((item) => (
@@ -68,7 +68,7 @@ const items = buildOddsRecommendations(partners, Astro.locals.usState);
     ))}
   </ol>
   <p class="odds-casino-disclosure">
-    We may earn a referral fee when you use an affiliate link; this never affects rankings.
+    We may earn a referral fee when you use an affiliate link; this does not affect placement.
     See our <a href="/legal/affiliate-disclosure/">Affiliate Disclosure</a>.
     No purchase necessary. 18+ (21+ where required). Not available in all states.
     Check each operator’s official rules and <a href="/responsible-gaming/">play responsibly</a>.
