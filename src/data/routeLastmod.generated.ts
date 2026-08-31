@@ -51,7 +51,7 @@ export const ROUTE_LASTMOD: Readonly<Record<string, string>> = {
   "/state-legality/": "2026-08-31",
   "/sweepstakes-tracker/": "2026-08-31",
   "/sweepstakes-tracker/methodology/": "2026-08-31",
-  "/sweepstakes-tracker/legislation/": "2026-07-12",
+  "/sweepstakes-tracker/legislation/": "2026-08-31",
   "/sweepstakes-tracker/api/": "2026-07-12",
   "/states/alabama/": "2026-08-31",
   "/states/alaska/": "2026-08-31",
