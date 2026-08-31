@@ -321,6 +321,18 @@ assert.match(
   /redirect-only routes are excluded from content-orphan findings/i,
 );
 assert.match(
+  reports.get('technical-audit.md') ?? '',
+  /29 review sources and 29 rendered reviews pass the dedicated review QA gate/i,
+);
+assert.match(
+  reports.get('testing-claims-audit.md') ?? '',
+  /Redemption index publication state: \*\*NOT PUBLISHABLE\*\* — no approved records/i,
+);
+assert.match(
+  reports.get('schema-audit.md') ?? '',
+  /AggregateRating nodes from empty reader data: \*\*0\*\*/i,
+);
+assert.match(
   reports.get('cannibalisation-review.md') ?? '',
   /freshness-dependent superlative routes remain deferred/i,
 );
@@ -341,6 +353,17 @@ assert.equal(
   availabilityReport,
   'the committed state-legality report must match the facade renderer exactly',
 );
+for (const name of [
+  'schema-audit.md',
+  'technical-audit.md',
+  'testing-claims-audit.md',
+]) {
+  assert.equal(
+    readFileSync(resolve(root, `docs/seo/${name}`), 'utf8'),
+    reports.get(name),
+    `${name} must match deterministic audit output exactly`,
+  );
+}
 
 console.log(
   `seo audit tests: OK — ${operators.reviews.length} reviews, ` +

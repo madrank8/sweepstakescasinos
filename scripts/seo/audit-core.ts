@@ -7,6 +7,7 @@ import {
 import { extname, join, relative, resolve } from 'node:path';
 import { AFFILIATE_PARTNERS } from '../../src/data/affiliates';
 import { BRAND_ENTITIES } from '../../src/data/brandEntities';
+import { READER_REPORT_AGGREGATES } from '../../src/data/readerReports.generated';
 import { OPERATORS, verifiedValue } from '../../src/data/operators';
 import {
   reconcileAvailabilityAuthorities,
@@ -20,7 +21,9 @@ import {
 import { selectRankedRecommendations } from '../../src/lib/homepage';
 import { visibleEditorialScore } from '../../src/lib/pageChrome';
 import { selectReviewContextualLinks } from '../../src/lib/internalLinks';
+import { assessRedemptionIndex } from '../../src/lib/redemptionIndex';
 import { validateAllResults } from '../../src/data/testingResults';
+import { runReviewQa, type ReviewQaResult } from '../verify-reviews';
 import { findTestingClaims, type UnsupportedTestingClaim } from './claim-policy';
 
 export type ConflictStatus = 'RESOLVED' | 'UNRESOLVED' | 'MANUAL_REVIEW';
@@ -866,12 +869,24 @@ function operatorReport(audit: OperatorAudit): string {
   return lines.join('');
 }
 
-function testingClaimsReport(claims: TestingClaimOccurrence[]): string {
+function testingClaimsReport(
+  root: string,
+  claims: TestingClaimOccurrence[],
+): string {
   const counts = new Map<string, number>();
   for (const claim of claims) counts.set(claim.classification, (counts.get(claim.classification) ?? 0) + 1);
+  const testingRows = validateAllResults(root).rows.length;
+  const readerAggregates = Object.keys(READER_REPORT_AGGREGATES).length;
+  const indexAssessment = assessRedemptionIndex([], { asOf: '2026-08-31' });
   return [
     reportHeader('Testing Claims Audit'),
-    `Evidence authority: \`evidence/testing-results.csv\` has **0 data rows** and \`src/data/readerReports.generated.ts\` has **0 aggregates**.\n\n`,
+    `Evidence authority: \`evidence/testing-results.csv\` has **${testingRows} data rows** and \`src/data/readerReports.generated.ts\` has **${readerAggregates} aggregates**.\n\n`,
+    `Redemption index publication state: **${indexAssessment.status === 'publishable' ? 'PUBLISHABLE' : 'NOT PUBLISHABLE'}** — ${
+      indexAssessment.status === 'not-publishable' &&
+      indexAssessment.reason === 'no-approved-records'
+        ? 'no approved records'
+        : indexAssessment.status
+    }. No production result metric or route is generated.\n\n`,
     `Matched occurrences: **${claims.length}**. ` +
       ['DOCUMENTED_FIRST_HAND', 'THIRD_PARTY_OR_READER_DATA', 'UNSUPPORTED', 'AMBIGUOUS']
         .map((key) => `${key}: **${counts.get(key) ?? 0}**`)
@@ -897,6 +912,7 @@ function schemaReport(audit: SchemaAudit): string {
     reportHeader('Visible and Schema Parity Audit'),
     'Visible legacy scores are parsed with `visibleEditorialScore()` from `src/lib/pageChrome.ts`; schema ratings now use only verified `editorScore100` values from `src/data/operators.ts`.\n\n',
     `Coverage: **${audit.reviews.length} reviews**; source mismatches: **${audit.mismatches.length}**. Build-time consolidation emits **${verifiedCount}** verified canonical Review ratings and omits ratings for unresolved records; it never converts a five-star value.\n\n`,
+    `AggregateRating nodes from empty reader data: **${Object.keys(READER_REPORT_AGGREGATES).length}**. Answer blocks remain visible review content and are not added to FAQPage schema; all FAQPage nodes are rebuilt from visible FAQ questions and answers.\n\n`,
     '| Review | Visible score | Source JSON-LD score | Expected `/5` equivalent | Source parity |\n',
     '|---|---:|---:|---:|---|\n',
     ...audit.reviews.map(
@@ -909,6 +925,7 @@ function schemaReport(audit: SchemaAudit): string {
 function technicalReport(
   routes: RouteAudit,
   claims: TestingClaimOccurrence[],
+  reviewQa: ReviewQaResult,
 ): string {
   const unsupported = claims.filter((claim) => claim.classification === 'UNSUPPORTED');
   const legalPolicy = routes.routes
@@ -928,6 +945,7 @@ function technicalReport(
       ? '- `prototypes/mcluck-firsthand-review-preview.html` explicitly emits `noindex, nofollow`.\n'
       : '- Prototype noindex protection is missing.\n',
     '\n## HIGH IMPACT\n\n',
+    `- ${reviewQa.sourceCount} review sources and ${reviewQa.renderCount} rendered reviews pass the dedicated review QA gate: ${reviewQa.uniqueTitleCount} unique titles, ${reviewQa.factSummaryCount} canonical summaries, ${reviewQa.answerBlockCount} evidence-gated answer blocks, and ${reviewQa.faqSchemaMismatchCount} FAQ/schema mismatches.\n`,
     `- Internal-link inventory found **${routes.missingTargets.length}** links whose targets are not represented by an authored exact or known dynamic route. These are documented, not redirected.\n`,
     `- The review pipeline injects deterministic contextual navigation into **${OPERATORS.length} reviews** through both static and SSR transforms. Related-review tie-breaks use canonical editorial facts and slug order; affiliate CPA and tracking data are not inputs.\n`,
     '- Redirect-only routes are excluded from content-orphan findings; `/best/` remains a deliberate 301 to `/best/sweepstakes-casinos/`, not a content page.\n',
@@ -1049,6 +1067,7 @@ export function renderAuditReports(root = process.cwd()): Map<string, string> {
   const claims = scanTestingClaims(root);
   const routes = auditAuthoredRoutes(root);
   const schema = auditSchemaParity(root);
+  const reviewQa = runReviewQa(root);
   const availability = reconcileAvailabilityAuthorities({
     states: fallbackStates,
     partners: AFFILIATE_PARTNERS,
@@ -1057,10 +1076,10 @@ export function renderAuditReports(root = process.cwd()): Map<string, string> {
   });
   return new Map([
     ['operator-data-conflicts.md', operatorReport(operators)],
-    ['testing-claims-audit.md', testingClaimsReport(claims)],
+    ['testing-claims-audit.md', testingClaimsReport(root, claims)],
     ['state-legality-conflicts.md', renderAvailabilityConflictReport(availability)],
     ['schema-audit.md', schemaReport(schema)],
-    ['technical-audit.md', technicalReport(routes, claims)],
+    ['technical-audit.md', technicalReport(routes, claims, reviewQa)],
     ['cannibalisation-review.md', cannibalisationReport(root)],
     ['commercial-hub-plan.md', commercialHubReport(operators)],
     ['internal-link-map.md', internalLinkReport(routes)],
@@ -1072,6 +1091,7 @@ export function auditSummary(root = process.cwd()) {
   const claims = scanTestingClaims(root);
   const routes = auditAuthoredRoutes(root);
   const schema = auditSchemaParity(root);
+  const reviewQa = runReviewQa(root);
   const availability = reconcileAvailabilityAuthorities({
     states: fallbackStates,
     partners: AFFILIATE_PARTNERS,
@@ -1100,6 +1120,10 @@ export function auditSummary(root = process.cwd()) {
     prototypeNoindex: routes.prototypeNoindex,
     schemaReviewCount: schema.reviews.length,
     schemaMismatchCount: schema.mismatches.length,
+    reviewQaErrorCount: reviewQa.errors.length,
+    reviewFactSummaryCount: reviewQa.factSummaryCount,
+    reviewAnswerBlockCount: reviewQa.answerBlockCount,
+    redemptionIndexStatus: assessRedemptionIndex([], { asOf: '2026-08-31' }).status,
     stateCount: availability.jurisdictionCount,
     affiliateCount: availability.partnerCount,
     stateAuthorityConflictCount: availability.warnings.filter((warning) =>
