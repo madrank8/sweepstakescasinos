@@ -47,6 +47,7 @@ export function injectComplianceRibbon(html: string): string {
 }
 
 import { SITE } from '../data/site';
+import { getOperator, verifiedValue } from '../data/operators';
 import {
   AUTHOR_ID,
   ORG_ID,
@@ -301,7 +302,12 @@ export function consolidateJsonLd(html: string): string {
           typeof (profileMain as JsonLdNode)['@id'] === 'string'
         ? ((profileMain as JsonLdNode)['@id'] as string)
         : undefined;
-  const score = visibleEditorialScore(html);
+  const reviewSlug = canonical.match(/^https:\/\/sweepstakeswiz\.com\/reviews\/([a-z0-9-]+)\/$/)?.[1];
+  const score = reviewSlug
+    ? getOperator(reviewSlug)
+      ? verifiedValue(getOperator(reviewSlug)!.editorScore100)
+      : undefined
+    : visibleEditorialScore(html);
   const graph = buildPageGraph({
     url: canonical,
     pageType,

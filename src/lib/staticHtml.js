@@ -4,6 +4,7 @@ import { stampUpdatedDate } from './htmlStamp.ts';
 import { injectLegalStatusBadge } from './legalStatusBadge.ts';
 import { decorateChrome } from './pageChrome.ts';
 import { injectReaderReports } from './readerReportsDisplay.ts';
+import { injectOperatorFactsHtml } from './operatorFactsHtml.ts';
 
 const projectRoot = process.cwd();
 
@@ -25,5 +26,8 @@ export function getStaticHtml(relativePath) {
  * section (aggregated player-reported data + submission form) for `slug`.
  */
 export function getStaticReviewHtml(relativePath, slug) {
-  return injectReaderReports(injectLegalStatusBadge(getStaticHtml(relativePath)), slug);
+  const source = readFileSync(resolve(projectRoot, relativePath), 'utf8');
+  const canonicalFacts = injectOperatorFactsHtml(source, slug);
+  const decorated = stampUpdatedDate(decorateChrome(canonicalFacts));
+  return injectReaderReports(injectLegalStatusBadge(decorated), slug);
 }

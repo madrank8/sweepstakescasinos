@@ -9,6 +9,7 @@ import { stampUpdatedDate } from './htmlStamp';
 import { injectLegalStatusBadge } from './legalStatusBadge';
 import { decorateChrome } from './pageChrome';
 import { injectReaderReports } from './readerReportsDisplay';
+import { injectOperatorFactsHtml } from './operatorFactsHtml';
 import type { UsStateCode } from '../data/usStates';
 
 /**
@@ -104,7 +105,7 @@ export function prepareSsrAffiliateReviewHtml(
   placement?: string,
 ): string {
   const withBadge = injectLegalStatusBadge(
-    prepareSsrAffiliateHtml(rawHtml, state, placement),
+    prepareSsrAffiliateHtml(injectOperatorFactsHtml(rawHtml, slug), state, placement),
   );
   return injectReaderReports(withBadge, slug);
 }
