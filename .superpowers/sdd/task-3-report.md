@@ -191,3 +191,79 @@ Supabase credentials are absent.
 - The committed fallback has no tracker operator-availability rows. Validation
   supports those references and freshness fields when live rows are supplied,
   but deterministic offline reconciliation cannot compare absent rows.
+
+## Important-review fixes
+
+### Status
+
+COMPLETE. `scripts/seo/audit-core.ts` no longer owns a second state-authority
+reconciler or report formatter. Its report map delegates directly to
+`reconcileAvailabilityAuthorities()` and
+`renderAvailabilityConflictReport()`, and the SEO audit test requires both the
+audit output and committed report to equal the facade output byte-for-byte.
+
+SSR comparison and no-deposit routes now consume focused availability view
+models. Behavioral tests exercise allowed, site-suppressed, and
+partner-restricted states, plus present and missing offer verification. Missing
+verification produces `Verification unavailable` with no datetime and no
+substitute page date.
+
+The guides, new-casino, no-deposit, state, tracker, and tracker-methodology
+bylines now read visible author identity, path, and title (where shown) from
+`SITE.author`. Parity tests reject duplicated name/title literals. The unused
+`wizAvailabilityForState` compatibility export was removed after confirming it
+had no consumers.
+
+### Commits
+
+- `925aad0` — `fix: delegate SEO availability reconciliation`
+- `a82f94e` — `test: cover SSR availability consumers`
+- `0cf4fdb` — `refactor: centralize visible author bylines`
+- `3178b97` — `refactor: remove dead tracker availability helper`
+- `f999e78` — `test: rely on behavioral offer verification coverage`
+- `c718177` — `chore: refresh reviewed route sitemap dates`
+- The appended evidence is committed with this report.
+
+### Red/green evidence
+
+```text
+RED — SEO report parity:
+AssertionError: SEO report generation must delegate to the availability facade renderer
+
+RED — SSR view model:
+ERR_MODULE_NOT_FOUND: Cannot find module '/workspace/src/lib/availabilityViews'
+
+RED — byline parity:
+AssertionError: ../src/routes/guides/index.astro must use the canonical author name
+
+RED — dead helper:
+AssertionError: the unused compatibility availability helper must stay removed
+```
+
+```text
+GREEN:
+npm run verify:availability
+availability view tests: OK — SSR comparison and no-deposit behavior
+verify-availability tests: OK — 51 jurisdictions, 13 partners, unified CTA facade
+ALL CHECKS PASSED
+
+npm run seo:audit:test
+seo audit tests: OK — 29 reviews, 28 homepage cards, 60 claim matches
+
+npx tsx scripts/verify-schema-helpers.ts
+verify-schema-helpers: OK
+```
+
+The first full-CI attempt exposed one obsolete source-literal assertion for
+`Verification unavailable`; the dedicated behavioral view-model test now owns
+that contract. The subsequent full run passed:
+
+```text
+npm run ci
+exit 0
+```
+
+All availability, SEO audit, operator, content, tracker-purity, methodology,
+odds, evidence, Astro build, 114-page built-schema, and integration gates
+passed. Authority separation and the existing unresolved reconciliation
+warnings are unchanged. No push was performed.
