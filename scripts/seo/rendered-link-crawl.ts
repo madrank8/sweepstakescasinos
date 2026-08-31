@@ -39,6 +39,13 @@ function normalizedPath(value: string): string | null {
   }
   if (url.origin !== SITE_ORIGIN) return null;
   if (
+    ['/_external/', '/sweepstakeslogo/', '/partials/', '/images/', '/testing/'].some(
+      (prefix) => url.pathname.startsWith(prefix),
+    )
+  ) {
+    return null;
+  }
+  if (
     /\.(?:css|js|mjs|png|jpe?g|webp|svg|ico|xml|txt|json|csv|pdf|woff2?)$/i.test(
       url.pathname,
     )

@@ -18,6 +18,7 @@ const validPages: RenderedPage[] = [
     status: 200,
     html: `
       <main>
+        <link href="/_external/fonts.googleapis.com/css2__fixture" rel="stylesheet">
         <a href="/reviews/">All reviews</a>
         <a href="/best/sweepstakes-casinos/">Detailed comparison</a>
         <a href="/new/">New casino research</a>
