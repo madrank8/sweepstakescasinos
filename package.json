@@ -15,7 +15,7 @@
     "astro:dev": "npm run generate:pages && ASTRO_TELEMETRY_DISABLED=1 astro dev",
     "dev": "npm run build && ASTRO_TELEMETRY_DISABLED=1 astro preview",
     "tracker:lint": "tsx scripts/lint-tracker-purity.ts",
-    "prebuild": "npm run content:lint && npm run tracker:lint && npm run schema:verify && npm run methodology:check && npm run verify:odds && npm run reader-reports:aggregate && npm run generate:pages",
+    "prebuild": "npm run content:lint && npm run tracker:lint && npm run schema:verify && npm run operator:verify && npm run methodology:check && npm run verify:odds && npm run reader-reports:aggregate && npm run generate:pages",
     "build": "ASTRO_TELEMETRY_DISABLED=1 astro build",
     "preview": "ASTRO_TELEMETRY_DISABLED=1 astro preview",
     "testing:scaffold": "node scripts/testing-scaffold.mjs",
@@ -24,6 +24,8 @@
     "testing:status": "tsx scripts/verify-testing-evidence.ts --status-only",
     "testing:apply": "tsx scripts/apply-testing-results.ts",
     "testing:anchors": "tsx scripts/add-testing-anchors.ts",
+    "operator:test": "tsx scripts/verify-operator-consistency.test.ts",
+    "operator:verify": "tsx scripts/verify-operator-consistency.ts",
     "content:lint": "tsx scripts/lint-experience-claims.ts",
     "schema:verify": "tsx scripts/verify-schema.ts && tsx scripts/verify-schema-helpers.ts",
     "schema:check": "tsx scripts/verify-schema-built.ts",
@@ -35,7 +37,7 @@
     "seo:audit": "tsx scripts/seo/run-audits.ts",
     "seo:audit:test": "tsx scripts/seo/audit.test.ts",
     "seo:score": "npm run build && npm run seo:extract && npm run seo:fingerprint && npm run seo:provenance",
-    "ci": "npm run verify:availability && npm run seo:audit:test && npm run seo:audit && npm run content:lint && npm run tracker:lint && npm run methodology:check && npm run verify:odds && npm run testing:verify && npm run testing:verify-overclaims && npm run build && npm run schema:check && npm run verify:odds:integration"
+    "ci": "npm run verify:availability && npm run seo:audit:test && npm run seo:audit && npm run operator:test && npm run operator:verify && npm run content:lint && npm run tracker:lint && npm run methodology:check && npm run verify:odds && npm run testing:verify && npm run testing:verify-overclaims && npm run build && npm run schema:check && npm run verify:odds:integration"
   },
   "devDependencies": {
     "astro": "^7.0.0",

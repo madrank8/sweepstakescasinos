@@ -21,6 +21,11 @@ import { getPartner } from '../../../data/affiliates';
 import { shouldRenderAffiliateCta, SITE_BANNED_STATES } from '../../../data/geo';
 import { stateName } from '../../../data/usStates';
 import { brandEntityId, getBrandEntity } from '../../../data/brandEntities';
+import {
+  getOperator,
+  verifiedValue,
+  type RedemptionMinimum,
+} from '../../../data/operators';
 
 const ORIGIN = 'https://sweepstakeswiz.com';
 const canonicalPath = '/bonuses/no-deposit/';
@@ -55,30 +60,55 @@ type Offer = {
   slug: string;
   name: string;
   reviewLabel: string;
-  signup: string;
-  /**
-   * Free Sweeps Coins granted on signup, as a number. Single source of truth for
-   * both the table's `signup` copy and the signup-SC chart, so the two can never
-   * drift apart. When an offer changes, update this and the `signup` string together.
-   */
-  signupSc: number;
-  daily: string;
-  min: string;
+  signup?: string;
+  signupSc?: number;
+  daily?: string;
+  min?: string;
 };
 
+function formatMinimum(value: RedemptionMinimum, label: string): string {
+  return `${value.amount} ${value.currency} (${label})`;
+}
+
+function signupSc(signup: string | undefined): number | undefined {
+  const matches = signup ? [...signup.matchAll(/(\d+(?:\.\d+)?)\s+SC\b/g)] : [];
+  return matches.length > 0 ? Number(matches.at(-1)![1]) : undefined;
+}
+
+function canonicalOffer(slug: string, reviewLabel: string): Offer {
+  const operator = getOperator(slug);
+  if (!operator) throw new Error(`Missing canonical operator: ${slug}`);
+  const signup = verifiedValue(operator.signupOffer);
+  const gift = verifiedValue(operator.giftCardRedemptionMinimum);
+  const cash = verifiedValue(operator.cashRedemptionMinimum);
+  const minima = [
+    ...(gift ? [formatMinimum(gift, 'gift cards')] : []),
+    ...(cash ? [formatMinimum(cash, 'cash')] : []),
+  ];
+  return {
+    slug,
+    name: verifiedValue(operator.name)!,
+    reviewLabel,
+    signup,
+    signupSc: signupSc(signup),
+    daily: verifiedValue(operator.dailyOffer),
+    min: minima.length > 0 ? minima.join('; ') : undefined,
+  };
+}
+
 const OFFERS: Offer[] = [
-  { slug: 'zula', name: 'Zula Casino', reviewLabel: 'Zula review', signup: 'Up to 120,000 GC + <strong>10 SC</strong>', signupSc: 10, daily: 'Daily login rewards', min: '50 SC (cash)' },
-  { slug: 'legendz', name: 'Legendz', reviewLabel: 'Legendz review', signup: '500 GC + <strong>3 SC</strong>', signupSc: 3, daily: 'Daily rewards', min: 'Prizeout gift cards' },
-  { slug: 'thrillzz', name: 'Thrillzz', reviewLabel: 'Thrillzz review', signup: '3,000 GC + <strong>3 SC</strong>', signupSc: 3, daily: 'Daily rewards', min: '50 SC (cash)' },
-  { slug: 'mcluck', name: 'McLuck', reviewLabel: 'McLuck review', signup: '7,500 GC + <strong>2.5 SC</strong>', signupSc: 2.5, daily: 'Daily login rewards', min: '10 SC (gift cards)' },
-  { slug: 'hello-millions', name: 'HelloMillions', reviewLabel: 'Hello Millions review', signup: '15,000 GC + <strong>2.5 SC</strong>', signupSc: 2.5, daily: 'Daily bonuses', min: '10 SC (gift cards)' },
-  { slug: 'playfame', name: 'PlayFame', reviewLabel: 'PlayFame review', signup: '7,500 GC + <strong>2.5 SC</strong>', signupSc: 2.5, daily: 'Daily login rewards + daily jackpots', min: '10 SC (gift cards)' },
-  { slug: 'spree', name: 'Spree', reviewLabel: 'Spree review', signup: '25,000 GC + <strong>2.5 SC</strong>', signupSc: 2.5, daily: 'Promotional drops', min: 'Gift cards (~48h)' },
-  { slug: 'spinblitz', name: 'SpinBlitz', reviewLabel: 'SpinBlitz review', signup: '7,500 GC + <strong>2.5 SC</strong>', signupSc: 2.5, daily: 'Daily login SC', min: 'See review' },
-  { slug: 'roxymoxy', name: 'RoxyMoxy', reviewLabel: 'RoxyMoxy review', signup: '50,000 GC + <strong>2.5 SC</strong>', signupSc: 2.5, daily: 'Daily login bonus', min: 'See review' },
-  { slug: 'pulsz', name: 'Pulsz', reviewLabel: 'Pulsz review', signup: '5,000 GC + <strong>2.3 SC</strong>', signupSc: 2.3, daily: 'Daily login rewards', min: '10 SC (gift cards)' },
-  { slug: 'crown-coins', name: 'Crown Coins', reviewLabel: 'Crown Coins review', signup: '100,000 CC + <strong>2 SC</strong>', signupSc: 2, daily: 'Daily login bonuses', min: '100 SC (cash)' },
-  { slug: 'casino-click', name: 'Casino Click', reviewLabel: 'Casino Click review', signup: '100,000 GC + <strong>2 SC</strong>', signupSc: 2, daily: 'Daily logins <strong>up to 5 SC</strong>', min: '100 SC (cash)' },
+  canonicalOffer('zula', 'Zula review'),
+  canonicalOffer('legendz', 'Legendz review'),
+  canonicalOffer('thrillzz', 'Thrillzz review'),
+  canonicalOffer('mcluck', 'McLuck review'),
+  canonicalOffer('hello-millions', 'Hello Millions review'),
+  canonicalOffer('playfame', 'PlayFame review'),
+  canonicalOffer('spree', 'Spree review'),
+  canonicalOffer('spinblitz', 'SpinBlitz review'),
+  canonicalOffer('roxymoxy', 'RoxyMoxy review'),
+  canonicalOffer('pulsz', 'Pulsz review'),
+  canonicalOffer('crown-coins', 'Crown Coins review'),
+  canonicalOffer('casino-click', 'Casino Click review'),
 ];
 
 const state = Astro.locals.usState;
@@ -89,8 +119,10 @@ const offers = OFFERS.map((o) => {
 
 // Signup-SC chart data, derived from the same OFFERS array (single source of
 // truth) and sorted high→low. `maxSc` scales the bar widths.
-const scChart = [...OFFERS].sort((a, b) => b.signupSc - a.signupSc);
-const maxSc = Math.max(...OFFERS.map((o) => o.signupSc));
+const scChart = OFFERS.filter(
+  (offer): offer is Offer & { signupSc: number } => offer.signupSc !== undefined,
+).sort((a, b) => b.signupSc - a.signupSc);
+const maxSc = Math.max(...scChart.map((o) => o.signupSc));
 const fmtSc = (n: number) => (Number.isInteger(n) ? String(n) : n.toFixed(1));
 
 // Suppressed-state list, bound to SITE_BANNED_STATES (the legal-suppression
@@ -236,9 +268,9 @@ const jsonLd = [itemListLd, faqLd];
         {offers.map((o) => (
           <tr>
             <td><strong>{o.name}</strong></td>
-            <td set:html={o.signup} />
-            <td set:html={o.daily} />
-            <td set:html={o.min} />
+            <td>{o.signup ?? <em>Not canonicalized</em>}</td>
+            <td>{o.daily ?? <em>Not canonicalized</em>}</td>
+            <td>{o.min ?? <em>Not canonicalized</em>}</td>
             <td class="nd-verified">{VERIFIED_LABEL}</td>
             <td><a href={`/reviews/${o.slug}/`}>{o.reviewLabel}</a></td>
             <td class="nd-cta-cell">

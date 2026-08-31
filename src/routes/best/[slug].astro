@@ -13,6 +13,7 @@ import AffiliateLink from '../../components/AffiliateLink.astro';
 import { getPartner, AFFILIATE_PARTNERS } from '../../data/affiliates';
 import { shouldRenderAffiliateCta } from '../../data/geo';
 import { brandEntityId, getBrandEntity } from '../../data/brandEntities';
+import { getOperator, verifiedValue } from '../../data/operators';
 import { faqPageNode } from '../../lib/schema';
 
 const ORIGIN = 'https://sweepstakeswiz.com';
@@ -43,6 +44,10 @@ const breadcrumbs = [
 const toIso = (d: unknown) => (d instanceof Date ? d.toISOString() : undefined);
 const publishedIso = toIso(entry.data.published);
 const updatedIso = toIso(entry.data.updated) ?? publishedIso;
+const canonicalOperatorName = (operatorSlug: string, fallback: string) => {
+  const operator = getOperator(operatorSlug);
+  return operator ? (verifiedValue(operator.name) ?? fallback) : fallback;
+};
 
 // CollectionPage (layout foundation) + ranked ItemList whose items are brand
 // @id refs — the canonical brand Organization nodes are auto-appended to the
@@ -57,7 +62,7 @@ const itemListLd = {
   itemListElement: partners.map((p, i) => ({
     '@type': 'ListItem',
     position: i + 1,
-    name: p.name,
+    name: canonicalOperatorName(p.slug, p.name),
     url: `${ORIGIN}/reviews/${p.slug}/`,
     ...(getBrandEntity(p.slug) ? { item: { '@id': brandEntityId(p.slug) } } : {}),
   })),
@@ -89,7 +94,9 @@ const jsonLd = faqLd ? [itemListLd, faqLd] : [itemListLd];
         <li class="best-item">
           <span class="best-rank">#{i + 1}</span>
           <div class="best-body">
-            <a class="best-name" href={`/reviews/${p.slug}/`}>{p.name}</a>
+            <a class="best-name" href={`/reviews/${p.slug}/`}>
+              {canonicalOperatorName(p.slug, p.name)}
+            </a>
             <span class={`best-avail ${canCta ? 'ok' : 'no'}`}>
               {canCta ? 'Available in your location' : 'Not available in your location'}
             </span>

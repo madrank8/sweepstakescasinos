@@ -178,38 +178,35 @@ const seeds: OperatorSeed[] = [
     publishedRedemptionTiming: 'Crypto: 24–48 hours; bank transfer: 2–7 business days',
     paymentMethods: ['cryptocurrency', 'bank transfer'],
     gameCount: 2000,
-    externalRatings: [
-      { sourceName: 'Trustpilot', value: 2.9, scale: 5, sourceUrl: 'https://www.trustpilot.com/review/acebet.cc', asOf: PUBLISHED_ON },
-    ],
   },
   { slug: 'american-luck', name: 'American Luck', operatorName: 'SGSE LLC', cashRedemptionMinimum: { amount: 50, currency: 'SC' }, paymentMethods: ['ACH'], gameCount: 1500 },
   { slug: 'big-pirate', name: 'Big Pirate Sweepstakes Casino', operatorName: 'Rafflefy Limited', launchDate: '2025-11', cashRedemptionMinimum: { amount: 50, currency: 'Diamond' }, publishedRedemptionTiming: 'Bank transfer: 1–3 business days', paymentMethods: ['bank transfer'], gameCount: 1500, externalRatings: [{ sourceName: 'Trustpilot', value: 2.7, scale: 5, sourceUrl: 'https://www.trustpilot.com/review/bigpirate.com', asOf: PUBLISHED_ON }] },
   { slug: 'card-crush', name: 'Card Crush', operatorName: 'Vision NL Limited', cashRedemptionMinimum: { amount: 75, currency: 'MC' }, giftCardRedemptionMinimum: { amount: 10, currency: 'MC' } },
   { slug: 'casino-click', name: 'Casino Click Sweepstakes Casino', operatorName: 'Click Entertainment LLC', dailyOffer: 'Daily scratch card up to 5 SC', cashRedemptionMinimum: { amount: 100, currency: 'SC' }, gameCount: 1000 },
-  { slug: 'crown-coins', name: 'Crown Coins Sweepstakes Casino', operatorName: 'Sunflower Limited', cashRedemptionMinimum: { amount: 100, currency: 'SC' } },
+  { slug: 'crown-coins', name: 'Crown Coins Sweepstakes Casino', operatorName: 'Sunflower Limited', dailyOffer: 'Daily login bonuses', cashRedemptionMinimum: { amount: 100, currency: 'SC' } },
   { slug: 'dexyplay', name: 'DexyPlay Sweepstakes Casino', operatorName: 'UTech Solutions LLC', launchDate: '2026-01', cashRedemptionMinimum: { amount: 100, currency: 'SC' }, publishedRedemptionTiming: 'PayPal, ACH, and push-to-card: 3–4 business days', paymentMethods: ['PayPal', 'ACH', 'push-to-card'], gameCount: 1600 },
   { slug: 'freespin', name: 'FreeSpin Sweepstakes Casino', operatorName: 'Free Spin', launchDate: '2025-07', dailyOffer: 'Fun Zone daily Pick-A-Box up to 5 SC', cashRedemptionMinimum: { amount: 100, currency: 'SC' }, publishedRedemptionTiming: 'Cryptocurrency: under 24 hours; bank wire: 2–7 business days', paymentMethods: ['cryptocurrency', 'bank wire', 'e-gift card'], gameCount: 1000, externalRatings: [{ sourceName: 'Trustpilot', value: 2.4, scale: 5, sourceUrl: 'https://www.trustpilot.com/review/www.freespin.com', asOf: PUBLISHED_ON }] },
-  { slug: 'hello-millions', name: 'Hello Millions Sweepstakes Casino', operatorName: 'B-Two Operations Limited', giftCardRedemptionMinimum: { amount: 10, currency: 'SC' } },
+  { slug: 'hello-millions', name: 'Hello Millions Sweepstakes Casino', operatorName: 'B-Two Operations Limited', dailyOffer: 'Daily bonuses', giftCardRedemptionMinimum: { amount: 10, currency: 'SC' } },
   { slug: 'high5', name: 'High 5 Casino', operatorName: 'High 5 Entertainment LLC', launchDate: '2012', dailyOffer: 'Daily bonuses', cashRedemptionMinimum: { amount: 100, currency: 'SC' }, giftCardRedemptionMinimum: { amount: 50, currency: 'SC' }, publishedRedemptionTiming: 'Cash: 3–10 business days', gameCount: 1750, externalRatings: [{ sourceName: 'Trustpilot', value: 4.3, scale: 5, sourceUrl: 'https://www.trustpilot.com/review/high5casino.com', asOf: PUBLISHED_ON }] },
   { slug: 'jackpot-go', name: 'JackpotGo Casino', operatorName: 'Hiwingo Limited', launchDate: '2024', dailyOffer: 'Gold Coin faucet every 10 minutes', publishedRedemptionTiming: 'Bank transfer and Venmo: within 3 business days', paymentMethods: ['bank transfer', 'Venmo'], gameCount: 550, externalRatings: [{ sourceName: 'Trustpilot', value: 4.7, scale: 5, sourceUrl: 'https://www.trustpilot.com/review/jackpotgo.com', asOf: PUBLISHED_ON }] },
   { slug: 'jackpota', name: 'Jackpota Sweepstakes Casino', operatorName: 'Silver Social Operations Limited / B2Services OU', launchDate: '2024-03', cashRedemptionMinimum: { amount: 75, currency: 'SC' }, giftCardRedemptionMinimum: { amount: 10, currency: 'SC' }, publishedRedemptionTiming: 'Gift cards: 2 business days; cash: 3–10 business days', paymentMethods: ['Prizeout gift card', 'bank transfer'], gameCount: 1600 },
-  { slug: 'legendz', name: 'Legendz Sweepstakes Casino', operatorName: 'Platinum Panther Ltd.', giftCardRedemptionMinimum: { amount: 50, currency: 'SC' }, cashRedemptionMinimum: { amount: 100, currency: 'SC' }, paymentMethods: ['Prizeout gift card', 'Skrill', 'bank transfer'] },
+  { slug: 'legendz', name: 'Legendz Sweepstakes Casino', operatorName: 'Platinum Panther Ltd.', dailyOffer: 'Daily rewards', giftCardRedemptionMinimum: { amount: 50, currency: 'SC' }, cashRedemptionMinimum: { amount: 100, currency: 'SC' }, paymentMethods: ['Prizeout gift card', 'Skrill', 'bank transfer'] },
   { slug: 'lucky-bunny', name: 'Lucky Bunny Sweepstakes Casino', operatorName: 'Optivara LLC', launchDate: '2026-03', dailyOffer: 'Daily spin wheel up to 5 SC', cashRedemptionMinimum: { amount: 100, currency: 'SC' }, publishedRedemptionTiming: 'Bank transfer: up to 30 days', paymentMethods: ['bank transfer'], gameCount: 4000 },
-  { slug: 'mcluck', name: 'McLuck Sweepstakes Casino', operatorName: 'B-Two Operations Limited', giftCardRedemptionMinimum: { amount: 10, currency: 'SC' } },
+  { slug: 'mcluck', name: 'McLuck Sweepstakes Casino', operatorName: 'B-Two Operations Limited', dailyOffer: 'Daily login rewards', giftCardRedemptionMinimum: { amount: 10, currency: 'SC' } },
   { slug: 'mega-bonanza', name: 'Mega Bonanza Sweepstakes Casino', operatorName: 'B2 Services OU / LuminaryPlay Operations', launchDate: '2024', cashRedemptionMinimum: { amount: 75, currency: 'SC' }, giftCardRedemptionMinimum: { amount: 10, currency: 'SC' }, publishedRedemptionTiming: 'Gift cards: instant; bank transfer: 3–5 business days', paymentMethods: ['Prizeout gift card', 'bank transfer'], gameCount: 1200 },
-  { slug: 'playfame', name: 'PlayFame Sweepstakes Casino', operatorName: 'PlayFame Operations Limited', giftCardRedemptionMinimum: { amount: 10, currency: 'SC' }, paymentMethods: ['gift card', 'bank transfer'] },
-  { slug: 'pulsz', name: 'Pulsz Sweepstakes Casino', operatorName: 'Yellow Social Interactive Limited', giftCardRedemptionMinimum: { amount: 10, currency: 'SC' } },
+  { slug: 'playfame', name: 'PlayFame Sweepstakes Casino', operatorName: 'PlayFame Operations Limited', dailyOffer: 'Daily login rewards + daily jackpots', giftCardRedemptionMinimum: { amount: 10, currency: 'SC' }, paymentMethods: ['gift card', 'bank transfer'] },
+  { slug: 'pulsz', name: 'Pulsz Sweepstakes Casino', operatorName: 'Yellow Social Interactive Limited', dailyOffer: 'Daily login rewards', giftCardRedemptionMinimum: { amount: 10, currency: 'SC' } },
   { slug: 'rolla', name: 'Rolla Sweepstakes Casino', operatorName: 'MW Services Limited', launchDate: '2025-04', cashRedemptionMinimum: { amount: 100, currency: 'SC' }, giftCardRedemptionMinimum: { amount: 50, currency: 'SC' }, publishedRedemptionTiming: 'Repeat redemptions: 1–3 business days', paymentMethods: ['Trustly', 'Skrill', 'Prizeout gift card'], gameCount: 2000 },
-  { slug: 'roxymoxy', name: 'RoxyMoxy Sweepstakes Casino', operatorName: 'Rainforest LTD', cashRedemptionMinimum: { amount: 100, currency: 'SC' }, paymentMethods: ['bank transfer'], gameCount: 40 },
-  { slug: 'spinblitz', name: 'SpinBlitz Sweepstakes Casino', operatorName: 'B-Two Operations Limited' },
+  { slug: 'roxymoxy', name: 'RoxyMoxy Sweepstakes Casino', operatorName: 'Rainforest LTD', dailyOffer: 'Daily login bonus', cashRedemptionMinimum: { amount: 100, currency: 'SC' }, paymentMethods: ['bank transfer'], gameCount: 40 },
+  { slug: 'spinblitz', name: 'SpinBlitz Sweepstakes Casino', operatorName: 'B-Two Operations Limited', dailyOffer: 'Daily login SC' },
   { slug: 'spinfinite', name: 'Spinfinite Sweepstakes Casino', operatorName: 'Forever Winning LLC', launchDate: '2025-01', dailyOffer: 'Daily Mystery Bonus', cashRedemptionMinimum: { amount: 100, currency: 'SC' }, giftCardRedemptionMinimum: { amount: 10, currency: 'SC' }, publishedRedemptionTiming: 'Gift cards: instant; bank transfer: 3–10 business days', paymentMethods: ['gift card', 'bank transfer'], gameCount: 400 },
   { slug: 'splash-coins', name: 'Splash Coins Sweepstakes Casino', operatorName: 'Interactive Studios Inc', launchDate: '2025-06', cashRedemptionMinimum: { amount: 100, currency: 'SC' }, publishedRedemptionTiming: 'Skrill: often under 24 hours; push-to-card and ACH: 2–3 business days', paymentMethods: ['Skrill', 'push-to-card', 'ACH'], gameCount: 375 },
-  { slug: 'spree', name: 'Spree Sweepstakes Casino', operatorName: 'Play Spree Ltd', giftCardRedemptionMinimum: { amount: 10, currency: 'SC' }, publishedRedemptionTiming: 'Gift cards: about 48 hours' },
+  { slug: 'spree', name: 'Spree Sweepstakes Casino', operatorName: 'Play Spree Ltd', dailyOffer: 'Promotional drops', giftCardRedemptionMinimum: { amount: 10, currency: 'SC' }, publishedRedemptionTiming: 'Gift cards: about 48 hours' },
   { slug: 'sweepico', name: 'Sweepico Sweepstakes Casino', operatorName: 'UTech Solutions LLC', launchDate: '2025-12', cashRedemptionMinimum: { amount: 100, currency: 'SC' }, publishedRedemptionTiming: 'Push-to-card: about 3 business days; ACH: up to 10 business days', paymentMethods: ['push-to-card', 'ACH'], gameCount: 1000 },
   { slug: 'sweet-sweeps', name: 'Sweet Sweeps Sweepstakes Casino', operatorName: 'Inimitable Solutions Limited', launchDate: '2025-07', cashRedemptionMinimum: { amount: 60, currency: 'SC' }, publishedRedemptionTiming: 'Debit card: often 15–20 minutes; USDC: instant; bank transfer: 3–7 days', paymentMethods: ['debit card', 'USDC on Solana', 'bank transfer'], gameCount: 1400 },
-  { slug: 'thrillzz', name: 'Thrillzz', operatorName: 'Thrillzz Inc.', cashRedemptionMinimum: { amount: 50, currency: 'SC' }, publishedRedemptionTiming: 'Cash: 1–3 business days', paymentMethods: ['bank transfer', 'PayPal', 'Skrill'] },
+  { slug: 'thrillzz', name: 'Thrillzz', operatorName: 'Thrillzz Inc.', dailyOffer: 'Daily rewards', cashRedemptionMinimum: { amount: 50, currency: 'SC' }, publishedRedemptionTiming: 'Cash: 1–3 business days', paymentMethods: ['bank transfer', 'PayPal', 'Skrill'] },
   { slug: 'wow-vegas', name: 'WOW Vegas Sweepstakes Casino', operatorName: 'MW Services Limited', launchDate: '2022', cashRedemptionMinimum: { amount: 50, currency: 'SC' }, giftCardRedemptionMinimum: { amount: 25, currency: 'SC' }, publishedRedemptionTiming: 'Skrill and Prizeout: under 24 hours; MassPay: 1–2 days; Trustly: 3–5 days', paymentMethods: ['Skrill', 'Prizeout gift card', 'MassPay', 'Trustly'], gameCount: 1870 },
-  { slug: 'zula', name: 'Zula Casino', operatorName: 'SCPS LLC (Blazesoft)', cashRedemptionMinimum: { amount: 50, currency: 'SC' } },
+  { slug: 'zula', name: 'Zula Casino', operatorName: 'SCPS LLC (Blazesoft)', dailyOffer: 'Daily login rewards', cashRedemptionMinimum: { amount: 50, currency: 'SC' } },
 ];
 
 function scoreFact(slug: string): CanonicalFact<number> {
@@ -242,7 +239,11 @@ function signupFact(slug: string): CanonicalFact<string> {
     };
   }
   return SIGNUP_OFFERS[slug]
-    ? verified(SIGNUP_OFFERS[slug], slug)
+    ? {
+        status: 'verified',
+        value: SIGNUP_OFFERS[slug],
+        provenance: [{ source: 'index.html', publishedOn: PUBLISHED_ON }],
+      }
     : missing('No non-conflicting signup offer has been selected.');
 }
 
