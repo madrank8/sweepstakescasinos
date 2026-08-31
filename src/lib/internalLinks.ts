@@ -17,8 +17,35 @@ export interface ContextualLink {
   label: string;
 }
 
+const SITE_ORIGIN = 'https://sweepstakeswiz.com';
+
 function normalized(value: string): string {
   return value.toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
+}
+
+function normalizedInternalDestination(value: string): string | null {
+  if (/^(?:mailto:|tel:|javascript:|data:|#)/i.test(value)) return null;
+  try {
+    const url = new URL(value, SITE_ORIGIN);
+    if (url.origin !== SITE_ORIGIN) return null;
+    return url.pathname === '/' ? '/' : `${url.pathname.replace(/\/+$/, '')}/`;
+  } catch {
+    return null;
+  }
+}
+
+/** Internal destinations authored in Markdown, MDX, or rendered HTML. */
+export function internalDestinationsIn(content: string | undefined): Set<string> {
+  if (!content) return new Set();
+  const destinations = [
+    ...[...content.matchAll(/\[[^\]]*]\(([^)\s]+)(?:\s+["'][^"']*["'])?\)/g)]
+      .map((match) => match[1]),
+    ...[...content.matchAll(/\bhref\s*=\s*["']([^"']+)["']/gi)]
+      .map((match) => match[1]),
+  ]
+    .map(normalizedInternalDestination)
+    .filter((destination): destination is string => destination !== null);
+  return new Set(destinations);
 }
 
 function sameMinimum(
@@ -185,44 +212,84 @@ export function selectAvailableStateReviews(
     .map(({ href, label }) => ({ href, label }));
 }
 
-export function contextualLinksForGuide(guideSlug: string): ContextualLink[] {
-  let destination: ContextualLink;
+export function contextualLinksForGuide(
+  guideSlug: string,
+  body?: string,
+): ContextualLink[] {
+  let destinations: ContextualLink[];
   if (/law|legit/.test(guideSlug)) {
-    destination = {
-      href: '/state-legality/',
-      label: 'Check the state-by-state availability hub',
-    };
+    destinations = [
+      {
+        href: '/state-legality/',
+        label: 'Check the state-by-state availability hub',
+      },
+      {
+        href: '/best/sweepstakes-casinos/',
+        label: 'Compare the reviewed sweepstakes casinos',
+      },
+      { href: '/reviews/', label: 'Browse every operator review' },
+    ];
   } else if (/amoe|coin|redeem/.test(guideSlug)) {
-    destination = {
-      href: '/bonuses/no-deposit/',
-      label: 'Compare published no-purchase offers',
-    };
+    destinations = [
+      {
+        href: '/bonuses/no-deposit/',
+        label: 'Compare published no-purchase offers',
+      },
+      {
+        href: '/best/sweepstakes-casinos/',
+        label: 'Continue to the detailed operator comparison',
+      },
+      { href: '/reviews/', label: 'Browse every operator review' },
+    ];
   } else {
-    destination = {
-      href: '/best/sweepstakes-casinos/',
-      label: 'Continue to the detailed operator comparison',
-    };
+    destinations = [
+      {
+        href: '/best/sweepstakes-casinos/',
+        label: 'Continue to the detailed operator comparison',
+      },
+      { href: '/reviews/', label: 'Browse every operator review' },
+      {
+        href: '/bonuses/no-deposit/',
+        label: 'Compare published no-purchase offers',
+      },
+    ];
   }
+  const existing = internalDestinationsIn(body);
+  const parent = { href: '/guides/', label: 'Browse all sweepstakes casino guides' };
+  const destination = destinations.find((link) => !existing.has(link.href));
   return [
-    { href: '/guides/', label: 'Browse all sweepstakes casino guides' },
-    destination,
+    ...(existing.has(parent.href) ? [] : [parent]),
+    ...(destination ? [destination] : []),
   ];
 }
 
 export function contextualLinksForArticle(
   state?: UsStateCode | null,
+  body?: string,
 ): ContextualLink[] {
-  return [
-    { href: '/guides/', label: 'Read the sweepstakes casino guides' },
-    state
-      ? {
+  const existing = internalDestinationsIn(body);
+  const parent = { href: '/guides/', label: 'Read the sweepstakes casino guides' };
+  const destinations: ContextualLink[] = [
+    ...(state
+      ? [{
           href: `/states/${stateSlug(state)}/`,
           label: `${stateName(state)} availability and legal context`,
-        }
-      : {
-          href: '/state-legality/',
-          label: 'Check state-by-state availability context',
-        },
+        }]
+      : []),
+    {
+      href: '/state-legality/',
+      label: 'Check state-by-state availability context',
+    },
+    {
+      href: '/best/sweepstakes-casinos/',
+      label: 'Continue to the detailed operator comparison',
+    },
+    { href: '/reviews/', label: 'Browse every operator review' },
+  ];
+  const destination = destinations.find((link) => !existing.has(link.href));
+  return [
+    ...(existing.has(parent.href) ? [] : [parent]),
+    ...(destination ? [destination] : []),
   ];
 }
 

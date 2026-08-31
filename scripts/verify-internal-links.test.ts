@@ -6,6 +6,7 @@ import { OPERATORS } from '../src/data/operators';
 import {
   contextualLinksForArticle,
   contextualLinksForGuide,
+  internalDestinationsIn,
   injectReviewContextualLinks,
   selectAvailableStateReviews,
   selectReviewAlternatives,
@@ -147,9 +148,62 @@ for (const guideSlug of [
   );
 }
 
-const articleLinks = contextualLinksForArticle('CA');
+const guideBody =
+  'See the [no-purchase offer hub](/bonuses/no-deposit/) and [all guides](/guides/).';
+const bodyAwareGuideLinks = contextualLinksForGuide(
+  'amoe-sweepstakes-casinos',
+  guideBody,
+);
+assert.ok(
+  !bodyAwareGuideLinks.some((link) =>
+    internalDestinationsIn(guideBody).has(link.href),
+  ),
+  'guide contextual links must not duplicate body destinations',
+);
+assert.ok(
+  bodyAwareGuideLinks.some((link) => link.href === '/best/sweepstakes-casinos/'),
+  'guide selector must choose a distinct relevant destination',
+);
+
+const articleBody =
+  'For details, read the [California state guide](/states/california/).';
+const articleLinks = contextualLinksForArticle('CA', articleBody);
 assert.ok(articleLinks.some((link) => link.href === '/guides/'));
-assert.ok(articleLinks.some((link) => link.href === '/states/california/'));
+assert.ok(!articleLinks.some((link) => link.href === '/states/california/'));
+assert.ok(articleLinks.some((link) => link.href === '/state-legality/'));
+assert.ok(
+  !articleLinks.some((link) =>
+    internalDestinationsIn(articleBody).has(link.href),
+  ),
+  'article contextual links must not duplicate body destinations',
+);
+
+const guideRoute = readFileSync(
+  resolve(root, 'src/routes/guides/[slug].astro'),
+  'utf8',
+);
+const newsRoute = readFileSync(
+  resolve(root, 'src/routes/news/[slug].astro'),
+  'utf8',
+);
+assert.match(guideRoute, /contextualLinksForGuide\(entry\.id,\s*entry\.body\)/);
+assert.match(newsRoute, /contextualLinksForArticle\(legStateCode,\s*entry\.body\)/);
+
+const lawsGuide = readFileSync(
+  resolve(root, 'src/content/guides/sweepstakes-casino-laws-by-state.mdx'),
+  'utf8',
+);
+const stateChecklist = lawsGuide.match(
+  /## How to check your state([\s\S]*?)## States with full editorial guides/,
+)?.[1];
+assert.ok(stateChecklist);
+const checklistDestinations = [...stateChecklist.matchAll(/^\d+\.\s+\*\*\[[^\]]+\]\(([^)]+)\)/gm)]
+  .map((match) => match[1]);
+assert.equal(
+  new Set(checklistDestinations).size,
+  checklistDestinations.length,
+  'adjacent state-checklist items must not target the same destination',
+);
 
 const routeAudit = auditAuthoredRoutes(root);
 assert.ok(

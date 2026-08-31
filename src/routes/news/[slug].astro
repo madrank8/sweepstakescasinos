@@ -105,7 +105,7 @@ const newsLd = {
 };
 
 const jsonLd = [newsLd, ...(faqLd ? [faqLd] : []), ...(legLd ? [legLd] : [])];
-const contextualLinks = contextualLinksForArticle(legStateCode);
+const contextualLinks = contextualLinksForArticle(legStateCode, entry.body);
 ---
 
 <ContentLayout
