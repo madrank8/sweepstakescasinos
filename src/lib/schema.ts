@@ -17,8 +17,8 @@
  */
 import { SITE } from '../data/site';
 import { getBrandEntity, brandEntityId } from '../data/brandEntities';
+import { PUBLISHER_LOGO_DIMENSIONS } from '../data/publisherLogo.generated';
 import { brandAggregateRating } from './brandAggregateRating';
-import { pngDimensions } from './pngDimensions';
 
 const ORIGIN = SITE.origin;
 
@@ -43,10 +43,6 @@ export function serializeJsonLd(value: unknown): string {
  * until they exist (plan §6 open items 2-4).
  */
 export function organizationNode(): Node {
-  const logoDimensions = pngDimensions(SITE.logo);
-  if (!logoDimensions) {
-    throw new Error(`[schema] Unable to read publisher logo dimensions: ${SITE.logo}`);
-  }
   return {
     '@type': 'Organization',
     '@id': ORG_ID,
@@ -57,7 +53,7 @@ export function organizationNode(): Node {
       '@type': 'ImageObject',
       '@id': LOGO_ID,
       url: `${ORIGIN}${SITE.logo}`,
-      ...logoDimensions,
+      ...PUBLISHER_LOGO_DIMENSIONS,
       caption: SITE.name,
     },
     image: { '@id': LOGO_ID },

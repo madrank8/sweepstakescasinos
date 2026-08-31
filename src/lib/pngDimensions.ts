@@ -12,16 +12,24 @@ const cache = new Map<string, { width: number; height: number } | null>();
  * Accepts a URL-root path (`/images/x.png`), source-tree path
  * (`images/x.png`), or copied-public path (`public/images/x.png`).
  */
-export function pngDimensions(publicPath: string): { width: number; height: number } | null {
-  if (cache.has(publicPath)) return cache.get(publicPath)!;
+export function pngDimensions(publicPath: string | URL): { width: number; height: number } | null {
+  const cacheKey = publicPath.toString();
+  if (cache.has(cacheKey)) return cache.get(cacheKey)!;
 
-  const rel = publicPath.replace(/^\/+/, '');
-  const sourceRel = rel.replace(/^public\//, '');
-  const candidates = rel.startsWith('public/')
-    ? [join(process.cwd(), rel), join(process.cwd(), sourceRel)]
-    : [join(process.cwd(), 'public', rel), join(process.cwd(), sourceRel)];
+  const candidates: Array<string | URL> =
+    publicPath instanceof URL
+      ? [publicPath]
+      : (() => {
+          const rel = publicPath.replace(/^\/+/, '');
+          const sourceRel = rel.replace(/^public\//, '');
+          return rel.startsWith('public/')
+            ? [join(process.cwd(), rel), join(process.cwd(), sourceRel)]
+            : publicPath.startsWith('/')
+              ? [join(process.cwd(), 'public', rel), join(process.cwd(), sourceRel)]
+              : [join(process.cwd(), sourceRel), join(process.cwd(), 'public', rel)];
+        })();
 
-  for (const abs of [...new Set(candidates)]) {
+  for (const abs of candidates) {
     try {
       const buf = readFileSync(abs);
       if (
@@ -32,12 +40,12 @@ export function pngDimensions(publicPath: string): { width: number; height: numb
         continue;
       }
       const dims = { width: buf.readUInt32BE(16), height: buf.readUInt32BE(20) };
-      cache.set(publicPath, dims);
+      cache.set(cacheKey, dims);
       return dims;
     } catch {
       // Try the next source-tree/copied-public candidate.
     }
   }
-  cache.set(publicPath, null);
+  cache.set(cacheKey, null);
   return null;
 }

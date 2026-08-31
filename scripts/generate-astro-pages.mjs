@@ -14,6 +14,33 @@ const pagesDir = join(root, 'src', 'pages');
 const publicDir = join(root, 'public');
 const ORIGIN = SITE.origin;
 
+function writePublisherLogoMetadata() {
+  const logoPath = join(root, SITE.logo.replace(/^\/+/, ''));
+  const png = readFileSync(logoPath);
+  if (
+    png.length < 24 ||
+    png.toString('ascii', 1, 4) !== 'PNG' ||
+    png.toString('ascii', 12, 16) !== 'IHDR'
+  ) {
+    throw new Error(`Publisher logo is not a valid PNG: ${SITE.logo}`);
+  }
+  const width = png.readUInt32BE(16);
+  const height = png.readUInt32BE(20);
+  writeFileSync(
+    join(root, 'src', 'data', 'publisherLogo.generated.ts'),
+    `/**
+ * GENERATED FILE — do not edit by hand.
+ *
+ * Written from the publisher PNG's IHDR by scripts/generate-astro-pages.mjs.
+ */
+export const PUBLISHER_LOGO_DIMENSIONS = {
+  width: ${width},
+  height: ${height},
+} as const;
+`,
+  );
+}
+
 // All /bonuses/<slug>/ destinations are served by the SSR gateway
 // (src/pages/bonuses/[slug].astro) — partners AND non-partner editorial outbound.
 // Skip generating static pages from bonuses/*.html so geo can never be bypassed.
@@ -464,6 +491,7 @@ function writeSitemapAndRobots() {
   writeFileSync(join(root, 'llms.txt'), llms);
 }
 
+writePublisherLogoMetadata();
 rmSync(pagesDir, { recursive: true, force: true });
 walk(root);
 pageFiles.sort().forEach(writePage);
