@@ -279,6 +279,8 @@ assert.doesNotMatch(
   'the real Rolla review must not retain unsupported first-hand test claims',
 );
 const aboutHtml = readFileSync(resolve(root, 'about.html'), 'utf8');
+assert.match(aboutHtml, /Rates sites against 4 fixed criteria/i);
+assert.doesNotMatch(aboutHtml, /Rates sites against 7 fixed criteria/i);
 for (const unsupportedProcessClaim of [
   /drives roughly half of our re-investigations/i,
   /operators have offered increased commission rates/i,
