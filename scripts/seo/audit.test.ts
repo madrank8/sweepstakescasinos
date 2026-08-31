@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import {
   auditAuthoredRoutes,
@@ -11,6 +12,9 @@ import {
 import { classifyTestingClaim, findUnsupportedTestingClaims } from './claim-policy';
 
 const root = resolve(import.meta.dirname, '../..');
+const generator = readFileSync(resolve(root, 'scripts/generate-astro-pages.mjs'), 'utf8');
+assert.doesNotMatch(generator, /independent US guide that tests and ranks/i);
+assert.doesNotMatch(generator, /Reviews are hands-on tested and dated/i);
 
 const operators = inventoryOperatorFacts(root);
 assert.equal(operators.reviews.length, 29, 'all 29 authored reviews must be inventoried');
@@ -99,6 +103,10 @@ assert.ok(routes.routes.some((route) => route.url === '/reviews/jackpota/'));
 assert.ok(routes.routes.some((route) => route.url === '/best/sweepstakes-casinos/'));
 assert.ok(routes.prototypeNoindex, 'prototype output must be noindex');
 assert.ok(routes.links.every((link) => link.path && link.line > 0 && link.target));
+assert.ok(
+  routes.missingTargets.every((link) => !link.normalizedTarget.startsWith('/_external/')),
+  'mirrored static assets must not be reported as missing routes',
+);
 
 const schema = auditSchemaParity(root);
 assert.equal(schema.reviews.length, 29, 'schema parity must cover every review');
