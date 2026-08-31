@@ -52,9 +52,8 @@ export const TESTING_CLAIM_PATTERN = new RegExp(
 const THIRD_PARTY_CONTEXT =
   /\b(?:trustpilot|deadspin|sweepskings|editorial (?:review|source)|cross-verified|reader(?:s|'s)?|players?\s+(?:report|reported|say|describe)|player-reported|third-party|operator(?:'s)?|published|terms|policy|provider|studio|rng[- ]tested|independently tested|certified|laboratory|payment rails)\b/i;
 const NEGATION_OR_POLICY_CONTEXT =
-  /\b(?:no|not|never|without|unless|if|where|when|future|fabricated|unsupported|unverified|cannot|could not|did not|isn't|is not)\b/i;
-const EXPLICIT_FIRST_PARTY =
-  /\b(?:we|our|i)\b|first-hand|hands-on|payouts tested|tested and verified/i;
+  /\b(?:no|not|never|without|unless|if|where|when|future|fabricated|unsupported|unverified|cannot|could not|did not|do not|does not|don't|doesn't|isn't|is not)\b/i;
+const EXPLICIT_FIRST_PARTY = /\b(?:we|our|i)\b/i;
 const FIRST_PERSON_TEST_CONTEXT =
   /\bour\b[^.!?]{0,100}\b(?:tests?|checks?|test\s+results?|measurements?|observations?)\b|\bwe\s+(?:ran|conducted|performed|completed|carried\s+out)\b/i;
 const DIRECT_ATTRIBUTION =
@@ -131,7 +130,7 @@ export function classifyTestingClaim(input: ClaimClassificationInput): ClaimClas
     };
   }
 
-  if (THIRD_PARTY_CONTEXT.test(clause)) {
+  if (THIRD_PARTY_CONTEXT.test(clause) || THIRD_PARTY_CONTEXT.test(context)) {
     return {
       classification: 'THIRD_PARTY_OR_READER_DATA',
       evidenceBasis: 'The same source clause explicitly attributes the statement to published, operator, laboratory, third-party, or reader data.',
