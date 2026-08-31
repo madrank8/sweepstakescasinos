@@ -8,11 +8,11 @@ export interface RenderedEditorScoreContext {
 const SCORE = /(\d{1,3}(?:\.\d+)?)\s*\/\s*(5|100)\b/g;
 const BARE_FIVE_SCORE = /\b([0-5]\.\d+)\b/g;
 const FIRST_PARTY_LANGUAGE =
-  /\b(?:editor(?:ial)?|overall|our (?:score|rating|verdict|reviewers?)|reviewers?|verdict|final rating|we rate|how we (?:rate|score)|earns?(?: its| an?| the)?|is rated|rated by (?:us|sweepstakes wiz))\b/i;
+  /\b(?:editor(?:ial)? (?:score|rating)|overall|our (?:score|rating|verdict|reviewers?)|from our reviewers?|verdict|final rating|we rate|how we (?:rate|score)|earns?(?: its| an?| the)?|is rated|rated by (?:us|sweepstakes wiz))\b/i;
 const STRONG_FIRST_PARTY_LANGUAGE =
-  /\b(?:editor(?:ial)?(?: score| rating)?|our (?:score|rating|verdict|reviewers?)|from our reviewers?|verdict|final rating|we rate|how we (?:rate|score)|rated by (?:us|sweepstakes wiz))\b/i;
+  /\b(?:editor(?:ial)? (?:score|rating)|our (?:score|rating|verdict|reviewers?)|from our reviewers?|verdict|final rating|we rate|how we (?:rate|score)|rated by (?:us|sweepstakes wiz))\b/i;
 const NAMED_THIRD_PARTY =
-  /\b(?:Trustpilot|Google Play|App Store|Deadspin(?:\.com)?|SweepsKings|player-reported|reader reports?)\b/i;
+  /\b(?:Trustpilot|Google Play|App Store|iOS App|Deadspin(?:\.com)?|SweepstakesCasinoReviews(?:\.com)?|SweepsKings(?:\.com)?|Sweepsy(?:\.com)?|Sweepstaker(?:\.com)?|FreakyGaming(?:\.com)?|Strafe(?:\.com)?|OddsAssist|SweepState|Next\.io|(?:independent|expert|editorial) reviewers?|player-reported|reader reports?)\b/i;
 
 function hasNamedThirdPartyAttribution(text: string): boolean {
   return NAMED_THIRD_PARTY.test(text) && !STRONG_FIRST_PARTY_LANGUAGE.test(text);
@@ -105,7 +105,10 @@ function removeExplicitExternalRows(html: string): string {
   return html.replace(/<tr\b[\s\S]*?<\/tr\s*>/gi, (row) => {
     const text = plainText(row);
     if (FIRST_PARTY_LANGUAGE.test(text)) return row;
-    if (hasNamedThirdPartyAttribution(text)) {
+    if (
+      hasNamedThirdPartyAttribution(text) ||
+      /<a\b[^>]*\bhref\s*=\s*["']https?:\/\//i.test(row)
+    ) {
       return '\n';
     }
     return row;

@@ -28,10 +28,10 @@ const FIELD_SET = new Set<string>(CANONICAL_OPERATOR_FIELDS);
 const SCORE_RATIO = /(?:~\s*)?(\d{1,3}(?:\.\d+)?)\s*\/\s*(5|100)\b/gi;
 const BARE_FIVE_SCORE = /\b[0-5]\.\d+\b/g;
 const FIRST_PARTY_CUE =
-  /\b(?:editor(?:ial)?|editor(?:ial)? score|editor(?:'s)? rating|overall(?: score| rating| verdict)?|our (?:score|rating|verdict|reviewers?)|reviewers?|verdict|final rating|we rate|how we (?:rate|score)|earns?(?: its| an?| the)?|is rated|rated by (?:us|sweepstakes wiz))\b/i;
+  /\b(?:editor(?:ial)? (?:score|rating)|editor(?:'s)? rating|overall(?: score| rating| verdict)?|our (?:score|rating|verdict|reviewers?)|from our reviewers?|verdict|final rating|we rate|how we (?:rate|score)|earns?(?: its| an?| the)?|is rated|rated by (?:us|sweepstakes wiz))\b/i;
 const BREAKDOWN_CUE = /\b(?:how we (?:rate|score)|rating breakdown|score breakdown)\b/i;
 const NAMED_THIRD_PARTY_CUE =
-  /\b(?:Trustpilot|Google Play|App Store|Deadspin(?:\.com)?|SweepsKings|player-reported|reader reports?)\b/i;
+  /\b(?:Trustpilot|Google Play|App Store|Deadspin(?:\.com)?|SweepstakesCasinoReviews(?:\.com)?|SweepsKings(?:\.com)?|Sweepsy(?:\.com)?|Sweepstaker(?:\.com)?|FreakyGaming(?:\.com)?|OddsAssist|SweepState|Next\.io|player-reported|reader reports?)\b/i;
 const VOID_ELEMENTS = new Set([
   'area',
   'base',
@@ -346,8 +346,11 @@ function elementRanges(html: string): HtmlElementRange[] {
 
 function scoreStateHtml(score: number | undefined): string {
   const status = score === undefined ? 'unresolved' : 'verified';
-  const value = score === undefined ? 'unresolved' : `${score}/100`;
-  return `<span class="sc-editor-score-state" data-editor-score-status="${status}">Editor score: ${value}</span>`;
+  const content =
+    score === undefined
+      ? '<!-- editor score unresolved; no reader-visible value -->'
+      : `Editor score: ${score}/100`;
+  return `<span class="sc-editor-score-state" data-editor-score-status="${status}">${content}</span>`;
 }
 
 function replaceElementContents(
@@ -413,7 +416,8 @@ function isExplicitThirdPartyScore(
   const windowStart = Math.max(0, position - 110);
   const windowText = html.slice(windowStart, Math.min(html.length, position + 120));
   const relative = position - windowStart;
-  const separators = /(?:&#183;|·|—|&mdash;|[!?;])/gi;
+  const separators =
+    /(?:<\/(?:address|article|aside|blockquote|div|dd|dt|figcaption|h[1-6]|li|p|section|td|th|tr)\s*>|&#183;|·|—|&mdash;|[!?;])/gi;
   let clauseStart = 0;
   let clauseEnd = windowText.length;
   for (const separator of windowText.matchAll(separators)) {
@@ -428,11 +432,27 @@ function isExplicitThirdPartyScore(
   if (FIRST_PARTY_CUE.test(local)) return false;
   if (NAMED_THIRD_PARTY_CUE.test(local)) return true;
 
+  if (
+    ancestors.slice(0, 4).some((element) => {
+      const text = elementText(html, element);
+      return (
+        text.length <= 400 &&
+        NAMED_THIRD_PARTY_CUE.test(text) &&
+        !FIRST_PARTY_CUE.test(text)
+      );
+    })
+  ) {
+    return true;
+  }
+
   const row = ancestors.find((element) => element.tag === 'tr');
   if (!row) return false;
   const rowText = elementText(html, row);
   if (FIRST_PARTY_CUE.test(rowText)) return false;
-  return NAMED_THIRD_PARTY_CUE.test(rowText);
+  return (
+    NAMED_THIRD_PARTY_CUE.test(rowText) ||
+    /<a\b[^>]*\bhref\s*=\s*["']https?:\/\//i.test(elementHtml(html, row))
+  );
 }
 
 function isBreakdownSubcategory(
@@ -468,10 +488,51 @@ function isBreakdownSubcategory(
   return false;
 }
 
+function isScoreOnlyText(text: string, kind: 'ratio' | 'bare'): boolean {
+  const withoutScore =
+    kind === 'ratio'
+      ? text.replace(SCORE_RATIO, ' ')
+      : text.replace(BARE_FIVE_SCORE, ' ');
+  return withoutScore
+    .replace(/(?:&#9733;|&#189;|[★☆½])+/gi, ' ')
+    .replace(/(?:&#183;|[·:|()[\]{}#/~–—-])+/g, ' ')
+    .replace(/\b(?:editor(?:ial)?\s+)?(?:score|rating)\b/gi, ' ')
+    .replace(/\s+/g, '')
+    .length === 0;
+}
+
+function hasScoreChrome(element: HtmlElementRange | undefined): boolean {
+  return Boolean(
+    element &&
+      /\b(?:class|id|data-[\w-]+)\s*=\s*(?:"[^"]*\b(?:score|rating|verdict)\b[^"]*"|'[^']*\b(?:score|rating|verdict)\b[^']*')/i.test(
+        element.opening,
+      ),
+  );
+}
+
+function isOrdinaryBareDecimal(html: string, position: number, length: number): boolean {
+  const before = plainText(html.slice(Math.max(0, position - 30), position));
+  const after = plainText(html.slice(position + length, Math.min(html.length, position + length + 35)));
+  return (
+    /\$\s*$/.test(before) ||
+    /^(?:SC|GC|MC|USD|%|x|×)\b/i.test(after) ||
+    /(?:-|–|—|to)\s*$/i.test(before) ||
+    /^(?:-|–|—|to)\s*\d+\.\d+/i.test(after)
+  );
+}
+
+function hasImmediateStarChrome(html: string, position: number): boolean {
+  const before = html.slice(Math.max(0, position - 100), position);
+  const clause = before.split(/(?:&#183;|·|—|&mdash;|[!?])/i).at(-1) ?? before;
+  return /(?:(?:&#9733;)|[★☆]){3,}\s*$/i.test(clause.replace(/<[^>]+>/g, ' '));
+}
+
 function shouldNormalizeScore(
   html: string,
   position: number,
   elements: HtmlElementRange[],
+  kind: 'ratio' | 'bare',
+  length: number,
 ): boolean {
   const ancestors = containingElements(elements, position);
   if (
@@ -481,10 +542,33 @@ function shouldNormalizeScore(
   ) {
     return false;
   }
-  const thirdParty = isExplicitThirdPartyScore(html, position, ancestors);
-  const breakdown = isBreakdownSubcategory(html, ancestors);
-  if (thirdParty) return false;
-  return !breakdown;
+  const immediateStarChrome = hasImmediateStarChrome(html, position);
+  const thirdParty =
+    !immediateStarChrome &&
+    isExplicitThirdPartyScore(html, position, ancestors);
+  const breakdown =
+    !immediateStarChrome &&
+    isBreakdownSubcategory(html, ancestors);
+  if (thirdParty || breakdown) return false;
+
+  const closest = ancestors[0];
+  const closestText = closest ? elementText(html, closest) : '';
+  const scoreOnly = closest ? isScoreOnlyText(closestText, kind) : false;
+  const explicitContext = ancestors
+    .slice(0, 3)
+    .some((element) => FIRST_PARTY_CUE.test(elementText(html, element)));
+  const starScoreChrome =
+    kind === 'ratio' &&
+    (immediateStarChrome ||
+      ancestors
+        .slice(0, 2)
+        .some((element) => /(?:&#9733;|[★☆]){3,}/i.test(elementText(html, element))));
+
+  if (kind === 'bare') {
+    if (isOrdinaryBareDecimal(html, position, length)) return false;
+    return scoreOnly && (hasScoreChrome(closest) || explicitContext);
+  }
+  return scoreOnly || hasScoreChrome(closest) || explicitContext || starScoreChrome;
 }
 
 function applyTextReplacements(
@@ -512,8 +596,15 @@ function normalizeSplitScoreElements(
       SCORE_RATIO.lastIndex = 0;
       if (SCORE_RATIO.test(inner)) return false;
       SCORE_RATIO.lastIndex = 0;
-      if (!SCORE_RATIO.test(elementText(html, element))) return false;
-      return shouldNormalizeScore(html, element.openEnd, elements);
+      const text = elementText(html, element);
+      if (!SCORE_RATIO.test(text) || !isScoreOnlyText(text, 'ratio')) return false;
+      return shouldNormalizeScore(
+        html,
+        element.start,
+        elements,
+        'ratio',
+        element.closeStart - element.openEnd,
+      );
     })
     .filter(
       (element, _index, all) =>
@@ -545,7 +636,7 @@ function normalizeDirectScoreText(
     SCORE_RATIO.lastIndex = 0;
     for (const match of segment.text.matchAll(SCORE_RATIO)) {
       const start = segment.start + match.index;
-      if (shouldNormalizeScore(html, start, elements)) {
+      if (shouldNormalizeScore(html, start, elements, 'ratio', match[0].length)) {
         replacements.push({
           start,
           end: start + match[0].length,
@@ -562,7 +653,7 @@ function normalizeDirectScoreText(
         ancestors
           .slice(0, 4)
           .some((element) => FIRST_PARTY_CUE.test(elementText(html, element))) &&
-        shouldNormalizeScore(html, start, elements)
+        shouldNormalizeScore(html, start, elements, 'bare', match[0].length)
       ) {
         replacements.push({
           start,

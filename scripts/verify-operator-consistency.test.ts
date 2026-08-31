@@ -124,6 +124,11 @@ assert.doesNotMatch(unresolvedRendered, /data-canonical-field="editorScore100"/)
 assert.match(unresolvedRendered, /editorScore100:unresolved/);
 assert.doesNotMatch(unresolvedRendered, />\s*88\s*<\/span>\s*<span[^>]*>\s*\/100</);
 assert.match(unresolvedRendered, /data-editor-score-status="unresolved"/);
+assert.doesNotMatch(
+  unresolvedRendered.replace(/<[^>]+>/g, ' '),
+  /\b(?:editor score\s*:\s*)?unresolved\b/i,
+  'unresolved score state must not be reader-visible',
+);
 
 function reviewNode(html: string): Record<string, unknown> {
   const block = html.match(
@@ -155,17 +160,76 @@ for (const [slug, expectedScore] of [
   }
 }
 
+function visibleDocumentText(html: string): string {
+  return html
+    .replace(/<head\b[\s\S]*?<\/head\s*>/gi, ' ')
+    .replace(/<script\b[\s\S]*?<\/script\s*>/gi, ' ')
+    .replace(/<style\b[\s\S]*?<\/style\s*>/gi, ' ')
+    .replace(/<!--[\s\S]*?-->/g, ' ')
+    .replace(/<[^>]+>/g, ' ')
+    .replace(/&(?:nbsp|#160);/gi, ' ')
+    .replace(/&(?:ndash|#8211);/gi, '–')
+    .replace(/&(?:mdash|#8212);/gi, '—')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function authoredNonScoreDecimalCounts(html: string): Map<string, number> {
+  const text = visibleDocumentText(html);
+  const counts = new Map<string, number>();
+  for (const match of text.matchAll(/\b\d+\.\d+\b/g)) {
+    const before = text.slice(Math.max(0, match.index - 100), match.index);
+    const after = text.slice(match.index + match[0].length, match.index + match[0].length + 100);
+    const isOrdinaryUnit =
+      /\$\s*$/.test(before) ||
+      /^\s*(?:SC|GC|MC|USD)\b/i.test(after) ||
+      /^\s*(?:%|x|×)(?=\s|[.,;)]|$)/i.test(after);
+    const isRange =
+      /(?:-|–|—|to)\s*$/.test(before) ||
+      /^\s*(?:-|–|—|to)\s*\d+\.\d+/i.test(after);
+    if (!isOrdinaryUnit && !isRange) {
+      continue;
+    }
+    counts.set(match[0], (counts.get(match[0]) ?? 0) + 1);
+  }
+  return counts;
+}
+
+function decimalCounts(html: string): Map<string, number> {
+  const counts = new Map<string, number>();
+  for (const match of visibleDocumentText(html).matchAll(/\b\d+\.\d+\b/g)) {
+    counts.set(match[0], (counts.get(match[0]) ?? 0) + 1);
+  }
+  return counts;
+}
+
 const renderedReviews = new Map<string, string>();
-let staticReviewCount = 0;
-let ssrReviewCount = 0;
+let authoredDecimalReviewCount = 0;
 for (const operator of OPERATORS) {
   const relativePath = `reviews/${operator.slug}.html`;
   const source = readFileSync(resolve(root, relativePath), 'utf8');
-  const rendered = /href=["']\/bonuses\//i.test(source)
-    ? (ssrReviewCount++,
-      prepareSsrAffiliateReviewHtml(source, null, operator.slug, `review-${operator.slug}`))
-    : (staticReviewCount++, getStaticReviewHtml(relativePath, operator.slug));
+  const rendered = prepareSsrAffiliateReviewHtml(
+    source,
+    null,
+    operator.slug,
+    `review-${operator.slug}`,
+  );
   renderedReviews.set(operator.slug, rendered);
+
+  const authoredDecimals = authoredNonScoreDecimalCounts(source);
+  if (authoredDecimals.size > 0) authoredDecimalReviewCount += 1;
+  const renderedDecimals = decimalCounts(rendered);
+  for (const [decimal, authoredCount] of authoredDecimals) {
+    assert.ok(
+      (renderedDecimals.get(decimal) ?? 0) >= authoredCount,
+      `${operator.slug} must preserve all ${authoredCount} authored non-score ${decimal} decimal(s)`,
+    );
+  }
+  assert.doesNotMatch(
+    visibleDocumentText(rendered),
+    /\beditor score\s*:\s*unresolved\b|\bscore (?:state|status)\s*:\s*unresolved\b|not canonicalized|canonical conflict|governance status/i,
+    `${operator.slug} must not expose internal score governance vocabulary`,
+  );
 
   const summaryStart = rendered.indexOf('<section class="sc-review-fact-summary"');
   const h1End = rendered.search(/<\/h1\s*>/i);
@@ -227,9 +291,11 @@ for (const operator of OPERATORS) {
     );
   }
 }
-assert.ok(staticReviewCount > 0, 'real review integration must exercise getStaticReviewHtml');
-assert.ok(ssrReviewCount > 0, 'real review integration must exercise prepareSsrAffiliateReviewHtml');
 assert.equal(renderedReviews.size, 29, 'integration must render all 29 authored reviews');
+assert.ok(
+  authoredDecimalReviewCount >= 22,
+  'all-29 integration must exercise authored non-score decimals across the affected review set',
+);
 assert.equal(
   OPERATORS.filter((operator) => operator.editorScore100.status === 'unresolved').length,
   25,
@@ -312,6 +378,39 @@ const preservationFixture =
 const preservationRendered = injectOperatorFactsHtml(preservationFixture, 'mcluck');
 assert.match(preservationRendered, /29,000\+ reviews/);
 assert.match(preservationRendered, /4\.6\/5 Trustpilot/);
+
+const ordinaryDecimalFixture = `
+  <main>
+    <section class="verdict-box">
+      <p>Our verdict considers a 2.5 SC offer, a $4.99 package, a 12.5% rate,
+        a 1.5x multiplier, and a Trustpilot range of 4.2–4.8/5.</p>
+      <span class="score-total">88/100</span>
+    </section>
+    <!--sc-operator-facts data-operator="mcluck" data-fields="name,editorScore100"-->
+  </main>
+`;
+const ordinaryDecimalRendered = injectOperatorFactsHtml(
+  ordinaryDecimalFixture,
+  'mcluck',
+);
+for (const authoredFact of [
+  '2.5 SC',
+  '$4.99',
+  '12.5%',
+  '1.5x',
+  '4.2–4.8/5',
+]) {
+  assert.match(
+    ordinaryDecimalRendered,
+    new RegExp(authoredFact.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')),
+    `ordinary prose decimal must survive score normalization: ${authoredFact}`,
+  );
+}
+assert.doesNotMatch(
+  visibleDocumentText(ordinaryDecimalRendered),
+  /\b(?:editor score\s*:\s*)?unresolved\b/i,
+);
+assert.doesNotMatch(ordinaryDecimalRendered, />88\/100</);
 
 const semanticLeakFixture = `
   <main>
