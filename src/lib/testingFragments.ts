@@ -124,6 +124,7 @@ export const OVERCLAIM_PATTERNS: Array<[RegExp, string]> = [
   [/We ran a structured 14-day hands-on test:?[^<]*/gi, ''],
   [/Our hands-on tests cleared[^<]*/gi, ''],
   [/Our hands-on tests confirmed[^<]*/gi, ''],
+  [/\bOur(?: own)? tests?[^<"]*?\.\s*/gi, ''],
   [/Our test redemption #\d[^<]*/gi, ''],
 
   // First-person / self-testing phrases — reframe to honest editorial language
