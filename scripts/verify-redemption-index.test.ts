@@ -172,6 +172,25 @@ assert.match(
 assert.match(methodology, /no[- ]seeding/i);
 assert.match(methodology, /median/i);
 assert.match(methodology, /limitations/i);
+assert.match(
+  methodology,
+  /deterministic audit snapshot input, not a future publication default/i,
+);
+
+const productionVerifier = readFileSync(
+  resolve(root, 'scripts/verify-redemption-index.ts'),
+  'utf8',
+);
+assert.match(
+  productionVerifier,
+  /process\.env\.REDEMPTION_INDEX_AS_OF/,
+  'the production evidence verifier must accept an explicit evaluation date',
+);
+assert.doesNotMatch(
+  productionVerifier,
+  /assessRedemptionIndex\(\[\], \{ asOf: '2026-08-31' \}\)/,
+  'production-facing evaluation must not pass the deterministic snapshot inline',
+);
 
 assert.equal(
   existsSync(resolve(root, 'src/routes/redemption-index/index.astro')),

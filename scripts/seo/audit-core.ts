@@ -26,6 +26,12 @@ import { validateAllResults } from '../../src/data/testingResults';
 import { runReviewQa, type ReviewQaResult } from '../verify-reviews';
 import { findTestingClaims, type UnsupportedTestingClaim } from './claim-policy';
 
+export const DETERMINISTIC_AUDIT_SNAPSHOT_AS_OF = '2026-08-31';
+
+export interface AuditSnapshotOptions {
+  redemptionIndexAsOf: string;
+}
+
 export type ConflictStatus = 'RESOLVED' | 'UNRESOLVED' | 'MANUAL_REVIEW';
 
 export interface SourceValue {
@@ -872,15 +878,17 @@ function operatorReport(audit: OperatorAudit): string {
 function testingClaimsReport(
   root: string,
   claims: TestingClaimOccurrence[],
+  redemptionIndexAsOf: string,
 ): string {
   const counts = new Map<string, number>();
   for (const claim of claims) counts.set(claim.classification, (counts.get(claim.classification) ?? 0) + 1);
   const testingRows = validateAllResults(root).rows.length;
   const readerAggregates = Object.keys(READER_REPORT_AGGREGATES).length;
-  const indexAssessment = assessRedemptionIndex([], { asOf: '2026-08-31' });
+  const indexAssessment = assessRedemptionIndex([], { asOf: redemptionIndexAsOf });
   return [
     reportHeader('Testing Claims Audit'),
     `Evidence authority: \`evidence/testing-results.csv\` has **${testingRows} data rows** and \`src/data/readerReports.generated.ts\` has **${readerAggregates} aggregates**.\n\n`,
+    `Redemption freshness date: ${redemptionIndexAsOf} is an explicit deterministic audit snapshot input, not a future publication default.\n\n`,
     `Redemption index publication state: **${indexAssessment.status === 'publishable' ? 'PUBLISHABLE' : 'NOT PUBLISHABLE'}** — ${
       indexAssessment.status === 'not-publishable' &&
       indexAssessment.reason === 'no-approved-records'
@@ -1062,7 +1070,10 @@ function internalLinkReport(routes: RouteAudit): string {
   ].join('');
 }
 
-export function renderAuditReports(root = process.cwd()): Map<string, string> {
+export function renderAuditReports(
+  root: string,
+  options: AuditSnapshotOptions,
+): Map<string, string> {
   const operators = inventoryOperatorFacts(root);
   const claims = scanTestingClaims(root);
   const routes = auditAuthoredRoutes(root);
@@ -1076,7 +1087,10 @@ export function renderAuditReports(root = process.cwd()): Map<string, string> {
   });
   return new Map([
     ['operator-data-conflicts.md', operatorReport(operators)],
-    ['testing-claims-audit.md', testingClaimsReport(root, claims)],
+    [
+      'testing-claims-audit.md',
+      testingClaimsReport(root, claims, options.redemptionIndexAsOf),
+    ],
     ['state-legality-conflicts.md', renderAvailabilityConflictReport(availability)],
     ['schema-audit.md', schemaReport(schema)],
     ['technical-audit.md', technicalReport(routes, claims, reviewQa)],
@@ -1086,7 +1100,7 @@ export function renderAuditReports(root = process.cwd()): Map<string, string> {
   ]);
 }
 
-export function auditSummary(root = process.cwd()) {
+export function auditSummary(root: string, options: AuditSnapshotOptions) {
   const operators = inventoryOperatorFacts(root);
   const claims = scanTestingClaims(root);
   const routes = auditAuthoredRoutes(root);
@@ -1123,7 +1137,9 @@ export function auditSummary(root = process.cwd()) {
     reviewQaErrorCount: reviewQa.errors.length,
     reviewFactSummaryCount: reviewQa.factSummaryCount,
     reviewAnswerBlockCount: reviewQa.answerBlockCount,
-    redemptionIndexStatus: assessRedemptionIndex([], { asOf: '2026-08-31' }).status,
+    redemptionIndexStatus: assessRedemptionIndex([], {
+      asOf: options.redemptionIndexAsOf,
+    }).status,
     stateCount: availability.jurisdictionCount,
     affiliateCount: availability.partnerCount,
     stateAuthorityConflictCount: availability.warnings.filter((warning) =>

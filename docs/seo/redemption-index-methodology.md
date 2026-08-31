@@ -58,6 +58,9 @@ medians, sample sizes, rankings, or observations.
 
 The index must be recomputed from the full approved record set after moderation.
 Evaluation uses an explicit as-of date so freshness checks are reproducible.
+The date recorded in generated audit documentation is a deterministic audit snapshot input, not a future publication default.
+Any future production evaluation must receive its own current as-of date
+explicitly.
 Records older than 180 days age out automatically. Methodology or threshold
 changes require a versioned code change, synthetic threshold tests, review QA,
 and full CI before any future publication decision.

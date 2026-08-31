@@ -9,7 +9,11 @@ import { assessRedemptionIndex } from '../src/lib/redemptionIndex';
 
 const testingRows = loadTestingResultsCsv();
 const readerAggregateOperators = Object.keys(READER_REPORT_AGGREGATES);
-const assessment = assessRedemptionIndex([], { asOf: '2026-08-31' });
+// This fallback keeps the empty-evidence verification reproducible. A future
+// production publisher must supply its evaluation date explicitly.
+const verificationAsOf =
+  process.env.REDEMPTION_INDEX_AS_OF ?? '2026-08-31';
+const assessment = assessRedemptionIndex([], { asOf: verificationAsOf });
 
 assert.equal(testingRows.length, 0, 'production testing data is no longer empty');
 assert.equal(

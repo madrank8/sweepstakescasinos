@@ -4,6 +4,8 @@ Source snapshot: repository authored sources. Generated deterministically withou
 
 Evidence authority: `evidence/testing-results.csv` has **0 data rows** and `src/data/readerReports.generated.ts` has **0 aggregates**.
 
+Redemption freshness date: 2026-08-31 is an explicit deterministic audit snapshot input, not a future publication default.
+
 Redemption index publication state: **NOT PUBLISHABLE** — no approved records. No production result metric or route is generated.
 
 Matched occurrences: **57**. DOCUMENTED_FIRST_HAND: **0**; THIRD_PARTY_OR_READER_DATA: **53**; UNSUPPORTED: **0**; AMBIGUOUS: **4**.

@@ -14,6 +14,7 @@ import {
 } from '../../src/lib/tracker/fallback';
 import { softenOverclaimHtml } from '../../src/lib/testingFragments';
 import {
+  DETERMINISTIC_AUDIT_SNAPSHOT_AS_OF,
   auditAuthoredRoutes,
   auditSchemaParity,
   evaluateCommercialHubCandidates,
@@ -271,7 +272,9 @@ const schema = auditSchemaParity(root);
 assert.equal(schema.reviews.length, 29, 'schema parity must cover every review');
 assert.ok(schema.reviews.every((review) => review.usesExistingVisibleScoreHelper));
 
-const reports = renderAuditReports(root);
+const reports = renderAuditReports(root, {
+  redemptionIndexAsOf: DETERMINISTIC_AUDIT_SNAPSHOT_AS_OF,
+});
 assert.deepEqual(
   [...reports.keys()].sort(),
   [
@@ -327,6 +330,10 @@ assert.match(
 assert.match(
   reports.get('testing-claims-audit.md') ?? '',
   /Redemption index publication state: \*\*NOT PUBLISHABLE\*\* — no approved records/i,
+);
+assert.match(
+  reports.get('testing-claims-audit.md') ?? '',
+  /2026-08-31 is an explicit deterministic audit snapshot input, not a future publication default/i,
 );
 assert.match(
   reports.get('schema-audit.md') ?? '',

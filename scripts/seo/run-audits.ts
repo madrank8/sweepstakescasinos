@@ -5,15 +5,22 @@
  * `--report <name>`: print one committed-report representation to stdout.
  * The command never writes source files or reports.
  */
-import { auditSummary, renderAuditReports } from './audit-core';
+import {
+  DETERMINISTIC_AUDIT_SNAPSHOT_AS_OF,
+  auditSummary,
+  renderAuditReports,
+} from './audit-core';
 
 const args = process.argv.slice(2);
 const reportIndex = args.indexOf('--report');
 const reportName = reportIndex >= 0 ? args[reportIndex + 1] : undefined;
 const root = process.cwd();
+const snapshot = {
+  redemptionIndexAsOf: DETERMINISTIC_AUDIT_SNAPSHOT_AS_OF,
+};
 
 if (reportName) {
-  const report = renderAuditReports(root).get(reportName);
+  const report = renderAuditReports(root, snapshot).get(reportName);
   if (!report) {
     console.error(`Unknown report: ${reportName}`);
     process.exit(2);
@@ -22,7 +29,7 @@ if (reportName) {
   process.exit(0);
 }
 
-const summary = auditSummary(root);
+const summary = auditSummary(root, snapshot);
 console.log(JSON.stringify(summary, null, 2));
 
 const unsupported =
