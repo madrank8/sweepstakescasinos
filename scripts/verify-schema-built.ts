@@ -220,22 +220,28 @@ async function main(): Promise<void> {
   const imported = (await import(`${pathToFileURL(ENTRY).href}?schema-check=${Date.now()}`)) as {
     default: BuiltHandler;
   };
-  for (const url of urls) {
-    const pathname = new URL(url).pathname;
-    const rel = pathname === '/' ? 'index.html' : `${pathname.replace(/^\/|\/$/g, '')}/index.html`;
-    const staticPath = join(STATIC, rel);
-    let html: string;
-    if (existsSync(staticPath)) {
-      html = readFileSync(staticPath, 'utf8');
-    } else {
-      const response = await imported.default.fetch(new Request(url));
-      if (!response.ok) {
-        fail(url, `built server returned ${response.status}`);
-        continue;
+  const initialCwd = process.cwd();
+  process.chdir(join(OUTPUT, 'functions', '_render.func'));
+  try {
+    for (const url of urls) {
+      const pathname = new URL(url).pathname;
+      const rel = pathname === '/' ? 'index.html' : `${pathname.replace(/^\/|\/$/g, '')}/index.html`;
+      const staticPath = join(STATIC, rel);
+      let html: string;
+      if (existsSync(staticPath)) {
+        html = readFileSync(staticPath, 'utf8');
+      } else {
+        const response = await imported.default.fetch(new Request(url));
+        if (!response.ok) {
+          fail(url, `built server returned ${response.status}`);
+          continue;
+        }
+        html = await response.text();
       }
-      html = await response.text();
+      verifyPage(url, html);
     }
-    verifyPage(url, html);
+  } finally {
+    process.chdir(initialCwd);
   }
 
   if (errors.length > 0) {

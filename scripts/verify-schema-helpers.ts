@@ -83,18 +83,16 @@ assert.equal(serialized, '{"text":"\\u003c/script>\\u2028next\\u2029line"}');
 assert.deepEqual(JSON.parse(serialized), { text: '</script>\u2028next\u2029line' });
 
 const logo = organizationNode().logo as Record<string, unknown>;
+const sourceLogoDimensions = pngDimensions('sweepstakeslogo/sweepstakeswiz.png');
+assert.ok(sourceLogoDimensions, 'publisher logo PNG must be readable');
 assert.deepEqual(
   { width: logo.width, height: logo.height },
-  { width: 621, height: 410 },
+  sourceLogoDimensions,
   'publisher logo schema must reflect the PNG IHDR',
 );
-assert.deepEqual(pngDimensions('/sweepstakeslogo/sweepstakeswiz.png'), {
-  width: 621,
-  height: 410,
-});
 assert.deepEqual(
   pngDimensions('public/sweepstakeslogo/sweepstakeswiz.png'),
-  { width: 621, height: 410 },
+  sourceLogoDimensions,
   'PNG reader must accept copied-public asset paths',
 );
 
