@@ -105,7 +105,11 @@ export function prepareSsrAffiliateReviewHtml(
   trackerState?: StateRecord,
 ): string {
   const withBadge = injectLegalStatusBadge(
-    prepareSsrAffiliateHtml(injectOperatorFactsHtml(rawHtml, slug), state, placement),
+    prepareSsrAffiliateHtml(
+      injectOperatorFactsHtml(rawHtml, slug, { state, trackerState }),
+      state,
+      placement,
+    ),
     {
       state,
       trackerState,

@@ -259,12 +259,13 @@ export function validateOperatorConsistency(root = process.cwd()): string[] {
         )
       : getStaticReviewHtml(`reviews/${record.slug}.html`, record.slug);
     for (const field of CANONICAL_OPERATOR_FIELDS) {
-      const selector = `data-canonical-field="${field}"`;
-      if (record[field].status === 'verified' && !rendered.includes(selector)) {
-        errors.push(`${record.slug}.${field}: verified field missing from rendered canonical facts`);
-      }
-      if (record[field].status !== 'verified' && rendered.includes(selector)) {
-        errors.push(`${record.slug}.${field}: unresolved/missing field rendered canonically`);
+      const selector =
+        `data-canonical-field="${field}" ` +
+        `data-fact-status="${record[field].status}"`;
+      if (!rendered.includes(selector)) {
+        errors.push(
+          `${record.slug}.${field}: rendered canonical status does not match ${record[field].status}`,
+        );
       }
     }
     const renderedScoreContexts = findRenderedEditorScoreContexts(rendered);

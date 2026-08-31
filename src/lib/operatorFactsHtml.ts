@@ -2,13 +2,24 @@ import {
   CANONICAL_OPERATOR_FIELDS,
   getOperator,
   verifiedValue,
+  type CanonicalFact,
   type CanonicalOperatorField,
   type ExternalRating,
+  type OperatorRecord,
   type RedemptionMinimum,
 } from '../data/operators';
+import { getPartner } from '../data/affiliates';
+import type { UsStateCode } from '../data/usStates';
+import {
+  availabilityForPartner,
+  availabilityForState,
+  type AvailabilityFacade,
+} from './availability';
+import type { StateRecord } from './tracker/types';
 
 const MARKER =
   /<!--sc-operator-facts\s+data-operator="([a-z0-9-]+)"\s+data-fields="([^"]+)"\s*-->/g;
+const INSERTION_POINT = '<!--sc-operator-facts-insertion-point-->';
 const FIELD_SET = new Set<string>(CANONICAL_OPERATOR_FIELDS);
 const SCORE_RATIO = /(?:~\s*)?(\d{1,3}(?:\.\d+)?)\s*\/\s*(5|100)\b/gi;
 const BARE_FIVE_SCORE = /\b[0-5]\.\d+\b/g;
@@ -96,6 +107,182 @@ function formatField(field: CanonicalOperatorField, value: unknown): string {
     return formatMinimum(value as RedemptionMinimum);
   }
   return String(value);
+}
+
+function factStateValue(
+  field: CanonicalOperatorField,
+  fact: CanonicalFact<unknown>,
+): string {
+  if (fact.status === 'verified') return formatField(field, fact.value);
+  return fact.status === 'unresolved' ? 'Unresolved' : 'Not verified';
+}
+
+function factRow(
+  field: CanonicalOperatorField,
+  fact: CanonicalFact<unknown>,
+  reviewFact?: string,
+): string {
+  const reviewFactAttribute = reviewFact
+    ? ` data-review-fact="${reviewFact}"`
+    : '';
+  return (
+    `<div class="sc-operator-fact"><dt>${LABELS[field]}</dt>` +
+    `<dd data-canonical-field="${field}" data-fact-status="${fact.status}"${reviewFactAttribute}>` +
+    `${escapeHtml(factStateValue(field, fact))}</dd></div>`
+  );
+}
+
+function availabilitySummary(view: AvailabilityFacade, hasPartner: boolean): string {
+  if (!hasPartner) return 'No affiliate offer is listed for this review.';
+  if (view.cta.reason === 'region-unknown') {
+    return 'Unknown until the visitor location is resolved.';
+  }
+  if (view.cta.reason === 'site-policy-suppressed') {
+    return 'Offer not shown under site CTA policy; this is not a legal conclusion.';
+  }
+  if (view.cta.reason === 'partner-restricted') {
+    return 'Unavailable under the operator commercial policy; this is not a legal conclusion.';
+  }
+  return 'Available under the operator commercial policy and site CTA policy.';
+}
+
+function legalSourceSummary(view: AvailabilityFacade): string {
+  if (!view.legal) {
+    return 'Sweepstakes Legality Tracker — choose a state for a sourced legal-status display.';
+  }
+  const freshness = view.legal.freshness.value?.slice(0, 10);
+  return (
+    `Sweepstakes Legality Tracker — ${view.legal.label}` +
+    (freshness ? ` (source reviewed ${freshness})` : ' (source date unavailable)')
+  );
+}
+
+function answerSection(kind: string, question: string, answer: string): string {
+  return (
+    `<section class="sc-review-answer" data-answer-kind="${kind}">` +
+    `<h2>${question}</h2><p>${answer}</p></section>`
+  );
+}
+
+function answerSections(operator: OperatorRecord): string {
+  const name = verifiedValue(operator.name);
+  if (!name) return '';
+  const escapedName = escapeHtml(name);
+  const answers: string[] = [];
+  const cash = verifiedValue(operator.cashRedemptionMinimum);
+  const giftCard = verifiedValue(operator.giftCardRedemptionMinimum);
+  const timing = verifiedValue(operator.publishedRedemptionTiming);
+  if (cash || giftCard || timing) {
+    const minimums = [
+      ...(cash ? [`cash at ${escapeHtml(formatMinimum(cash))}`] : []),
+      ...(giftCard
+        ? [`gift cards at ${escapeHtml(formatMinimum(giftCard))}`]
+        : []),
+    ];
+    const minimumCopy =
+      minimums.length > 0
+        ? `${escapedName} publishes redemption minimums of ${minimums.join(' and ')}.`
+        : `${escapedName} has no verified canonical redemption minimum to add here.`;
+    const timingCopy = timing
+      ? ` Its published redemption estimate is ${escapeHtml(timing)}; this is not an observed payout result.`
+      : '';
+    answers.push(
+      answerSection(
+        'redemption',
+        `What are ${escapedName}’s published redemption terms?`,
+        `${minimumCopy}${timingCopy}`,
+      ),
+    );
+  }
+
+  const payments = verifiedValue(operator.paymentMethods);
+  if (payments) {
+    answers.push(
+      answerSection(
+        'payments',
+        `Which payment methods does ${escapedName} publish?`,
+        `${escapedName} publishes these redemption payment methods: ${escapeHtml(payments.join(', '))}.`,
+      ),
+    );
+  }
+
+  const gameCount = verifiedValue(operator.gameCount);
+  if (gameCount !== undefined) {
+    answers.push(
+      answerSection(
+        'games',
+        `How many games does ${escapedName} publish?`,
+        `${escapedName} publishes a game count of ${gameCount.toLocaleString('en-US')}. This is a published count, not a live inventory observation.`,
+      ),
+    );
+  }
+
+  const operatorName = verifiedValue(operator.operatorName);
+  const launchDate = verifiedValue(operator.launchDate);
+  if (operatorName && launchDate) {
+    answers.push(
+      answerSection(
+        'company-launch',
+        `Who operates ${escapedName}, and when did it launch?`,
+        `${escapedName} is operated by ${escapeHtml(operatorName)} and has a published launch date of ${escapeHtml(launchDate)}.`,
+      ),
+    );
+  }
+
+  const signup = verifiedValue(operator.signupOffer);
+  const daily = verifiedValue(operator.dailyOffer);
+  if (signup || daily) {
+    const offerParts = [
+      ...(signup ? [`signup offer: ${escapeHtml(signup)}`] : []),
+      ...(daily ? [`daily offer: ${escapeHtml(daily)}`] : []),
+    ];
+    answers.push(
+      answerSection(
+        'offer',
+        `What offer does ${escapedName} publish?`,
+        `${escapedName} publishes the following ${offerParts.join('; ')}. Offers can change; confirm current terms with the operator.`,
+      ),
+    );
+  }
+  return answers.join('');
+}
+
+function factSummary(
+  operator: OperatorRecord,
+  view: AvailabilityFacade,
+  hasPartner: boolean,
+): string {
+  const rows = CANONICAL_OPERATOR_FIELDS.map((field) =>
+    factRow(
+      field,
+      operator[field],
+      field === 'lastVerifiedDate' ? 'operator-verification-date' : undefined,
+    ),
+  );
+  rows.push(
+    `<div class="sc-operator-fact"><dt>Legal-status source</dt>` +
+      `<dd data-review-fact="legal-status-source">${escapeHtml(legalSourceSummary(view))}</dd></div>`,
+    `<div class="sc-operator-fact"><dt>Visitor offer eligibility</dt>` +
+      `<dd data-review-fact="visitor-offer-eligibility">${escapeHtml(availabilitySummary(view, hasPartner))}</dd></div>`,
+  );
+  return (
+    '<style>' +
+    '.sc-review-fact-summary{margin:18px 0 22px;padding:16px;border:1px solid #dbe3ee;border-left:5px solid #f59e0b;border-radius:12px;background:#fffdf5;}' +
+    '.sc-review-fact-summary h2{margin:0 0 6px;font-size:1.2rem;}' +
+    '.sc-review-fact-summary>p{margin:0 0 12px;color:#475569;font-size:.88rem;}' +
+    '.sc-operator-facts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px 18px;margin:0;}' +
+    '.sc-operator-fact{min-width:0;}.sc-operator-fact dt{font-size:.7rem;font-weight:800;text-transform:uppercase;color:#64748b;}' +
+    '.sc-operator-fact dd{margin:2px 0 0;color:#1e293b;overflow-wrap:anywhere;}' +
+    '.sc-review-answer{margin:18px 0;padding:14px 16px;border-left:4px solid #0a1628;background:#f8fafc;border-radius:0 10px 10px 0;}' +
+    '.sc-review-answer h2{margin:0 0 6px;font-size:1.15rem;}.sc-review-answer p{margin:0;}' +
+    '@media(max-width:620px){.sc-operator-facts{grid-template-columns:1fr;}}' +
+    '</style>' +
+    `<section class="sc-review-fact-summary" data-canonical-operator="${operator.slug}">` +
+    '<h2>Canonical review facts</h2>' +
+    '<p>Verified values come from the canonical operator record. “Unresolved” and “Not verified” fields are intentionally not inferred.</p>' +
+    `<dl class="sc-operator-facts" data-canonical-operator="${operator.slug}">${rows.join('')}</dl>` +
+    '</section>'
+  );
 }
 
 function elementRanges(html: string): HtmlElementRange[] {
@@ -413,7 +600,16 @@ function normalizeLegacyEditorScore(
  * Replace declarative review markers with verified canonical facts. Missing
  * and unresolved fields intentionally produce no output.
  */
-export function injectOperatorFactsHtml(html: string, slug: string): string {
+export interface OperatorFactsHtmlOptions {
+  state?: UsStateCode | null;
+  trackerState?: StateRecord | null;
+}
+
+export function injectOperatorFactsHtml(
+  html: string,
+  slug: string,
+  options: OperatorFactsHtmlOptions = {},
+): string {
   if (!MARKER.test(html)) {
     MARKER.lastIndex = 0;
     return html;
@@ -425,8 +621,11 @@ export function injectOperatorFactsHtml(html: string, slug: string): string {
     html,
     verifiedValue(operator.editorScore100),
   );
-
-  return normalizedHtml.replace(MARKER, (_marker, markerSlug: string, fieldsRaw: string) => {
+  let markerFound = false;
+  const withoutMarker = normalizedHtml.replace(
+    MARKER,
+    (_marker, markerSlug: string, fieldsRaw: string) => {
+      markerFound = true;
     if (markerSlug !== slug) {
       throw new Error(
         `[operator-facts] Marker slug "${markerSlug}" does not match review "${slug}"`,
@@ -437,21 +636,29 @@ export function injectOperatorFactsHtml(html: string, slug: string): string {
     if (invalid.length > 0) {
       throw new Error(`[operator-facts] Unknown field(s): ${invalid.join(', ')}`);
     }
+      return INSERTION_POINT;
+    },
+  );
+  if (!markerFound) return normalizedHtml;
 
-    const rows = (fields as CanonicalOperatorField[]).flatMap((field) => {
-      const value = verifiedValue(operator[field]);
-      if (value === undefined) return [];
-      return [
-        `<div class="sc-operator-fact"><dt>${LABELS[field]}</dt>` +
-          `<dd data-canonical-field="${field}">${escapeHtml(formatField(field, value))}</dd></div>`,
-      ];
-    });
-    if (rows.length === 0) {
-      return `<!--sc-operator-facts-rendered data-canonical-operator="${slug}" data-empty="true"-->`;
-    }
-    return (
-      `<!--sc-operator-facts-rendered data-canonical-operator="${slug}"-->` +
-      `<dl class="sc-operator-facts" data-canonical-operator="${slug}">${rows.join('')}</dl>`
-    );
-  });
+  const partner = getPartner(slug);
+  const view = partner
+    ? availabilityForPartner(
+        partner,
+        options.state,
+        options.trackerState ?? undefined,
+      )
+    : availabilityForState(
+        options.state,
+        options.trackerState ?? undefined,
+      );
+  const insertion =
+    factSummary(operator, view, partner !== undefined) + answerSections(operator);
+  const h1Close = /<\/h1\s*>/i;
+  if (!h1Close.test(withoutMarker)) {
+    return withoutMarker.replace(INSERTION_POINT, insertion);
+  }
+  return withoutMarker
+    .replace(h1Close, (match) => `${match}${insertion}`)
+    .replace(INSERTION_POINT, '');
 }

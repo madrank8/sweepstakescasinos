@@ -120,7 +120,10 @@ const unresolvedFixture =
   '<!--sc-operator-facts data-operator="mcluck" ' +
   'data-fields="name,editorScore100"--></main>';
 const unresolvedRendered = injectOperatorFactsHtml(unresolvedFixture, 'mcluck');
-assert.doesNotMatch(unresolvedRendered, /data-canonical-field="editorScore100"/);
+assert.match(
+  unresolvedRendered,
+  /data-canonical-field="editorScore100" data-fact-status="unresolved">Unresolved</,
+);
 assert.doesNotMatch(unresolvedRendered, />\s*88\s*<\/span>\s*<span[^>]*>\s*\/100</);
 assert.match(unresolvedRendered, /data-editor-score-status="unresolved"/);
 
@@ -310,7 +313,7 @@ assert.match(
 const ssrPipelineSource = readFileSync(resolve(root, 'src/lib/affiliateHtml.ts'), 'utf8');
 assert.match(
   ssrPipelineSource,
-  /prepareSsrAffiliateHtml\(injectOperatorFactsHtml\(rawHtml, slug\)/,
+  /prepareSsrAffiliateHtml\(\s*injectOperatorFactsHtml\(rawHtml, slug, \{ state, trackerState \}\)/,
   'SSR review facts must be injected before JSON-LD consolidation',
 );
 const generatorSource = readFileSync(resolve(root, 'scripts/generate-astro-pages.mjs'), 'utf8');
