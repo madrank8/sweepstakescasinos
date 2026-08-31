@@ -54,6 +54,39 @@ for (const operator of OPERATORS) {
     ),
     `${operator.slug} review must declare its canonical fact fields`,
   );
+  const authoredGraph = JSON.parse(
+    [...source.matchAll(
+      /<script\b[^>]*type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi,
+    )][0][1],
+  )['@graph'] as Array<Record<string, unknown>>;
+  const authoredReview = authoredGraph.find((node) => node['@type'] === 'Review');
+  assert.ok(authoredReview, `${operator.slug} must retain authored Review JSON-LD`);
+  const publishedOn = String(authoredReview.datePublished).slice(0, 10);
+  const modifiedOn = String(authoredReview.dateModified).slice(0, 10);
+  assert.deepEqual(
+    operator.name.status === 'verified' ? operator.name.provenance[0] : undefined,
+    {
+      source: `reviews/${operator.slug}.html`,
+      publishedOn,
+      modifiedOn,
+    },
+    `${operator.slug} review provenance must use its authored publication/modification dates`,
+  );
+  if (operator.editorScore100.status === 'unresolved') {
+    const rating = authoredReview.reviewRating as Record<string, unknown>;
+    assert.ok(rating, `${operator.slug} unresolved evidence must include legacy Review rating`);
+    assert.ok(
+      operator.editorScore100.sources.some(
+        (source) =>
+          source.value === `${rating.ratingValue}/${rating.bestRating}` &&
+          source.provenance.source ===
+            `reviews/${operator.slug}.html#review-jsonld` &&
+          source.provenance.publishedOn === publishedOn &&
+          source.provenance.modifiedOn === modifiedOn,
+      ),
+      `${operator.slug} unresolved score must retain legacy Review JSON-LD as a third source`,
+    );
+  }
 }
 
 assert.equal(getOperator('american-luck')?.editorScore100.status, 'verified');
