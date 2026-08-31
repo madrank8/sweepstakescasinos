@@ -176,6 +176,38 @@ function nodesFromJsonLd(html: string): JsonLdNode[] {
   return nodes;
 }
 
+function plainVisibleText(value: string): string {
+  return decodeHtml(value.replace(/<[^>]+>/g, ' '))
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function visibleFaqItems(html: string): Array<{ q: string; a: string }> {
+  const questions = [
+    ...html.matchAll(
+      /<(button|div)\b[^>]*class=["'][^"']*\bfaq-(?:btn|q)\b[^"']*["'][^>]*>([\s\S]*?)<\/\1>/gi,
+    ),
+  ].map((match) =>
+    plainVisibleText(
+      match[2].replace(
+        /<span\b[^>]*class=["'][^"']*\bfaq-(?:arrow|arr)\b[^"']*["'][^>]*>[\s\S]*?<\/span>/gi,
+        '',
+      ),
+    ),
+  );
+  const answers = [
+    ...html.matchAll(
+      /<div\b[^>]*class=["'][^"']*\bfaq-(?:answer-)?inner\b[^"']*["'][^>]*>([\s\S]*?)<\/div>/gi,
+    ),
+  ].map((match) => plainVisibleText(match[1]));
+  if (questions.length !== answers.length) {
+    throw new Error(
+      `[schema] Visible FAQ has ${questions.length} questions and ${answers.length} answers`,
+    );
+  }
+  return questions.map((q, index) => ({ q, a: answers[index] }));
+}
+
 function breadcrumbCrumbs(
   nodes: JsonLdNode[],
   canonical: string,
@@ -227,6 +259,7 @@ function contentNodes(
   canonical: string,
   score: number | undefined,
   legacyPage: JsonLdNode | undefined,
+  faqs: Array<{ q: string; a: string }>,
 ) {
   const foundationIds = new Set([
     ORG_ID,
@@ -261,6 +294,17 @@ function contentNodes(
           worstRating: 0,
         };
       }
+    }
+    if (node['@type'] === 'FAQPage') {
+      if (faqs.length === 0) continue;
+      node.mainEntity = faqs.map((faq) => ({
+        '@type': 'Question',
+        name: faq.q,
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: faq.a,
+        },
+      }));
     }
     if (id) {
       if (seenIds.has(id)) continue;
@@ -310,6 +354,7 @@ export function consolidateJsonLd(html: string): string {
       ? verifiedValue(getOperator(reviewSlug)!.editorScore100)
       : undefined
     : visibleEditorialScore(html);
+  const faqs = visibleFaqItems(html);
   const graph = buildPageGraph({
     url: canonical,
     pageType,
@@ -317,7 +362,7 @@ export function consolidateJsonLd(html: string): string {
     description,
     breadcrumbs: breadcrumbCrumbs(legacyNodes, canonical, title),
     mainEntityId,
-    nodes: contentNodes(legacyNodes, canonical, score, legacyPage),
+    nodes: contentNodes(legacyNodes, canonical, score, legacyPage, faqs),
   });
   const script = `${JSON_LD_MARKER}\n<script type="application/ld+json">${serializeJsonLd(graph)}</script>`;
   const withoutLegacy = html.replace(JSON_LD_SCRIPT, '');
