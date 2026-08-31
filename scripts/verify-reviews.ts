@@ -8,6 +8,7 @@ import {
   verifiedValue,
 } from '../src/data/operators';
 import { prepareSsrAffiliateReviewHtml } from '../src/lib/affiliateHtml';
+import { reviewOutboundAvailabilityView } from '../src/lib/availabilityViews';
 import { selectReviewContextualLinks } from '../src/lib/internalLinks';
 import { getStaticReviewHtml } from '../src/lib/staticHtml.js';
 import { findRenderedEditorScoreContexts } from './lib/rendered-editor-score-detector';
@@ -23,6 +24,10 @@ export interface ReviewQaResult {
   uniqueTitleCount: number;
   factSummaryCount: number;
   answerBlockCount: number;
+  maxAnswerBlocksPerReview: number;
+  factSummaryAfterVerdictCount: number;
+  visibleInternalStatusLeakCount: number;
+  outboundEligibilityAssertionCount: number;
   disclosureCount: number;
   contextualNavigationCount: number;
   faqPageCount: number;
@@ -57,6 +62,15 @@ function plain(value: string): string {
   return decodeHtml(value.replace(/<[^>]+>/g, ' '))
     .replace(/\s+/g, ' ')
     .trim();
+}
+
+function visiblePlain(value: string): string {
+  return plain(
+    value
+      .replace(/<script\b[\s\S]*?<\/script>/gi, '')
+      .replace(/<style\b[\s\S]*?<\/style>/gi, '')
+      .replace(/<!--[\s\S]*?-->/g, ''),
+  );
 }
 
 function canonical(html: string): string {
@@ -177,6 +191,10 @@ export function runReviewQa(root = process.cwd()): ReviewQaResult {
   let ssrRenderCount = 0;
   let factSummaryCount = 0;
   let answerBlockCount = 0;
+  const maxAnswerBlocksPerReview = 2;
+  let factSummaryAfterVerdictCount = 0;
+  let visibleInternalStatusLeakCount = 0;
+  let outboundEligibilityAssertionCount = 0;
   let disclosureCount = 0;
   let contextualNavigationCount = 0;
   let faqPageCount = 0;
@@ -231,6 +249,9 @@ export function runReviewQa(root = process.cwd()): ReviewQaResult {
     if (
       !rendered.includes(
         `<section class="sc-review-fact-summary" data-canonical-operator="${slug}">`,
+      ) &&
+      !rendered.includes(
+        `<section class="sc-review-fact-summary" data-canonical-operator="${slug}" `,
       )
     ) {
       errors.push(`${slug}: canonical fact summary is missing`);
@@ -238,17 +259,21 @@ export function runReviewQa(root = process.cwd()): ReviewQaResult {
       factSummaryCount += 1;
     }
     for (const field of CANONICAL_OPERATOR_FIELDS) {
-      const expected =
-        `data-canonical-field="${field}" ` +
-        `data-fact-status="${record[field].status}"`;
-      if (!rendered.includes(expected)) {
+      const status = record[field].status;
+      if (!rendered.includes(`${field}:${status}`)) {
         errors.push(`${slug}.${field}: rendered canonical status mismatch`);
+      }
+      const row = `data-canonical-field="${field}"`;
+      if (status === 'verified' && !rendered.includes(row)) {
+        errors.push(`${slug}.${field}: verified fact row is missing`);
+      }
+      if (status !== 'verified' && rendered.includes(row)) {
+        errors.push(`${slug}.${field}: unresolved or missing fact row is visible`);
       }
     }
     for (const required of [
       'legal-status-source',
       'visitor-offer-eligibility',
-      'operator-verification-date',
     ]) {
       if (!rendered.includes(`data-review-fact="${required}"`)) {
         errors.push(`${slug}: missing ${required} fact`);
@@ -270,6 +295,19 @@ export function runReviewQa(root = process.cwd()): ReviewQaResult {
       ),
     ];
     answerBlockCount += answerBlocks.length;
+    if (answerBlocks.length > maxAnswerBlocksPerReview) {
+      errors.push(`${slug}: more than ${maxAnswerBlocksPerReview} injected answer blocks`);
+    }
+    const authoredHeadings = [
+      ...source.matchAll(/<h[2-4]\b[^>]*>([\s\S]*?)<\/h[2-4]>/gi),
+    ].map((match) => plain(match[1]));
+    const kindCue: Record<string, RegExp> = {
+      redemption: /\b(?:redemption|redeem|cash ?out|payout)\b/i,
+      payments: /\b(?:payment|banking|redemption method)\b/i,
+      games: /\b(?:games?|library|lobby|slots)\b/i,
+      'company-launch': /\b(?:operator|company|owner|launch|who (?:runs|operates))\b/i,
+      offer: /\b(?:bonus|offer|promo|free sc)\b/i,
+    };
     for (const [, kind, block] of answerBlocks) {
       if (!/<h2[^>]*>[^<]*\?<\/h2>/.test(block)) {
         errors.push(`${slug}/${kind}: answer block lacks a question H2`);
@@ -277,6 +315,25 @@ export function runReviewQa(root = process.cwd()): ReviewQaResult {
       if (/\b(?:we|our)\s+(?:observed|tested|measured)\b/i.test(block)) {
         errors.push(`${slug}/${kind}: answer block implies first-hand testing`);
       }
+      if (authoredHeadings.some((heading) => kindCue[kind]?.test(heading))) {
+        errors.push(`${slug}/${kind}: answer block duplicates an authored section`);
+      }
+    }
+    const verdictPosition = rendered.search(
+      /\bclass=["'][^"']*\b(?:verdict-(?:wrap|box)|score-(?:box|hero))\b/i,
+    );
+    const summaryPosition = rendered.indexOf('<!--sc-review-facts-after-verdict-->');
+    if (verdictPosition >= 0 && summaryPosition > verdictPosition) {
+      factSummaryAfterVerdictCount += 1;
+    } else {
+      errors.push(`${slug}: fact summary does not follow the authored verdict`);
+    }
+    const summary = rendered.match(
+      /<section class="sc-review-fact-summary"[\s\S]*?<\/section>/i,
+    )?.[0] ?? '';
+    if (/\b(?:Unresolved|Not verified|Not canonicalized)\b/i.test(visiblePlain(summary))) {
+      visibleInternalStatusLeakCount += 1;
+      errors.push(`${slug}: fact summary exposes an internal status label`);
     }
 
     const nodes = jsonLdNodes(rendered);
@@ -360,6 +417,30 @@ export function runReviewQa(root = process.cwd()): ReviewQaResult {
         errors.push(`${slug}: contextual destination ${link.href} is missing`);
       }
     }
+
+    for (const state of [null, 'TX', 'CA'] as const) {
+      const geoRendered = prepareSsrAffiliateReviewHtml(
+        source,
+        state,
+        slug,
+        `review-${slug}`,
+      );
+      const expected = reviewOutboundAvailabilityView(slug, state);
+      const summaryEligibility = geoRendered.match(
+        /data-review-fact="visitor-offer-eligibility"[^>]*\bdata-cta-eligible="(true|false)"/i,
+      )?.[1];
+      if (summaryEligibility !== String(expected.canCta)) {
+        errors.push(`${slug}/${state ?? 'unknown'}: summary CTA eligibility mismatch`);
+      }
+      const hasCta = new RegExp(
+        `<a\\b[^>]*href=["']/bonuses/${slug}/?(?:\\?[^"']*)?["']`,
+        'i',
+      ).test(geoRendered);
+      if (hasCta !== expected.canCta) {
+        errors.push(`${slug}/${state ?? 'unknown'}: CTA presence disagrees with eligibility`);
+      }
+      outboundEligibilityAssertionCount += 1;
+    }
   }
 
   for (const [value, owners] of titles) {
@@ -382,6 +463,10 @@ export function runReviewQa(root = process.cwd()): ReviewQaResult {
     uniqueTitleCount: titles.size,
     factSummaryCount,
     answerBlockCount,
+    maxAnswerBlocksPerReview,
+    factSummaryAfterVerdictCount,
+    visibleInternalStatusLeakCount,
+    outboundEligibilityAssertionCount,
     disclosureCount,
     contextualNavigationCount,
     faqPageCount,

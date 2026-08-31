@@ -1,7 +1,10 @@
 import type { AffiliatePartner } from '../data/affiliates';
+import { getPartner } from '../data/affiliates';
+import { getEditorialOutbound } from '../data/editorialOutbound';
 import type { UsStateCode } from '../data/usStates';
 import {
   availabilityForPartner,
+  siteCtaEligibility,
   type AvailabilityFacade,
 } from './availability';
 
@@ -21,6 +24,58 @@ export interface NoDepositOfferAvailabilityView {
   canCta: boolean;
   reason: AvailabilityFacade['cta']['reason'] | 'partner-not-found';
   verification: OfferVerificationView;
+}
+
+export interface ReviewOutboundAvailabilityView {
+  kind: 'partner' | 'editorial' | 'none';
+  canCta: boolean;
+  reason: AvailabilityFacade['cta']['reason'] | 'no-outbound';
+  label: string;
+}
+
+export function reviewOutboundAvailabilityView(
+  slug: string,
+  state: UsStateCode | null | undefined,
+): ReviewOutboundAvailabilityView {
+  const partner = getPartner(slug);
+  if (partner) {
+    const cta = availabilityForPartner(partner, state).cta;
+    return {
+      kind: 'partner',
+      canCta: cta.eligible,
+      reason: cta.reason,
+      label: cta.eligible
+        ? 'Affiliate offer link available under operator and site CTA policies.'
+        : cta.reason === 'region-unknown'
+          ? 'Affiliate offer link hidden until location is available.'
+          : cta.reason === 'partner-restricted'
+            ? 'Affiliate offer link hidden under operator commercial policy.'
+            : 'Affiliate offer link hidden under site CTA policy.',
+    };
+  }
+  if (getEditorialOutbound(slug)) {
+    const site = siteCtaEligibility(state);
+    return {
+      kind: 'editorial',
+      canCta: site.eligible,
+      reason: !state
+        ? 'region-unknown'
+        : site.eligible
+          ? 'allowed'
+          : 'site-policy-suppressed',
+      label: site.eligible
+        ? 'Editorial outbound link available under site CTA policy.'
+        : !state
+          ? 'Editorial outbound link hidden until location is available.'
+          : 'Editorial outbound link hidden under site CTA policy.',
+    };
+  }
+  return {
+    kind: 'none',
+    canCta: false,
+    reason: 'no-outbound',
+    label: 'No outbound offer link is provided for this review.',
+  };
 }
 
 export function bestPartnerAvailabilityView(

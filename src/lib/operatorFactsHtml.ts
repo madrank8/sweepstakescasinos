@@ -15,6 +15,10 @@ import {
   availabilityForState,
   type AvailabilityFacade,
 } from './availability';
+import {
+  reviewOutboundAvailabilityView,
+  type ReviewOutboundAvailabilityView,
+} from './availabilityViews';
 import type { StateRecord } from './tracker/types';
 
 const MARKER =
@@ -109,41 +113,24 @@ function formatField(field: CanonicalOperatorField, value: unknown): string {
   return String(value);
 }
 
-function factStateValue(
-  field: CanonicalOperatorField,
-  fact: CanonicalFact<unknown>,
-): string {
-  if (fact.status === 'verified') return formatField(field, fact.value);
-  return fact.status === 'unresolved' ? 'Unresolved' : 'Not verified';
-}
-
 function factRow(
   field: CanonicalOperatorField,
   fact: CanonicalFact<unknown>,
   reviewFact?: string,
-): string {
+): string | undefined {
+  if (fact.status !== 'verified') return undefined;
   const reviewFactAttribute = reviewFact
     ? ` data-review-fact="${reviewFact}"`
     : '';
   return (
     `<div class="sc-operator-fact"><dt>${LABELS[field]}</dt>` +
     `<dd data-canonical-field="${field}" data-fact-status="${fact.status}"${reviewFactAttribute}>` +
-    `${escapeHtml(factStateValue(field, fact))}</dd></div>`
+    `${escapeHtml(formatField(field, fact.value))}</dd></div>`
   );
 }
 
-function availabilitySummary(view: AvailabilityFacade, hasPartner: boolean): string {
-  if (!hasPartner) return 'No affiliate offer is listed for this review.';
-  if (view.cta.reason === 'region-unknown') {
-    return 'Unknown until the visitor location is resolved.';
-  }
-  if (view.cta.reason === 'site-policy-suppressed') {
-    return 'Offer not shown under site CTA policy; this is not a legal conclusion.';
-  }
-  if (view.cta.reason === 'partner-restricted') {
-    return 'Unavailable under the operator commercial policy; this is not a legal conclusion.';
-  }
-  return 'Available under the operator commercial policy and site CTA policy.';
+function availabilitySummary(view: ReviewOutboundAvailabilityView): string {
+  return view.label;
 }
 
 function legalSourceSummary(view: AvailabilityFacade): string {
@@ -164,11 +151,27 @@ function answerSection(kind: string, question: string, answer: string): string {
   );
 }
 
-function answerSections(operator: OperatorRecord): string {
+const ANSWER_HEADING_CUES: Record<string, RegExp> = {
+  redemption: /\b(?:redemption|redeem|cash ?out|payout)\b/i,
+  payments: /\b(?:payment|banking|redemption method)\b/i,
+  games: /\b(?:games?|library|lobby|slots)\b/i,
+  'company-launch': /\b(?:operator|company|owner|launch|who (?:runs|operates))\b/i,
+  offer: /\b(?:bonus|offer|promo|free sc)\b/i,
+};
+
+function authoredAnswersKind(html: string, kind: string): boolean {
+  const cue = ANSWER_HEADING_CUES[kind];
+  if (!cue) return false;
+  return [...html.matchAll(/<h[2-4]\b[^>]*>([\s\S]*?)<\/h[2-4]>/gi)].some(
+    (match) => cue.test(plainText(match[1])),
+  );
+}
+
+function answerSections(operator: OperatorRecord, authoredHtml: string): string {
   const name = verifiedValue(operator.name);
   if (!name) return '';
   const escapedName = escapeHtml(name);
-  const answers: string[] = [];
+  const answers: Array<{ kind: string; html: string }> = [];
   const cash = verifiedValue(operator.cashRedemptionMinimum);
   const giftCard = verifiedValue(operator.giftCardRedemptionMinimum);
   const timing = verifiedValue(operator.publishedRedemptionTiming);
@@ -186,47 +189,51 @@ function answerSections(operator: OperatorRecord): string {
     const timingCopy = timing
       ? ` Its published redemption estimate is ${escapeHtml(timing)}; this is not an observed payout result.`
       : '';
-    answers.push(
-      answerSection(
+    answers.push({
+      kind: 'redemption',
+      html: answerSection(
         'redemption',
         `What are ${escapedName}’s published redemption terms?`,
         `${minimumCopy}${timingCopy}`,
       ),
-    );
+    });
   }
 
   const payments = verifiedValue(operator.paymentMethods);
   if (payments) {
-    answers.push(
-      answerSection(
+    answers.push({
+      kind: 'payments',
+      html: answerSection(
         'payments',
         `Which payment methods does ${escapedName} publish?`,
         `${escapedName} publishes these redemption payment methods: ${escapeHtml(payments.join(', '))}.`,
       ),
-    );
+    });
   }
 
   const gameCount = verifiedValue(operator.gameCount);
   if (gameCount !== undefined) {
-    answers.push(
-      answerSection(
+    answers.push({
+      kind: 'games',
+      html: answerSection(
         'games',
         `How many games does ${escapedName} publish?`,
         `${escapedName} publishes a game count of ${gameCount.toLocaleString('en-US')}. This is a published count, not a live inventory observation.`,
       ),
-    );
+    });
   }
 
   const operatorName = verifiedValue(operator.operatorName);
   const launchDate = verifiedValue(operator.launchDate);
   if (operatorName && launchDate) {
-    answers.push(
-      answerSection(
+    answers.push({
+      kind: 'company-launch',
+      html: answerSection(
         'company-launch',
         `Who operates ${escapedName}, and when did it launch?`,
         `${escapedName} is operated by ${escapeHtml(operatorName)} and has a published launch date of ${escapeHtml(launchDate)}.`,
       ),
-    );
+    });
   }
 
   const signup = verifiedValue(operator.signupOffer);
@@ -236,35 +243,45 @@ function answerSections(operator: OperatorRecord): string {
       ...(signup ? [`signup offer: ${escapeHtml(signup)}`] : []),
       ...(daily ? [`daily offer: ${escapeHtml(daily)}`] : []),
     ];
-    answers.push(
-      answerSection(
+    answers.push({
+      kind: 'offer',
+      html: answerSection(
         'offer',
         `What offer does ${escapedName} publish?`,
         `${escapedName} publishes the following ${offerParts.join('; ')}. Offers can change; confirm current terms with the operator.`,
       ),
-    );
+    });
   }
-  return answers.join('');
+  return answers
+    .filter((answer) => !authoredAnswersKind(authoredHtml, answer.kind))
+    .slice(0, 2)
+    .map((answer) => answer.html)
+    .join('');
 }
 
 function factSummary(
   operator: OperatorRecord,
   view: AvailabilityFacade,
-  hasPartner: boolean,
+  outbound: ReviewOutboundAvailabilityView,
 ): string {
-  const rows = CANONICAL_OPERATOR_FIELDS.map((field) =>
+  const rows = CANONICAL_OPERATOR_FIELDS.flatMap((field) =>
     factRow(
       field,
       operator[field],
       field === 'lastVerifiedDate' ? 'operator-verification-date' : undefined,
-    ),
+    ) ?? [],
   );
   rows.push(
     `<div class="sc-operator-fact"><dt>Legal-status source</dt>` +
       `<dd data-review-fact="legal-status-source">${escapeHtml(legalSourceSummary(view))}</dd></div>`,
     `<div class="sc-operator-fact"><dt>Visitor offer eligibility</dt>` +
-      `<dd data-review-fact="visitor-offer-eligibility">${escapeHtml(availabilitySummary(view, hasPartner))}</dd></div>`,
+      `<dd data-review-fact="visitor-offer-eligibility" data-outbound-kind="${outbound.kind}" ` +
+      `data-cta-eligible="${outbound.canCta}" data-cta-reason="${outbound.reason}">` +
+      `${escapeHtml(availabilitySummary(outbound))}</dd></div>`,
   );
+  const statuses = CANONICAL_OPERATOR_FIELDS.map(
+    (field) => `${field}:${operator[field].status}`,
+  ).join(',');
   return (
     '<style>' +
     '.sc-review-fact-summary{margin:18px 0 22px;padding:16px;border:1px solid #dbe3ee;border-left:5px solid #f59e0b;border-radius:12px;background:#fffdf5;}' +
@@ -277,9 +294,10 @@ function factSummary(
     '.sc-review-answer h2{margin:0 0 6px;font-size:1.15rem;}.sc-review-answer p{margin:0;}' +
     '@media(max-width:620px){.sc-operator-facts{grid-template-columns:1fr;}}' +
     '</style>' +
-    `<section class="sc-review-fact-summary" data-canonical-operator="${operator.slug}">` +
-    '<h2>Canonical review facts</h2>' +
-    '<p>Verified values come from the canonical operator record. “Unresolved” and “Not verified” fields are intentionally not inferred.</p>' +
+    `<section class="sc-review-fact-summary" data-canonical-operator="${operator.slug}" ` +
+    `data-fact-statuses="${statuses}">` +
+    '<h2>Review facts</h2>' +
+    '<p>These sourced details are included only when the available records support a value.</p>' +
     `<dl class="sc-operator-facts" data-canonical-operator="${operator.slug}">${rows.join('')}</dl>` +
     '</section>'
   );
@@ -649,13 +667,26 @@ export function injectOperatorFactsHtml(
         options.state,
         options.trackerState ?? undefined,
       );
+  const outbound = reviewOutboundAvailabilityView(slug, options.state);
   const insertion =
-    factSummary(operator, view, partner !== undefined) + answerSections(operator);
-  const h1Close = /<\/h1\s*>/i;
-  if (!h1Close.test(withoutMarker)) {
+    factSummary(operator, view, outbound) + answerSections(operator, withoutMarker);
+  const verdict = elementRanges(withoutMarker)
+    .filter(
+      (element) =>
+        /\bclass\s*=\s*(?:"[^"]*\b(?:verdict-(?:wrap|box)|score-(?:box|hero))\b[^"]*"|'[^']*\b(?:verdict-(?:wrap|box)|score-(?:box|hero))\b[^']*')/i.test(
+          element.opening,
+        ),
+    )
+    .sort((left, right) => left.start - right.start)[0];
+  if (!verdict) {
     return withoutMarker.replace(INSERTION_POINT, insertion);
   }
   return withoutMarker
-    .replace(h1Close, (match) => `${match}${insertion}`)
+    .slice(0, verdict.end)
+    .concat(
+      '<!--sc-review-facts-after-verdict-->',
+      insertion,
+      withoutMarker.slice(verdict.end),
+    )
     .replace(INSERTION_POINT, '');
 }
