@@ -27,7 +27,7 @@ const homepage = await import('../src/lib/homepage');
 assert.equal(formatPartialIsoDate('2025-12'), 'December 2025');
 assert.equal(formatPartialIsoDate('2024'), '2024');
 const cardCrush = OPERATORS.find((operator) => operator.slug === 'card-crush')!;
-assert.doesNotMatch(operatorFactNote(cardCrush), /CA|NY|available/i);
+assert.doesNotMatch(operatorFactNote(cardCrush), /\b(?:CA|NY)\b|available/i);
 assert.match(operatorFactNote(cardCrush), /Vision NL Limited/);
 assert.equal(
   typeof homepage.selectVerifiedEditorScores,

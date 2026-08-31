@@ -157,7 +157,11 @@ for (const path of [
   'src/routes/state-legality/index.astro',
 ]) {
   const source = readFileSync(resolve(path), 'utf8');
-  assert.match(source, /(?:lib\/availability|\.\/availability|data\/availability)/, `${path} must consume the facade`);
+  assert.match(
+    source,
+    /(?:lib\/availability|\.\/availability|data\/availability|lib\/homepage)/,
+    `${path} must consume the facade or an availability-aware view model`,
+  );
   assert.doesNotMatch(source, /from ['"][^'"]*data\/geo['"]/, `${path} must not bypass the facade`);
 }
 
