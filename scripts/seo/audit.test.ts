@@ -2,12 +2,21 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { TESTING_BRANDS } from '../../src/data/testingBrands';
+import { AFFILIATE_PARTNERS } from '../../src/data/affiliates';
+import {
+  reconcileAvailabilityAuthorities,
+  renderAvailabilityConflictReport,
+} from '../../src/lib/availability';
+import {
+  fallbackAvailability,
+  fallbackOperators,
+  fallbackStates,
+} from '../../src/lib/tracker/fallback';
 import { softenOverclaimHtml } from '../../src/lib/testingFragments';
 import {
   auditAuthoredRoutes,
   auditSchemaParity,
   inventoryOperatorFacts,
-  reconcileStateAuthorities,
   renderAuditReports,
   scanTestingClaims,
 } from './audit-core';
@@ -232,15 +241,6 @@ const schema = auditSchemaParity(root);
 assert.equal(schema.reviews.length, 29, 'schema parity must cover every review');
 assert.ok(schema.reviews.every((review) => review.usesExistingVisibleScoreHelper));
 
-const states = reconcileStateAuthorities();
-assert.equal(states.states.length, 51, 'all tracker jurisdictions must be reconciled');
-assert.equal(states.affiliates.length, 13, 'all affiliate authorities must be reconciled');
-assert.ok(
-  states.conflicts.every((conflict) =>
-    ['RESOLVED', 'UNRESOLVED', 'MANUAL_REVIEW'].includes(conflict.status),
-  ),
-);
-
 const reports = renderAuditReports(root);
 assert.deepEqual(
   [...reports.keys()].sort(),
@@ -259,6 +259,23 @@ for (const [name, report] of reports) {
   assert.match(report, /^# /);
   assert.ok(report.endsWith('\n'), `${name} must end with a newline`);
 }
+const availability = reconcileAvailabilityAuthorities({
+  states: fallbackStates,
+  partners: AFFILIATE_PARTNERS,
+  trackerOperators: fallbackOperators,
+  trackerAvailability: fallbackAvailability,
+});
+const availabilityReport = renderAvailabilityConflictReport(availability);
+assert.equal(
+  reports.get('state-legality-conflicts.md'),
+  availabilityReport,
+  'SEO report generation must delegate to the availability facade renderer',
+);
+assert.equal(
+  readFileSync(resolve(root, 'docs/seo/state-legality-conflicts.md'), 'utf8'),
+  availabilityReport,
+  'the committed state-legality report must match the facade renderer exactly',
+);
 
 console.log(
   `seo audit tests: OK — ${operators.reviews.length} reviews, ` +

@@ -7,9 +7,16 @@ import {
 import { extname, join, relative, resolve } from 'node:path';
 import { AFFILIATE_PARTNERS } from '../../src/data/affiliates';
 import { BRAND_ENTITIES } from '../../src/data/brandEntities';
-import { SITE_BANNED_STATES } from '../../src/data/geo';
 import { OPERATORS, verifiedValue } from '../../src/data/operators';
-import { fallbackStates } from '../../src/lib/tracker/fallback';
+import {
+  reconcileAvailabilityAuthorities,
+  renderAvailabilityConflictReport,
+} from '../../src/lib/availability';
+import {
+  fallbackAvailability,
+  fallbackOperators,
+  fallbackStates,
+} from '../../src/lib/tracker/fallback';
 import { visibleEditorialScore } from '../../src/lib/pageChrome';
 import { validateAllResults } from '../../src/data/testingResults';
 import { findTestingClaims, type UnsupportedTestingClaim } from './claim-policy';
@@ -690,96 +697,6 @@ export function auditSchemaParity(root = process.cwd()): SchemaAudit {
   return { reviews, mismatches: reviews.filter((review) => review.parity === 'MISMATCH') };
 }
 
-export interface StateAuthorityRow {
-  code: string;
-  trackerStatus: string;
-  siteCtaPolicy: string;
-}
-
-export interface AffiliateAuthorityRow {
-  slug: string;
-  restrictedStates: string;
-  availableOnlyInStates: string;
-}
-
-export interface StateAuthorityConflict {
-  subject: string;
-  authorities: SourceValue[];
-  status: ConflictStatus;
-  note: string;
-}
-
-export interface StateAuthorityAudit {
-  states: StateAuthorityRow[];
-  affiliates: AffiliateAuthorityRow[];
-  conflicts: StateAuthorityConflict[];
-}
-
-export function reconcileStateAuthorities(): StateAuthorityAudit {
-  const banned = new Set<string>(SITE_BANNED_STATES);
-  const states = fallbackStates
-    .map((state) => ({
-      code: state.state_code,
-      trackerStatus: state.sweeps_casino_status,
-      siteCtaPolicy: banned.has(state.state_code) ? 'suppress all affiliate CTAs' : 'site CTA layer permits evaluation',
-    }))
-    .sort((a, b) => a.code.localeCompare(b.code));
-  const affiliates = AFFILIATE_PARTNERS.map((partner) => ({
-    slug: partner.slug,
-    restrictedStates: partner.restrictedStates.join(', ') || 'none',
-    availableOnlyInStates: partner.availableOnlyInStates?.join(', ') || 'none',
-  })).sort((a, b) => a.slug.localeCompare(b.slug));
-  const conflicts: StateAuthorityConflict[] = [];
-
-  for (const state of states) {
-    const trackerRestrictive = ['banned', 'restricted', 'pending_ban'].includes(
-      state.trackerStatus,
-    );
-    const siteSuppresses = banned.has(state.code);
-    if (trackerRestrictive !== siteSuppresses) {
-      conflicts.push({
-        subject: state.code,
-        authorities: [
-          {
-            path: `src/lib/tracker/fallback.ts#${state.code}`,
-            value: state.trackerStatus,
-          },
-          {
-            path: 'src/data/geo.ts#SITE_BANNED_STATES',
-            value: siteSuppresses ? 'listed' : 'not listed',
-          },
-        ],
-        status: 'MANUAL_REVIEW',
-        note: 'The tracker describes legal posture; geo.ts controls site-level CTA suppression. This audit does not infer that either authority should overwrite the other.',
-      });
-    }
-  }
-
-  for (const partner of AFFILIATE_PARTNERS) {
-    if (!partner.availableOnlyInStates?.length) continue;
-    const overlap = partner.availableOnlyInStates.filter((code) => banned.has(code));
-    if (overlap.length) {
-      conflicts.push({
-        subject: partner.slug,
-        authorities: [
-          {
-            path: `src/data/affiliates.ts#${partner.slug}.availableOnlyInStates`,
-            value: partner.availableOnlyInStates.join(', '),
-          },
-          {
-            path: 'src/data/geo.ts#SITE_BANNED_STATES',
-            value: overlap.join(', '),
-          },
-        ],
-        status: 'MANUAL_REVIEW',
-        note: 'Partner availability and site-wide CTA policy are intentionally separate; the combined CTA decision remains suppressive.',
-      });
-    }
-  }
-
-  return { states, affiliates, conflicts };
-}
-
 function md(value: unknown): string {
   return String(value ?? '—').replaceAll('|', '\\|').replace(/\s+/g, ' ').trim() || '—';
 }
@@ -838,35 +755,6 @@ function testingClaimsReport(claims: TestingClaimOccurrence[]): string {
     ...claims.map(
       (claim) =>
         `| \`${claim.path}:${claim.line}:${claim.column}\` | \`${md(claim.phrase)}\` | ${claim.surface} | ${claim.classification} | ${md(claim.evidenceBasis)} | ${md(claim.context)} |\n`,
-    ),
-  ].join('');
-}
-
-function stateReport(audit: StateAuthorityAudit): string {
-  return [
-    reportHeader('State, Legality, and CTA Authority Reconciliation'),
-    'This report does not infer legal status. Tracker posture, partner availability, and site CTA suppression remain separate authorities.\n\n',
-    '## Manual-review differences\n\n',
-    '| Subject | Exact authority values | Status | Note |\n',
-    '|---|---|---|---|\n',
-    ...audit.conflicts.map(
-      (conflict) =>
-        `| ${md(conflict.subject)} | ${conflict.authorities
-          .map((source) => `\`${md(source.path)}\` = \`${md(source.value)}\``)
-          .join('<br>')} | ${conflict.status} | ${md(conflict.note)} |\n`,
-    ),
-    '\n## Tracker and site CTA inventory\n\n',
-    '| State | Tracker fallback status | Site CTA authority |\n',
-    '|---|---|---|\n',
-    ...audit.states.map(
-      (state) => `| ${state.code} | ${state.trackerStatus} | ${state.siteCtaPolicy} |\n`,
-    ),
-    '\n## Affiliate availability inventory\n\n',
-    '| Operator | Restricted states | Available only in |\n',
-    '|---|---|---|\n',
-    ...audit.affiliates.map(
-      (affiliate) =>
-        `| ${affiliate.slug} | ${affiliate.restrictedStates} | ${affiliate.availableOnlyInStates} |\n`,
     ),
   ].join('');
 }
@@ -994,11 +882,16 @@ export function renderAuditReports(root = process.cwd()): Map<string, string> {
   const claims = scanTestingClaims(root);
   const routes = auditAuthoredRoutes(root);
   const schema = auditSchemaParity(root);
-  const states = reconcileStateAuthorities();
+  const availability = reconcileAvailabilityAuthorities({
+    states: fallbackStates,
+    partners: AFFILIATE_PARTNERS,
+    trackerOperators: fallbackOperators,
+    trackerAvailability: fallbackAvailability,
+  });
   return new Map([
     ['operator-data-conflicts.md', operatorReport(operators)],
     ['testing-claims-audit.md', testingClaimsReport(claims)],
-    ['state-legality-conflicts.md', stateReport(states)],
+    ['state-legality-conflicts.md', renderAvailabilityConflictReport(availability)],
     ['schema-audit.md', schemaReport(schema)],
     ['technical-audit.md', technicalReport(routes, claims)],
     ['cannibalisation-review.md', cannibalisationReport(root)],
@@ -1012,7 +905,12 @@ export function auditSummary(root = process.cwd()) {
   const claims = scanTestingClaims(root);
   const routes = auditAuthoredRoutes(root);
   const schema = auditSchemaParity(root);
-  const states = reconcileStateAuthorities();
+  const availability = reconcileAvailabilityAuthorities({
+    states: fallbackStates,
+    partners: AFFILIATE_PARTNERS,
+    trackerOperators: fallbackOperators,
+    trackerAvailability: fallbackAvailability,
+  });
   return {
     reviewCount: operators.reviews.length,
     homepageOperatorCount: operators.homepage.length,
@@ -1035,8 +933,12 @@ export function auditSummary(root = process.cwd()) {
     prototypeNoindex: routes.prototypeNoindex,
     schemaReviewCount: schema.reviews.length,
     schemaMismatchCount: schema.mismatches.length,
-    stateCount: states.states.length,
-    affiliateCount: states.affiliates.length,
-    stateAuthorityConflictCount: states.conflicts.length,
+    stateCount: availability.jurisdictionCount,
+    affiliateCount: availability.partnerCount,
+    stateAuthorityConflictCount: availability.warnings.filter((warning) =>
+      ['tracker-policy-difference', 'impossible-commercial-intersection'].includes(
+        warning.kind,
+      ),
+    ).length,
   };
 }
