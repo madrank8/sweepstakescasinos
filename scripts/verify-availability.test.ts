@@ -161,4 +161,14 @@ for (const path of [
   assert.doesNotMatch(source, /from ['"][^'"]*data\/geo['"]/, `${path} must not bypass the facade`);
 }
 
+const stateRoute = readFileSync(resolve('src/routes/states/[slug].astro'), 'utf8');
+assert.match(stateRoute, /legalFreshnessIso\s*=\s*stateAvailability\.legal\?\.freshness\.value/);
+assert.match(stateRoute, /dateModified=\{legalFreshnessIso\}/);
+assert.match(stateRoute, /datetime=\{legalFreshnessIso\}/);
+assert.doesNotMatch(
+  stateRoute,
+  /mdxUpdated\s*\?\s*mdxUpdated\.toISOString\(\)\s*:\s*trackerState\.last_auto_updated_at/,
+  'state legal freshness must not be replaced by page publication metadata',
+);
+
 console.log('verify-availability tests: OK — 51 jurisdictions, 13 partners, unified CTA facade');
