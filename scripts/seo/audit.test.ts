@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { TESTING_BRANDS } from '../../src/data/testingBrands';
+import { softenOverclaimHtml } from '../../src/lib/testingFragments';
 import {
   auditAuthoredRoutes,
   auditSchemaParity,
@@ -167,6 +168,19 @@ assert.equal(
   ).length,
   1,
   'a nearby FAQ question must not mask an unsupported first-hand answer',
+);
+const softenedClaim = softenOverclaimHtml(
+  '{"text":"Our own tests cleared in two business days. Published policy and attributed reader reports remain."}',
+);
+assert.doesNotMatch(
+  softenedClaim,
+  /\bour own tests?\b/i,
+  'the content softener must remove unsupported own-test sentences',
+);
+assert.match(
+  softenedClaim,
+  /Published policy and attributed reader reports remain\./,
+  'the content softener must preserve attributed information after an own-test sentence',
 );
 
 const rollaPath = resolve(root, 'reviews/rolla.html');
