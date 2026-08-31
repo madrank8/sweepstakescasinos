@@ -75,11 +75,14 @@ assert.match(injected, /data-canonical-field="operatorName"[^>]*>SGSE LLC</);
 assert.equal(injectOperatorFactsHtml(injected, 'american-luck'), injected, 'injection is idempotent');
 
 const unresolvedFixture =
-  '<main><!--sc-operator-facts data-operator="mcluck" ' +
+  '<main><div class="verdict-box"><span class="big">88</span>' +
+  '<span class="denom">/100</span></div>' +
+  '<!--sc-operator-facts data-operator="mcluck" ' +
   'data-fields="name,editorScore100"--></main>';
 const unresolvedRendered = injectOperatorFactsHtml(unresolvedFixture, 'mcluck');
 assert.doesNotMatch(unresolvedRendered, /data-canonical-field="editorScore100"/);
-assert.doesNotMatch(unresolvedRendered, />\d+(?:\.\d+)?\/100</);
+assert.doesNotMatch(unresolvedRendered, />\s*88\s*<\/span>\s*<span[^>]*>\s*\/100</);
+assert.match(unresolvedRendered, /data-canonical-score-status="unresolved"/);
 
 function reviewNode(html: string): Record<string, unknown> {
   const block = html.match(
