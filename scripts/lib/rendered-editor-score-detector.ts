@@ -102,7 +102,8 @@ export function findRenderedEditorScoreContexts(
         .join(' ');
       if (
         EXPLICIT_THIRD_PARTY.test(line) ||
-        (scoreOnly && EXPLICIT_THIRD_PARTY.test(sourceContext))
+        (EXPLICIT_THIRD_PARTY.test(sourceContext) &&
+          (scoreOnly || /\breviews?\b/i.test(line)))
       ) {
         continue;
       }
