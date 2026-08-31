@@ -13,6 +13,9 @@ COMPLETE. Task 5 is implemented and verified on `cursor/seo-coherence-5d71`. No 
 - `4cbea9e` — `chore: run internal-link checks in ci`
 - `65f8013` — `fix: preserve editorial bonus hub links`
 - `bc429ba` — `fix: avoid redirecting internal research links`
+- `7be98a0` — `fix: deduplicate contextual article links`
+- `706a08e` — `test: crawl geo-dependent routes in ci`
+- `43b206c` — `fix: render vercel output in crawl gate`
 
 ## TDD red/green evidence
 
@@ -50,7 +53,7 @@ No thin page, filter permutation, payout superlative, or bonus superlative route
 
 ## Link-selector rules and counts
 
-- All 29 legacy reviews receive one idempotent contextual-navigation block through both static and SSR pipelines.
+- All 29 legacy reviews receive one idempotent contextual-navigation block: 27 through the SSR pipeline and 2 through the static pipeline.
 - The deterministic audit selects 169 review destinations before nearby-link de-duplication.
 - Each review can receive up to two alternatives, labeled “Related review”; no “better” claim is made.
 - Similarity uses only verified canonical relationships:
@@ -63,7 +66,7 @@ No thin page, filter permutation, payout superlative, or bonus superlative route
 - State review links filter on the existing availability facade and sort by canonical review label, then slug. The Texas fixture returns 12 links even when affiliate CPA and source order are reversed.
 - Known-state reviews link to `/states/<slug>/`; unknown region links to `/state-legality/` with availability-context wording and no legality implication.
 - Every state template links `/reviews/`, `/best/sweepstakes-casinos/`, `/state-legality/`, and eligible reviews when available.
-- Guide and news article templates link their parent/topic hub plus a context-appropriate commercial or state destination.
+- Guide and news article templates inspect the authored MDX body before selecting their parent/topic and commercial/state destinations. An existing destination is omitted, and the commercial/state selector falls through to the next distinct relevant candidate.
 - Redirect-only `/best/` is excluded from content-orphan findings.
 
 ## Test, CI, and crawl summary
@@ -75,7 +78,7 @@ No thin page, filter permutation, payout superlative, or bonus superlative route
   - `npm run seo:audit:test` — PASS
 - Deterministic SEO audit — PASS:
   - 103 authored routes;
-  - 1,479 authored internal-link occurrences;
+  - 1,478 authored internal-link occurrences;
   - 0 missing targets;
   - 0 content-orphan candidates.
 - Final `npm run ci` — PASS:
@@ -84,12 +87,26 @@ No thin page, filter permutation, payout superlative, or bonus superlative route
   - 115 indexable built pages passed rendered schema validation.
 - Final rendered crawl — PASS:
   - 123 fetched/rendered pages;
-  - 6,055 internal link occurrences;
+  - 6,054 internal link occurrences;
   - 0 missing targets;
   - 0 unintended redirects;
   - 0 duplicate contextual-block destinations;
   - 0 hierarchy failures;
   - 0 important commercial pages without inbound links.
+  - 31 geo-dependent SSR routes rendered in unknown, allowed Texas, and banned California modes (93 mode renders);
+  - 0 state-context or CTA expectation failures.
+
+## Review-finding fixes
+
+- TDD RED: body-aware selector tests failed because `internalDestinationsIn` did not exist, and guide/news routes passed no MDX body to their selectors.
+  GREEN: Markdown, MDX HTML, relative, and same-origin destinations are normalized before selection; contextual links omit body destinations and choose the next relevant commercial/state target.
+- TDD RED: rendered fixtures duplicated `/state-legality/` and `/states/california/` between guide/news body content and their adjacent contextual nav.
+  GREEN: the rendered graph checks review asides, guide nav, and article nav for both within-block and preceding-nearby duplicates.
+- The laws-by-state checklist now has one linked state-legality hub item followed by unlinked “Individual state guides” text plus direct California, Texas, and Florida examples; adjacent items no longer repeat `/state-legality/`.
+- TDD RED: the initial built crawl gate exposed that the Vercel adapter rejects `astro preview`.
+  GREEN: CI reads prerendered output from `.vercel/output/static` and invokes the built Vercel SSR handler directly, with no local server and with external runtime fetches disabled.
+- Geo requests use `x-vercel-ip-country: US` in all modes and `x-vercel-ip-country-region: TX|CA` only for known modes. Unknown and California renders expose no partner/editorial gateway CTA; Texas expectations account for per-operator availability. Review blocks link only `/state-legality/`, `/states/texas/`, or `/states/california/` for the corresponding mode.
+- `npm run ci` now runs the actual post-build `seo:crawl` gate after schema and odds integration checks. The final full run passed all gates.
 
 ## Self-review
 
