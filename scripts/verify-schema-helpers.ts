@@ -8,13 +8,16 @@ import {
   AUTHOR_ID,
   ORG_ID,
   WEBSITE_ID,
+  authorPersonNode,
   brandOrganizationNode,
   breadcrumbNode,
   faqPageNode,
   legislationNode,
   organizationNode,
+  webSiteNode,
 } from '../src/lib/schema';
 import { ALL_US_STATE_CODES } from '../src/data/usStates';
+import { SITE } from '../src/data/site';
 import { pngDimensions } from '../src/lib/pngDimensions';
 
 const PAGE = 'https://sweepstakeswiz.com/news/california-ab831-sweepstakes-ban/';
@@ -96,6 +99,41 @@ assert.deepEqual(
   pngDimensions('public/sweepstakeslogo/sweepstakeswiz.png'),
   sourceLogoDimensions,
   'PNG reader must accept copied-public asset paths',
+);
+
+// --- Canonical publisher/author trust facts ---
+const organization = organizationNode();
+const website = webSiteNode();
+const author = authorPersonNode();
+assert.equal(organization['@id'], SITE.ids.organization);
+assert.equal(organization.name, SITE.publisher.name);
+assert.equal(organization.alternateName, SITE.publisher.alternateName);
+assert.equal(organization.description, SITE.publisher.description);
+assert.equal(
+  (organization.contactPoint as Record<string, unknown>).email,
+  SITE.contact.email,
+);
+assert.equal(website['@id'], SITE.ids.website);
+assert.equal(website.name, SITE.publisher.name);
+assert.equal(author['@id'], SITE.ids.author);
+assert.equal(author.name, SITE.author.name);
+assert.equal(author.description, SITE.author.description);
+assert.equal(author.jobTitle, SITE.author.jobTitle);
+assert.equal(AUTHOR_ID, SITE.ids.author);
+assert.equal(ORG_ID, SITE.ids.organization);
+assert.equal(WEBSITE_ID, SITE.ids.website);
+
+const trustRibbon = (await import('../src/lib/pageChrome')).complianceRibbonMarkup();
+assert.match(trustRibbon, new RegExp(SITE.author.name));
+assert.match(trustRibbon, new RegExp(SITE.author.path));
+const contentLayoutSource = readFileSync(
+  new URL('../src/layouts/ContentLayout.astro', import.meta.url),
+  'utf8',
+);
+assert.match(contentLayoutSource, /SITE\.origin/);
+assert.doesNotMatch(
+  contentLayoutSource,
+  /const ORIGIN = ['"]https:\/\/sweepstakeswiz\.com['"]/,
 );
 
 const stateModule = (await import('../src/data/usStates')) as Record<string, unknown>;
