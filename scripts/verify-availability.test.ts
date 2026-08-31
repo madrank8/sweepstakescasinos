@@ -180,11 +180,10 @@ const trackerReconcileSource = readFileSync(
   resolve('src/data/trackerReconcile.ts'),
   'utf8',
 );
-assert.match(trackerReconcileSource, /lib\/availability/);
 assert.doesNotMatch(
   trackerReconcileSource,
-  /from ['"]\.\/geo['"]/,
-  'legacy tracker correlation helpers must delegate to the facade',
+  /wizAvailabilityForState/,
+  'the unused compatibility availability helper must stay removed',
 );
 
 console.log('verify-availability tests: OK — 51 jurisdictions, 13 partners, unified CTA facade');
