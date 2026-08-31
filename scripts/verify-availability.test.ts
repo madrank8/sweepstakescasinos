@@ -170,6 +170,12 @@ assert.doesNotMatch(
   /mdxUpdated\s*\?\s*mdxUpdated\.toISOString\(\)\s*:\s*trackerState\.last_auto_updated_at/,
   'state legal freshness must not be replaced by page publication metadata',
 );
+assert.match(stateRoute, /site CTA policy is separate from the tracker legal status/i);
+assert.doesNotMatch(
+  stateRoute,
+  /Because of \$\{name\}.*rules on marketing sweepstakes casinos/,
+  'site policy suppression must not be narrated as a state legal conclusion',
+);
 const trackerReconcileSource = readFileSync(
   resolve('src/data/trackerReconcile.ts'),
   'utf8',
