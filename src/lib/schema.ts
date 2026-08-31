@@ -22,10 +22,10 @@ import { brandAggregateRating } from './brandAggregateRating';
 
 const ORIGIN = SITE.origin;
 
-export const ORG_ID = `${ORIGIN}/#organization`;
-export const WEBSITE_ID = `${ORIGIN}/#website`;
-export const LOGO_ID = `${ORIGIN}/#logo`;
-export const AUTHOR_ID = `${ORIGIN}/author/${SITE.authorSlug}/#person`;
+export const ORG_ID = SITE.ids.organization;
+export const WEBSITE_ID = SITE.ids.website;
+export const LOGO_ID = SITE.ids.logo;
+export const AUTHOR_ID = SITE.ids.author;
 
 type Node = Record<string, unknown>;
 
@@ -46,29 +46,28 @@ export function organizationNode(): Node {
   return {
     '@type': 'Organization',
     '@id': ORG_ID,
-    name: SITE.name,
-    alternateName: SITE.altName,
+    name: SITE.publisher.name,
+    alternateName: SITE.publisher.alternateName,
     url: `${ORIGIN}/`,
     logo: {
       '@type': 'ImageObject',
       '@id': LOGO_ID,
       url: `${ORIGIN}${SITE.logo}`,
       ...PUBLISHER_LOGO_DIMENSIONS,
-      caption: SITE.name,
+      caption: SITE.publisher.name,
     },
     image: { '@id': LOGO_ID },
-    description:
-      'Independent review site comparing US sweepstakes (social) casinos, bonuses, and redemption policies.',
+    description: SITE.publisher.description,
     founder: { '@id': AUTHOR_ID },
     areaServed: { '@type': 'Country', name: 'United States' },
     publishingPrinciples: `${ORIGIN}/editorial-policy/`,
     contactPoint: {
       '@type': 'ContactPoint',
-      contactType: 'editorial inquiries',
-      email: 'contact@sweepstakeswiz.com',
-      url: `${ORIGIN}/contact/`,
+      contactType: SITE.contact.type,
+      email: SITE.contact.email,
+      url: `${ORIGIN}${SITE.contact.path}`,
     },
-    sameAs: ['https://www.youtube.com/@SweepstakesWiz'],
+    sameAs: SITE.publisher.sameAs,
     // Mirrors the topical map's core + outer clusters (docs/topical-map.md).
     knowsAbout: [
       'Sweepstakes casinos',
@@ -87,7 +86,7 @@ export function webSiteNode(): Node {
     '@type': 'WebSite',
     '@id': WEBSITE_ID,
     url: `${ORIGIN}/`,
-    name: SITE.name,
+    name: SITE.publisher.name,
     publisher: { '@id': ORG_ID },
     inLanguage: 'en-US',
   };
@@ -101,18 +100,17 @@ export function authorPersonNode(): Node {
   return {
     '@type': 'Person',
     '@id': AUTHOR_ID,
-    name: SITE.author,
-    jobTitle: 'iGaming Writer & Analyst',
-    description:
-      'iGaming writer and analyst with 8+ years of experience creating search-driven content for gambling brands and affiliate websites, including casino, slot, and sportsbook reviews.',
+    name: SITE.author.name,
+    jobTitle: SITE.author.jobTitle,
+    description: SITE.author.description,
     image: {
       '@type': 'ImageObject',
-      url: `${ORIGIN}/sweepstakeslogo/ilija-milosevic.webp`,
+      url: `${ORIGIN}${SITE.author.image}`,
       width: 148,
       height: 148,
     },
-    url: `${ORIGIN}/author/${SITE.authorSlug}/`,
-    sameAs: ['https://www.linkedin.com/in/ilija-milosevic-hiperion'],
+    url: `${ORIGIN}${SITE.author.path}`,
+    sameAs: SITE.author.sameAs,
     worksFor: { '@id': ORG_ID },
     // Mirrors his described beat (plan §6): iGaming content, not sweepstakes law
     // specifically, so this stays narrower than the Organization's knowsAbout.

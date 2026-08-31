@@ -28,7 +28,7 @@ const INJECTED_IDS = new Set([
   `${ORIGIN}/#organization`,
   `${ORIGIN}/#website`,
   `${ORIGIN}/#logo`,
-  `${ORIGIN}/author/${SITE.authorSlug}/#person`,
+  SITE.ids.author,
 ]);
 
 const BANNED_TYPES = new Set([

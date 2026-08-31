@@ -8,6 +8,7 @@
  * See docs/schema-markup-plan.md §3.2 and src/lib/schema.ts.
  */
 import { stampUpdatedDate } from '../lib/htmlStamp';
+import { SITE } from '../data/site';
 import {
   complianceRibbonMarkup,
   faviconMarkup,
@@ -16,7 +17,7 @@ import {
 import { buildPageGraph, serializeJsonLd, type WebPageType } from '../lib/schema';
 
 
-const ORIGIN = 'https://sweepstakeswiz.com';
+const ORIGIN = SITE.origin;
 
 interface Crumb {
   name: string;

@@ -31,7 +31,7 @@ const RIBBON = `${RIBBON_MARKER}
   <span class="sc-tr-sep">&middot;</span>
   <a href="/legal/affiliate-disclosure/">Affiliate disclosure</a>
   <span class="sc-tr-sep">&middot;</span>
-  <span>Reviewed by <a href="/author/ilija-milosevic/">Ilija Milosevic</a> &middot; Updated __UPDATED_DATE__</span>
+  <span>Reviewed by <a href="${SITE.author.path}">${SITE.author.name}</a> &middot; Updated __UPDATED_DATE__</span>
 </div>`;
 
 const BODY_OPEN = /<body\b[^>]*>/i;
@@ -145,7 +145,9 @@ function canonicalUrl(html: string): string | undefined {
 }
 
 function pageTitle(html: string): string {
-  const raw = html.match(/<title\b[^>]*>([\s\S]*?)<\/title>/i)?.[1] ?? SITE.name;
+  const raw =
+    html.match(/<title\b[^>]*>([\s\S]*?)<\/title>/i)?.[1] ??
+    SITE.publisher.name;
   return decodeHtml(raw.replace(/<[^>]+>/g, '').trim());
 }
 
