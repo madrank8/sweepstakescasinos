@@ -165,6 +165,83 @@ for (const operator of OPERATORS) {
       prepareSsrAffiliateReviewHtml(source, null, operator.slug, `review-${operator.slug}`))
     : (staticReviewCount++, getStaticReviewHtml(relativePath, operator.slug));
   renderedReviews.set(operator.slug, rendered);
+
+  const summaryStart = rendered.indexOf(
+    `<section class="sc-review-fact-summary" data-canonical-operator="${operator.slug}">`,
+  );
+  const h1End = rendered.search(/<\/h1\s*>/i);
+  const firstH2 = rendered.search(/<h2\b/i);
+  assert.ok(summaryStart > h1End, `${operator.slug} fact summary must follow its H1`);
+  assert.ok(
+    firstH2 === -1 || summaryStart < firstH2,
+    `${operator.slug} fact summary must precede the first H2`,
+  );
+  assert.equal(
+    rendered.match(/class="sc-review-fact-summary"/g)?.length,
+    1,
+    `${operator.slug} must render one canonical fact summary`,
+  );
+  for (const field of CANONICAL_OPERATOR_FIELDS) {
+    assert.match(
+      rendered,
+      new RegExp(
+        `data-canonical-field="${field}"\\s+data-fact-status="${operator[field].status}"`,
+      ),
+      `${operator.slug}.${field} must render its canonical status`,
+    );
+  }
+  for (const field of [
+    'legal-status-source',
+    'visitor-offer-eligibility',
+    'operator-verification-date',
+  ]) {
+    assert.match(
+      rendered,
+      new RegExp(`data-review-fact="${field}"`),
+      `${operator.slug} summary must render ${field}`,
+    );
+  }
+
+  const expectedAnswerKinds = [
+    operator.cashRedemptionMinimum.status === 'verified' ||
+    operator.giftCardRedemptionMinimum.status === 'verified' ||
+    operator.publishedRedemptionTiming.status === 'verified'
+      ? 'redemption'
+      : null,
+    operator.paymentMethods.status === 'verified' ? 'payments' : null,
+    operator.gameCount.status === 'verified' ? 'games' : null,
+    operator.operatorName.status === 'verified' &&
+    operator.launchDate.status === 'verified'
+      ? 'company-launch'
+      : null,
+    operator.signupOffer.status === 'verified' ||
+    operator.dailyOffer.status === 'verified'
+      ? 'offer'
+      : null,
+  ].filter((kind): kind is string => kind !== null);
+  const answerBlocks = [
+    ...rendered.matchAll(
+      /<section class="sc-review-answer" data-answer-kind="([^"]+)">([\s\S]*?)<\/section>/g,
+    ),
+  ];
+  assert.deepEqual(
+    answerBlocks.map((match) => match[1]),
+    expectedAnswerKinds,
+    `${operator.slug} answer blocks must follow canonical evidence gates`,
+  );
+  const name = verifiedValue(operator.name)!;
+  for (const [, kind, block] of answerBlocks) {
+    assert.match(block, /<h2[^>]*>[^<]*\?<\/h2>/, `${operator.slug}/${kind} needs a question H2`);
+    assert.ok(
+      block.indexOf(name) >= 0 && block.indexOf(name) < block.indexOf('</p>'),
+      `${operator.slug}/${kind} must name the operator in its first sentence`,
+    );
+    assert.doesNotMatch(
+      block,
+      /\b(?:we|our)\s+(?:observed|tested|measured)\b/i,
+      `${operator.slug}/${kind} must not imply first-hand testing`,
+    );
+  }
 }
 assert.ok(staticReviewCount > 0, 'real review integration must exercise getStaticReviewHtml');
 assert.ok(ssrReviewCount > 0, 'real review integration must exercise prepareSsrAffiliateReviewHtml');
