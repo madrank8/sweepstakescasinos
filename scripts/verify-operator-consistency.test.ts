@@ -121,7 +121,7 @@ const unresolvedFixture =
 const unresolvedRendered = injectOperatorFactsHtml(unresolvedFixture, 'mcluck');
 assert.doesNotMatch(unresolvedRendered, /data-canonical-field="editorScore100"/);
 assert.doesNotMatch(unresolvedRendered, />\s*88\s*<\/span>\s*<span[^>]*>\s*\/100</);
-assert.match(unresolvedRendered, /data-canonical-score-status="unresolved"/);
+assert.match(unresolvedRendered, /data-editor-score-status="unresolved"/);
 
 function reviewNode(html: string): Record<string, unknown> {
   const block = html.match(
