@@ -62,6 +62,8 @@ export function suppressAffiliateCtas(
   placement?: string,
 ): string {
   return html.replace(BONUS_ANCHOR, (match, slug: string) => {
+    // `/bonuses/no-deposit/` is an indexable editorial hub, not a gateway CTA.
+    if (slug === 'no-deposit') return match;
     if (!shouldRenderBonusCta(slug, state)) return NOTE;
     const partner = getPartner(slug);
     if (partner && placement) {
