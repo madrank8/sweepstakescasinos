@@ -144,7 +144,14 @@ function obviousLegacyEditorScoreContexts(html: string): string[] {
     ],
   ];
   for (const [label, pattern] of patterns) {
-    if (pattern.test(visible)) contexts.push(label);
+    const matches = [...visible.matchAll(pattern)];
+    if (
+      matches.some(
+        (match) => label !== 'sticky score label' || !/\bTrustpilot\b/i.test(match[0]),
+      )
+    ) {
+      contexts.push(label);
+    }
   }
   return contexts;
 }
