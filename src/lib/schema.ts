@@ -139,7 +139,7 @@ export function brandOrganizationNode(slug: string): Node | undefined {
     '@id': brandEntityId(slug),
     name: brand.name,
     url: brand.officialUrl,
-    sameAs: [brand.officialUrl],
+    sameAs: brand.sameAs ?? [brand.officialUrl],
     ...(aggregateRating ? { aggregateRating } : {}),
     ...(brand.operatorName
       ? {

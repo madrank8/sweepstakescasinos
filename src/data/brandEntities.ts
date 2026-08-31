@@ -31,6 +31,8 @@ export interface BrandEntity {
   name: string;
   /** Official brand site (Organization.url + sameAs anchor). */
   officialUrl: string;
+  /** Verified identity/profile URLs, including the official site. */
+  sameAs?: string[];
   /** Operator legal name (parentOrganization). */
   operatorName?: string;
   /** Operator registered address, where published. */
@@ -42,6 +44,13 @@ export const BRAND_ENTITIES: Record<string, BrandEntity> = {
     slug: 'american-luck',
     name: 'American Luck',
     officialUrl: 'https://americanluck.com/',
+    sameAs: [
+      'https://americanluck.com/',
+      'https://www.facebook.com/AmericanLuck/',
+      'https://x.com/American_Luck',
+      'https://www.instagram.com/americanluckcasino/',
+      'https://www.trustpilot.com/review/americanluck.com',
+    ],
     operatorName: 'SGSE LLC',
     operatorAddress: {
       streetAddress: '251 Little Falls Drive',
@@ -55,6 +64,12 @@ export const BRAND_ENTITIES: Record<string, BrandEntity> = {
     slug: 'mcluck',
     name: 'McLuck Sweepstakes Casino',
     officialUrl: 'https://www.mcluck.com/',
+    sameAs: [
+      'https://www.mcluck.com/',
+      'https://x.com/McLuckOfficial',
+      'https://www.facebook.com/Mcluckdotcom',
+      'https://www.instagram.com/mcluck.com.official',
+    ],
     operatorName: 'B-Two Operations Limited',
     operatorAddress: {
       streetAddress: 'Second Floor, 18-20 North Quay',
@@ -67,6 +82,10 @@ export const BRAND_ENTITIES: Record<string, BrandEntity> = {
     slug: 'pulsz',
     name: 'Pulsz Sweepstakes Casino',
     officialUrl: 'https://www.pulsz.com/',
+    sameAs: [
+      'https://www.pulsz.com/',
+      'https://www.trustpilot.com/review/pulsz.com',
+    ],
     operatorName: 'Yellow Social Interactive Limited',
     operatorAddress: { addressLocality: "St. Julian's", addressCountry: 'MT' },
   },
@@ -74,6 +93,10 @@ export const BRAND_ENTITIES: Record<string, BrandEntity> = {
     slug: 'casino-click',
     name: 'Casino Click Sweepstakes Casino',
     officialUrl: 'https://www.casino.click/',
+    sameAs: [
+      'https://www.casino.click/',
+      'https://www.trustpilot.com/review/casino.click',
+    ],
     operatorName: 'Click Entertainment LLC',
   },
   spinblitz: {
@@ -87,6 +110,10 @@ export const BRAND_ENTITIES: Record<string, BrandEntity> = {
     slug: 'hello-millions',
     name: 'Hello Millions Sweepstakes Casino',
     officialUrl: 'https://www.hellomillions.com/',
+    sameAs: [
+      'https://www.hellomillions.com/',
+      'https://www.trustpilot.com/review/hellomillions.com',
+    ],
     operatorName: 'B-Two Operations Limited',
     operatorAddress: {
       streetAddress: 'Second Floor, 18-20 North Quay',
@@ -105,6 +132,10 @@ export const BRAND_ENTITIES: Record<string, BrandEntity> = {
     slug: 'legendz',
     name: 'Legendz Sweepstakes Casino',
     officialUrl: 'https://www.legendz.com/',
+    sameAs: [
+      'https://www.legendz.com/',
+      'https://www.trustpilot.com/review/legendz.com',
+    ],
     operatorName: 'Platinum Panther Ltd.',
   },
   playfame: {
@@ -146,6 +177,10 @@ export const BRAND_ENTITIES: Record<string, BrandEntity> = {
     slug: 'card-crush',
     name: 'Card Crush',
     officialUrl: 'https://www.cardcrush.com/',
+    sameAs: [
+      'https://www.cardcrush.com/',
+      'https://www.trustpilot.com/review/cardcrush.com',
+    ],
     operatorName: 'Vision NL Limited',
     operatorAddress: {
       streetAddress: 'First Floor, 11-13 Hill Street',
