@@ -231,8 +231,13 @@ assert.match(homeSource, /itemListElement:\s*primary\.map/, 'schema must use the
 assert.match(homeSource, /\{primary\.map/, 'visible markup must use the primary view model');
 assert.doesNotMatch(
   homeSource,
-  /4 resolved editor picks|resolved-score|supported ranked set|top recommendations/i,
+  /4 resolved editor picks|resolved-score|supported ranked set|top recommendations|heroTitle=\{'Best|Best by use case/i,
   'homepage copy must not expose governance language or an accidental top-four ranking',
+);
+assert.match(
+  homeSource,
+  /heroTitle=\{'Compare <span class="accent">Sweepstakes Casinos<\/span>'\}/,
+  'the homepage H1 must use evidence-based comparison language',
 );
 assert.doesNotMatch(
   homeSource,
@@ -255,6 +260,18 @@ assert.doesNotMatch(
   /top overall pick|1,000\+ game library|top 10 ranked|ranked using|###\s*\d+\./i,
   'the comparison content must not publish unsupported McLuck or ranking claims',
 );
+for (const path of [
+  'src/content/guides/social-casinos.mdx',
+  'src/content/states/florida.mdx',
+  'src/content/states/ohio.mdx',
+  'src/content/states/texas.mdx',
+]) {
+  assert.doesNotMatch(
+    readFileSync(resolve(root, path), 'utf8'),
+    /ranked comparison|higher-CPA brands/i,
+    `${path} must describe the unranked comparison hub accurately`,
+  );
+}
 
 const noDepositSource = readFileSync(
   resolve(root, 'src/routes/bonuses/no-deposit/index.astro'),
