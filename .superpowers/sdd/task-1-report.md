@@ -93,3 +93,100 @@ retaining the existing empty generated data.
 - There are no documented first-hand testing rows, and reader aggregates remain
   empty; future first-hand claims must not publish until their evidence passes
   the existing validation path.
+
+## Task 1 Review Fix Evidence
+
+### Status and root cause
+
+The critical Rolla finding is fixed. The original detector used a literal
+phrase alternation and did not recognize first-person testing grammar such as
+`our own tests`, a generic `our test`, numbered `test 1` labels, or `we ran
+checks`. Its broad same-line attribution and question checks could also mask an
+explicit first-person claim when published/third-party text or a preceding FAQ
+question appeared nearby.
+
+`scripts/seo/claim-policy.ts` now detects grammatical first-person noun and
+action families, localizes question/negation handling to the matched
+occurrence, prioritizes explicit first-person claims over unrelated attribution,
+and retains directly attributed operator, laboratory, third-party, and reader
+uses.
+
+`reviews/rolla.html` no longer contains the unsupported payout-test sentence,
+the three unsubstantiated support timings, `our own tests`, or `Our result`.
+Published Rolla timelines and explicitly attributed player/Trustpilot
+information remain. `about.html` now describes an evidence requirement as
+editorial policy rather than making an unsupported operational promise.
+
+### Tests and red evidence
+
+Test file: `scripts/seo/audit.test.ts`.
+
+Added evidence-less fixtures for:
+
+- `our own tests`
+- generic `our test`
+- numbered `test 1`
+- `we ran checks`
+- `we conducted ... tests`
+- first-person claims mixed with published and third-party wording
+- first-person answers adjacent to FAQ questions
+
+Added passing fixtures for documented first-hand evidence, operator/laboratory
+attribution, domain-based third-party attribution, explicit negation, and
+reader reports. Added a real-file regression that confirms Rolla remains in the
+overclaim-gated brand set and its authored HTML contains none of the identified
+first-hand forms. The softener regression verifies that unsupported own-test
+sentences are removed without deleting the following attributed information.
+
+Red outcomes observed before production/content fixes:
+
+- `npm run seo:audit:test` failed on `Our own tests cleared...` with `0 !== 1`.
+- After the detector fix but before Rolla content softening,
+  `npm run content:lint` failed with 11 unsupported occurrences, including all
+  six Rolla source/schema occurrences.
+- `npm run testing:verify-overclaims` failed Rolla with six hits.
+- `npm run seo:audit` failed with 11 unsupported claims.
+- Regression runs also exposed and then fixed false positives caused by the
+  period in `Deadspin.com`, explicit negation, and attributed reader language.
+
+### Green commands and outcomes
+
+- `npm run seo:audit:test`: exit 0; 29 reviews, 28 homepage cards, 60 matched
+  claims.
+- `npm run content:lint`: exit 0; no unsupported first-hand claims.
+- `npm run testing:verify-overclaims`: exit 0; all 14 flagged reviews,
+  including Rolla, pass.
+- `npm run seo:audit`: exit 0; 60 claims classified as 0
+  `DOCUMENTED_FIRST_HAND`, 56 `THIRD_PARTY_OR_READER_DATA`, 0 `UNSUPPORTED`,
+  and 4 `AMBIGUOUS`.
+- `npm run ci`: exit 0 on 2026-08-31; all gates, build, 114-page built-schema
+  validation, and integration checks pass.
+- The committed `docs/seo/testing-claims-audit.md` exactly matches
+  `seo:audit -- --report testing-claims-audit.md`.
+
+Non-failing CI notices remain unchanged: no review MDX files match the content
+glob, and reader aggregation skips without Supabase credentials while retaining
+the empty generated data.
+
+### Review-fix commits
+
+- `67269ae test: expose first-hand claim bypasses`
+- `93aa60a test: cover attributed and FAQ claim masking`
+- `7f8775c fix: detect grammatical first-hand claims`
+- `6498106 test: preserve attributed and negated claims`
+- `0b265bb fix: retain attributed testing context`
+- `c663f57 test: require safe own-test softening`
+- `f71e838 fix: safely remove unsupported own-test sentences`
+- `5810a34 fix: remove unsupported Rolla testing claims`
+- `96e0112 test: assert clean Rolla source directly`
+- `c88c0a9 fix: classify attributed negations consistently`
+- `ff96065 docs: refresh testing claim classifications`
+
+### Remaining concerns after review fix
+
+- Four matched phrases remain `AMBIGUOUS`; they are policy/question language,
+  not first-hand result claims.
+- The previously documented 29 operator conflicts, 23 source-schema
+  mismatches, 7 authority differences, legal sitemap/noindex policy, and
+  URL/canonical policy remain intentionally unresolved.
+- First-hand testing evidence and reader aggregates remain empty.
