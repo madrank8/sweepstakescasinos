@@ -18,6 +18,7 @@ import ContentLayout from '../../../layouts/ContentLayout.astro';
 import AffiliateLink from '../../../components/AffiliateLink.astro';
 import CurrencyCompare from '../../../components/CurrencyCompare.astro';
 import { getPartner } from '../../../data/affiliates';
+import { SITE } from '../../../data/site';
 import {
   siteCtaEligibility,
 } from '../../../lib/availability';
@@ -440,8 +441,8 @@ const jsonLd = [itemListLd, faqLd];
   </section>
 
   <p class="hub-byline">
-    Curated and maintained by <a href="/author/ilija-milosevic/">Ilija Milosevic</a>, iGaming Writer &amp;
-    Analyst. Editorial analysis of published operator terms and cited sources — not first-hand testing.
+    Curated and maintained by <a href={SITE.author.path}>{SITE.author.name}</a>, {SITE.author.jobTitle}.
+    Editorial analysis of published operator terms and cited sources — not first-hand testing.
     Sweepstakes play only — no real-money gambling. 18+ (21+ where required). Not available in all US states.
   </p>
 

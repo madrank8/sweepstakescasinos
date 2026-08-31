@@ -7,6 +7,7 @@
 export const prerender = true;
 
 import ContentLayout from '../../layouts/ContentLayout.astro';
+import { SITE } from '../../data/site';
 import { AUTHOR_ID, ORG_ID } from '../../lib/schema';
 
 const ORIGIN = 'https://sweepstakeswiz.com';
@@ -127,7 +128,7 @@ const pyramidImageNode = {
   </p>
 
   <p class="mt-byline">
-    Maintained by <a href="/author/ilija-milosevic/">Ilija Milosevic</a>. This page is
+    Maintained by <a href={SITE.author.path}>{SITE.author.name}</a>. This page is
     editorial analysis of public law &mdash; not legal advice. See our
     <a href="/editorial-policy/">editorial policy</a>.
   </p>

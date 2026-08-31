@@ -9,6 +9,7 @@
  */
 import { getCollection } from 'astro:content';
 import ContentLayout from '../../layouts/ContentLayout.astro';
+import { SITE } from '../../data/site';
 import { AUTHOR_ID } from '../../lib/schema';
 
 export const prerender = true;
@@ -220,7 +221,7 @@ const jsonLd = [itemListLd, faqLd, introNode];
 
   <p class="hub-byline">
     Guides written and maintained by
-    <a href="/author/ilija-milosevic/">Ilija Milosevic</a>, iGaming Writer &amp; Analyst.
+    <a href={SITE.author.path}>{SITE.author.name}</a>, {SITE.author.jobTitle}.
     Sweepstakes play only &mdash; no real-money gambling. 21+. Not available in all US states.
   </p>
 

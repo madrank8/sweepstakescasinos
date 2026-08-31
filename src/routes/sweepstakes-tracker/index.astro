@@ -20,6 +20,7 @@ import {
 } from '../../lib/tracker/data';
 import { SWEEPS_STATUS_META, type SweepsCasinoStatus } from '../../lib/tracker/types';
 import { wizReviewPathForOperator } from '../../data/trackerReconcile';
+import { SITE } from '../../data/site';
 import { datasetNode } from '../../lib/schema';
 
 // Refresh from Supabase at the edge; the daily n8n deploy hook also rebuilds.
@@ -327,8 +328,8 @@ function statusPill(status: SweepsCasinoStatus) {
   </section>
 
   <p class="tk-byline">
-    Compiled and maintained by <a href="/author/ilija-milosevic/">Ilija Milosevic</a>,
-    iGaming Writer &amp; Analyst, using our published
+    Compiled and maintained by <a href={SITE.author.path}>{SITE.author.name}</a>,
+    {SITE.author.jobTitle}, using our published
     <a href="/sweepstakes-tracker/methodology/"> tracker methodology</a>. This is editorial
     analysis of public law — not legal advice. Play responsibly &middot; 21+ &middot;
     <a href="tel:18004262537">1-800-GAMBLER</a>.

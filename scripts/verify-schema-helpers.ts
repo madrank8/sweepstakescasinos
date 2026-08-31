@@ -126,6 +126,27 @@ assert.equal(WEBSITE_ID, SITE.ids.website);
 const trustRibbon = (await import('../src/lib/pageChrome')).complianceRibbonMarkup();
 assert.match(trustRibbon, new RegExp(SITE.author.name));
 assert.match(trustRibbon, new RegExp(SITE.author.path));
+const authoredBylines = [
+  { path: '../src/routes/guides/index.astro', includesTitle: true },
+  { path: '../src/routes/new/index.astro', includesTitle: true },
+  { path: '../src/routes/bonuses/no-deposit/index.astro', includesTitle: true },
+  { path: '../src/routes/states/[slug].astro', includesTitle: true },
+  { path: '../src/routes/sweepstakes-tracker/index.astro', includesTitle: true },
+  {
+    path: '../src/routes/sweepstakes-tracker/methodology.astro',
+    includesTitle: false,
+  },
+] as const;
+for (const byline of authoredBylines) {
+  const source = readFileSync(new URL(byline.path, import.meta.url), 'utf8');
+  assert.match(source, /SITE\.author\.name/, `${byline.path} must use the canonical author name`);
+  assert.match(source, /SITE\.author\.path/, `${byline.path} must use the canonical author path`);
+  assert.doesNotMatch(source, new RegExp(SITE.author.name), `${byline.path} must not duplicate the author name`);
+  if (byline.includesTitle) {
+    assert.match(source, /SITE\.author\.jobTitle/, `${byline.path} must use the canonical author title`);
+    assert.doesNotMatch(source, new RegExp(SITE.author.jobTitle), `${byline.path} must not duplicate the author title`);
+  }
+}
 const contentLayoutSource = readFileSync(
   new URL('../src/layouts/ContentLayout.astro', import.meta.url),
   'utf8',

@@ -33,6 +33,7 @@ import { pngDimensions } from '../../lib/pngDimensions';
 import { svgDimensions } from '../../lib/svgDimensions';
 import { brandEntityId, getBrandEntity } from '../../data/brandEntities';
 import { keyLegislationForState } from '../../data/keyLegislation';
+import { SITE } from '../../data/site';
 import { getTrackerData, legislationForState } from '../../lib/tracker/data';
 import { SWEEPS_STATUS_META } from '../../lib/tracker/types';
 import type { StateRecord, PendingLegislation } from '../../lib/tracker/types';
@@ -446,8 +447,8 @@ const regulated: Array<[string, string]> = [
   </section>
 
   <p class="state-byline">
-    Researched and written by <a href="/author/ilija-milosevic/">Ilija Milosevic</a>,
-    iGaming Writer &amp; Analyst.{updatedHuman ? ` Legal status last reviewed ${updatedHuman}.` : ' Legal source freshness unavailable.'} This page
+    Researched and written by <a href={SITE.author.path}>{SITE.author.name}</a>,
+    {SITE.author.jobTitle}.{updatedHuman ? ` Legal status last reviewed ${updatedHuman}.` : ' Legal source freshness unavailable.'} This page
     is editorial analysis of public law and operator terms &mdash; not legal advice.
   </p>
 
