@@ -217,7 +217,7 @@ Fresh `npm run ci` exited 0 after the coordinated whole-branch fixes.
   no public results route, and zero aggregate ratings.
 - Build: Astro/Vercel output completed; 36 static schema sources and 115
   indexable built pages passed schema validation.
-- Rendered crawl: 123 pages, 6,016 internal links, zero missing targets,
+- Rendered crawl: 123 pages, 6,013 internal links, zero missing targets,
   unintended redirects, duplicate contextual destinations, hierarchy failures,
   missing important inbound links, or geo failures.
 - Built geo crawl: 32 routes in unknown, Texas, and California modes (96

@@ -43,7 +43,7 @@ Fresh `npm run ci` exited 0:
   non-publishable, no result route, and 0 aggregate ratings;
 - schema/build: 36 static sources passed, Vercel output built, and 115
   indexable pages passed built-schema validation;
-- rendered crawl: 123 pages, 6,016 internal links, 0 missing targets,
+- rendered crawl: 123 pages, 6,013 internal links, 0 missing targets,
   0 unintended redirects, 0 duplicate contextual destinations, 0 hierarchy
   failures, and 0 important pages without inbound links;
 - built geo crawl: 32 routes × unknown/Texas/California = 96 renders, with
