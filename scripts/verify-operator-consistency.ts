@@ -20,7 +20,8 @@ import { inventoryOperatorFacts } from './seo/audit-core';
 import { findRenderedEditorScoreContexts } from './lib/rendered-editor-score-detector';
 
 const ISO_DATE = /^\d{4}(?:-(?:0[1-9]|1[0-2])(?:-(?:0[1-9]|[12]\d|3[01]))?)?$/;
-const SOURCE_PATH = /^(?:https?:\/\/\S+|[a-zA-Z0-9_.-]+(?:\/[a-zA-Z0-9_.-]+)*)$/;
+const SOURCE_PATH =
+  /^(?:https?:\/\/\S+|[a-zA-Z0-9_.-]+(?:\/[a-zA-Z0-9_.-]+)*(?:#[a-zA-Z0-9_.-]+)?)$/;
 const SUPERLATIVE = /\b(?:best|fastest|highest|largest|lowest|only|smallest|strongest|widest)\b/i;
 const SLUG = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 
@@ -39,7 +40,12 @@ function walkStrings(value: unknown): string[] {
 }
 
 function validateProvenance(
-  provenance: { source: string; publishedOn?: string; verifiedOn?: string },
+  provenance: {
+    source: string;
+    publishedOn?: string;
+    modifiedOn?: string;
+    verifiedOn?: string;
+  },
   label: string,
   errors: string[],
 ): void {
@@ -48,14 +54,15 @@ function validateProvenance(
   }
   for (const [kind, date] of [
     ['publishedOn', provenance.publishedOn],
+    ['modifiedOn', provenance.modifiedOn],
     ['verifiedOn', provenance.verifiedOn],
   ] as const) {
     if (date !== undefined && !isRealDate(date)) {
       errors.push(`${label}: invalid ${kind} date "${date}"`);
     }
   }
-  if (!provenance.publishedOn && !provenance.verifiedOn) {
-    errors.push(`${label}: provenance requires a publication or verification date`);
+  if (!provenance.publishedOn && !provenance.modifiedOn && !provenance.verifiedOn) {
+    errors.push(`${label}: provenance requires a publication, modification, or verification date`);
   }
 }
 

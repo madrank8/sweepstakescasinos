@@ -10,6 +10,7 @@
 export interface FactProvenance {
   source: string;
   publishedOn?: string;
+  modifiedOn?: string;
   verifiedOn?: string;
 }
 
@@ -87,9 +88,43 @@ interface OperatorSeed {
 }
 
 const PUBLISHED_ON = '2026-05-20';
+const REVIEW_SOURCE_DATES: Record<
+  string,
+  { publishedOn: string; modifiedOn: string }
+> = {
+  acebet: { publishedOn: '2026-05-20', modifiedOn: '2026-06-24' },
+  'american-luck': { publishedOn: '2026-07-08', modifiedOn: '2026-07-08' },
+  'big-pirate': { publishedOn: '2026-05-20', modifiedOn: '2026-07-14' },
+  'card-crush': { publishedOn: '2026-05-20', modifiedOn: '2026-07-14' },
+  'casino-click': { publishedOn: '2026-05-20', modifiedOn: '2026-07-14' },
+  'crown-coins': { publishedOn: '2026-05-20', modifiedOn: '2026-06-30' },
+  dexyplay: { publishedOn: '2026-05-20', modifiedOn: '2026-07-14' },
+  freespin: { publishedOn: '2026-05-20', modifiedOn: '2026-06-24' },
+  'hello-millions': { publishedOn: '2026-05-20', modifiedOn: '2026-07-14' },
+  high5: { publishedOn: '2026-05-20', modifiedOn: '2026-06-24' },
+  'jackpot-go': { publishedOn: '2026-05-20', modifiedOn: '2026-06-24' },
+  jackpota: { publishedOn: '2026-05-20', modifiedOn: '2026-07-14' },
+  legendz: { publishedOn: '2026-05-20', modifiedOn: '2026-07-14' },
+  'lucky-bunny': { publishedOn: '2026-05-20', modifiedOn: '2026-06-24' },
+  mcluck: { publishedOn: '2026-05-20', modifiedOn: '2026-06-24' },
+  'mega-bonanza': { publishedOn: '2026-05-20', modifiedOn: '2026-06-24' },
+  playfame: { publishedOn: '2026-05-20', modifiedOn: '2026-07-14' },
+  pulsz: { publishedOn: '2026-05-20', modifiedOn: '2026-06-24' },
+  rolla: { publishedOn: '2026-05-20', modifiedOn: '2026-05-20' },
+  roxymoxy: { publishedOn: '2026-05-20', modifiedOn: '2026-07-14' },
+  spinblitz: { publishedOn: '2026-05-20', modifiedOn: '2026-06-24' },
+  spinfinite: { publishedOn: '2026-05-20', modifiedOn: '2026-06-24' },
+  'splash-coins': { publishedOn: '2026-05-20', modifiedOn: '2026-06-24' },
+  spree: { publishedOn: '2026-05-20', modifiedOn: '2026-06-24' },
+  sweepico: { publishedOn: '2026-05-20', modifiedOn: '2026-05-20' },
+  'sweet-sweeps': { publishedOn: '2026-05-20', modifiedOn: '2026-06-24' },
+  thrillzz: { publishedOn: '2026-05-20', modifiedOn: '2026-06-24' },
+  'wow-vegas': { publishedOn: '2026-05-20', modifiedOn: '2026-06-24' },
+  zula: { publishedOn: '2026-05-20', modifiedOn: '2026-07-14' },
+};
 const sourceFor = (slug: string): FactProvenance => ({
   source: `reviews/${slug}.html`,
-  publishedOn: PUBLISHED_ON,
+  ...REVIEW_SOURCE_DATES[slug],
 });
 const verified = <T>(value: T, slug: string): CanonicalFact<T> => ({
   status: 'verified',
@@ -160,6 +195,34 @@ const CONFLICTING_SCORES: Record<string, [number, number]> = {
   zula: [87, 4.4],
 };
 
+const LEGACY_REVIEW_JSON_LD_SCORES: Record<string, number> = {
+  acebet: 4.5,
+  'big-pirate': 4.1,
+  'card-crush': 4.2,
+  'casino-click': 3.8,
+  'crown-coins': 4.6,
+  dexyplay: 4.5,
+  freespin: 4.3,
+  'hello-millions': 4.2,
+  high5: 4.3,
+  'jackpot-go': 4.4,
+  jackpota: 4.3,
+  'lucky-bunny': 3.9,
+  mcluck: 4.5,
+  'mega-bonanza': 4,
+  pulsz: 4.5,
+  rolla: 4.7,
+  spinblitz: 4.4,
+  spinfinite: 4.1,
+  'splash-coins': 4.3,
+  spree: 4,
+  sweepico: 4.4,
+  'sweet-sweeps': 4.5,
+  thrillzz: 4.3,
+  'wow-vegas': 4.5,
+  zula: 4.4,
+};
+
 const CONFLICTING_OFFERS: Record<string, string[]> = {
   'crown-coins': ['100,000 Crown Coins + 2 SC No Deposit', '100,000 CC + 2 SC'],
   'hello-millions': ['7,500 GC + 2.5 SC Promo Code', '15,000 GC + 2.5 SC'],
@@ -213,12 +276,20 @@ function scoreFact(slug: string): CanonicalFact<number> {
   if (slug in SCORE_100) return verified(SCORE_100[slug], slug);
   const conflict = CONFLICTING_SCORES[slug];
   if (!conflict) return missing('No explicit /100 editorial score is supported.');
+  const reviewSource = sourceFor(slug);
   return {
     status: 'unresolved',
-    reason: 'Authored review and homepage score surfaces disagree.',
+    reason: 'Authored review, homepage, and legacy Review JSON-LD score surfaces disagree.',
     sources: [
-      { value: `${conflict[0]}/100`, provenance: sourceFor(slug) },
+      { value: `${conflict[0]}/100`, provenance: reviewSource },
       { value: `${conflict[1]}/5`, provenance: { source: 'index.html', publishedOn: PUBLISHED_ON } },
+      {
+        value: `${LEGACY_REVIEW_JSON_LD_SCORES[slug]}/5`,
+        provenance: {
+          ...reviewSource,
+          source: `reviews/${slug}.html#review-jsonld`,
+        },
+      },
     ],
   };
 }
