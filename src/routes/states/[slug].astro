@@ -96,12 +96,24 @@ const description =
   entry?.data.description ??
   `${name} sweepstakes casino legal status: ${meta.label.toLowerCase()}. ${trackerState.sweeps_status_summary} Editorial legal monitor, updated regularly.`;
 
-// Legal freshness comes only from the tracker. Page publication metadata must
-// never be relabeled as a legal or operator verification date.
+// Visible legal freshness comes only from the tracker. Schema modification
+// reflects the later real event: a legal-source review or a status change.
 const legalFreshnessIso = stateAvailability.legal?.freshness.value ?? undefined;
 const statusChangedTimestamp = new Date(trackerState.sweeps_status_changed_at).getTime();
 const statusChangedIso = Number.isFinite(statusChangedTimestamp)
   ? new Date(statusChangedTimestamp).toISOString()
+  : undefined;
+const legalFreshnessTimestamp = legalFreshnessIso
+  ? new Date(legalFreshnessIso).getTime()
+  : Number.NaN;
+const statePageModifiedTimestamp =
+  Number.isFinite(statusChangedTimestamp) && Number.isFinite(legalFreshnessTimestamp)
+    ? Math.max(statusChangedTimestamp, legalFreshnessTimestamp)
+    : Number.isFinite(legalFreshnessTimestamp)
+      ? legalFreshnessTimestamp
+      : statusChangedTimestamp;
+const statePageModifiedIso = Number.isFinite(statePageModifiedTimestamp)
+  ? new Date(statePageModifiedTimestamp).toISOString()
   : undefined;
 const updatedHuman = legalFreshnessIso
   ? new Date(legalFreshnessIso).toLocaleDateString('en-US', {
@@ -227,7 +239,7 @@ const articleLd = {
     ? { '@type': 'ImageObject', url: `${ORIGIN}${stateImagePath}`, ...stateImageDims }
     : `${ORIGIN}${stateImagePath}`,
   ...(statusChangedIso ? { datePublished: statusChangedIso } : {}),
-  ...(legalFreshnessIso ? { dateModified: legalFreshnessIso } : {}),
+  ...(statePageModifiedIso ? { dateModified: statePageModifiedIso } : {}),
   about: [
     { '@type': 'State', '@id': stateIri, name },
     { '@type': 'Thing', name: `Sweepstakes casino legality in ${name}` },
@@ -280,7 +292,7 @@ const regulated: Array<[string, string]> = [
   breadcrumbs={breadcrumbs}
   heroSubtitle={description}
   datePublished={statusChangedIso}
-  dateModified={legalFreshnessIso}
+  dateModified={statePageModifiedIso}
   mainEntityId={`${canonical}#article`}
   jsonLd={jsonLd}
 >

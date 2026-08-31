@@ -167,7 +167,12 @@ for (const path of [
 
 const stateRoute = readFileSync(resolve('src/routes/states/[slug].astro'), 'utf8');
 assert.match(stateRoute, /legalFreshnessIso\s*=\s*stateAvailability\.legal\?\.freshness\.value/);
-assert.match(stateRoute, /dateModified=\{legalFreshnessIso\}/);
+assert.match(
+  stateRoute,
+  /Math\.max\(statusChangedTimestamp,\s*legalFreshnessTimestamp\)/,
+  'state page modification date must not precede its publication/status-change date',
+);
+assert.match(stateRoute, /dateModified=\{statePageModifiedIso\}/);
 assert.match(stateRoute, /datetime=\{legalFreshnessIso\}/);
 assert.doesNotMatch(
   stateRoute,

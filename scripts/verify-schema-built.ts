@@ -115,6 +115,23 @@ function verifyPage(url: string, html: string): void {
     return;
   }
 
+  if (new URL(url).pathname.startsWith('/states/')) {
+    const article = graph.find(
+      (node) =>
+        node['@type'] === 'Article' &&
+        node['@id'] === `${canonical}#article`,
+    );
+    const published = Date.parse(String(article?.datePublished ?? ''));
+    const modified = Date.parse(String(article?.dateModified ?? ''));
+    if (
+      Number.isFinite(published) &&
+      Number.isFinite(modified) &&
+      modified < published
+    ) {
+      fail(url, 'state Article dateModified precedes datePublished');
+    }
+  }
+
   const defined = new Map<string, number>();
   const referenced = new Set<string>();
   const reviews: Node[] = [];
