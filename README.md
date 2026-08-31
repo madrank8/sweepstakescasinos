@@ -1,10 +1,14 @@
-# Sweepstakes Casinos List Astro Site
+# Sweepstakes Wiz Astro Site
 
-Astro-powered static site for `https://sweepstakescasinoslist.com/`.
+Hybrid Astro site for `https://sweepstakeswiz.com/`.
 
-The mirrored HTML files in the project root remain the content source. `npm run dev` and `npm run build` regenerate Astro routes under `src/pages/` and copy static assets into `public/`.
+Root HTML files and `src/routes/` are authored sources. `npm run dev` and
+`npm run build` regenerate `src/pages/`; do not edit that generated directory.
+The generator also copies static assets and regenerates sitemap/robots/LLM
+outputs.
 
-Astro is configured with `build.format: "preserve"` so existing `.html` URLs and nested `index.html` files are preserved.
+Astro uses `build.format: "directory"`, so authored HTML sources are served at
+clean trailing-slash URLs such as `/reviews/mcluck/`.
 
 ## Run Locally
 
