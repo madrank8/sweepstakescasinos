@@ -32,7 +32,7 @@ const FIRST_PARTY_CUE =
   /\b(?:editor(?:ial)? (?:score|rating)|editor(?:'s)? rating|overall(?: score| rating| verdict)?|our (?:score|rating|verdict|reviewers?)|from our reviewers?|verdict|final rating|we rate|how we (?:rate|score)|earns?(?: its| an?| the)?|is rated|rated by (?:us|sweepstakes wiz))\b/i;
 const BREAKDOWN_CUE = /\b(?:how we (?:rate|score)|rating breakdown|score breakdown)\b/i;
 const NAMED_THIRD_PARTY_CUE =
-  /\b(?:Trustpilot|Google Play|App Store|Deadspin(?:\.com)?|SweepstakesCasinoReviews(?:\.com)?|SweepsKings(?:\.com)?|Sweepsy(?:\.com)?|Sweepstaker(?:\.com)?|FreakyGaming(?:\.com)?|OddsAssist|SweepState|Next\.io|player-reported|reader reports?)\b/i;
+  /\b(?:Trustpilot|Google Play|App Store|iOS App|Deadspin(?:\.com)?|SweepstakesCasinoReviews(?:\.com)?|SweepsKings\.com|Sweepsy\.com|Sweepstaker\.com|FreakyGaming\.com|Strafe(?:\.com)?|OddsAssist|SweepState|Next\.io|player-reported|reader reports?)\b/i;
 const VOID_ELEMENTS = new Set([
   'area',
   'base',
@@ -431,16 +431,21 @@ function isExplicitThirdPartyScore(
     }
   }
   const local = plainText(windowText.slice(clauseStart, clauseEnd));
-  if (FIRST_PARTY_CUE.test(local)) return false;
   if (NAMED_THIRD_PARTY_CUE.test(local)) return true;
+  if (FIRST_PARTY_CUE.test(local)) return false;
 
   if (
-    ancestors.slice(0, 4).some((element) => {
+    ancestors.slice(0, 2).some((element, index) => {
       const text = elementText(html, element);
+      const isSemanticTextBlock =
+        /^(?:address|blockquote|dd|dt|figcaption|li|p|td|th|tr)$/.test(
+          element.tag,
+        );
       return (
-        text.length <= 400 &&
         NAMED_THIRD_PARTY_CUE.test(text) &&
-        !FIRST_PARTY_CUE.test(text)
+        (index === 0 ||
+          isSemanticTextBlock ||
+          (element.tag === 'div' && text.length <= 180))
       );
     })
   ) {
@@ -450,7 +455,6 @@ function isExplicitThirdPartyScore(
   const row = ancestors.find((element) => element.tag === 'tr');
   if (!row) return false;
   const rowText = elementText(html, row);
-  if (FIRST_PARTY_CUE.test(rowText)) return false;
   return (
     NAMED_THIRD_PARTY_CUE.test(rowText) ||
     /<a\b[^>]*\bhref\s*=\s*["']https?:\/\//i.test(elementHtml(html, row))
@@ -526,7 +530,9 @@ function isOrdinaryBareDecimal(html: string, position: number, length: number): 
 function hasImmediateStarChrome(html: string, position: number): boolean {
   const before = html.slice(Math.max(0, position - 100), position);
   const clause = before.split(/(?:&#183;|·|—|&mdash;|[!?])/i).at(-1) ?? before;
-  return /(?:(?:&#9733;)|[★☆]){3,}\s*$/i.test(clause.replace(/<[^>]+>/g, ' '));
+  return /(?:(?:&#9733;|&#189;)|[★☆½]){3,}\s*$/i.test(
+    clause.replace(/<[^>]+>/g, ' '),
+  );
 }
 
 function shouldNormalizeScore(
@@ -545,9 +551,7 @@ function shouldNormalizeScore(
     return false;
   }
   const immediateStarChrome = hasImmediateStarChrome(html, position);
-  const thirdParty =
-    !immediateStarChrome &&
-    isExplicitThirdPartyScore(html, position, ancestors);
+  const thirdParty = isExplicitThirdPartyScore(html, position, ancestors);
   const breakdown =
     !immediateStarChrome &&
     isBreakdownSubcategory(html, ancestors);
@@ -559,18 +563,13 @@ function shouldNormalizeScore(
   const explicitContext = ancestors
     .slice(0, 3)
     .some((element) => FIRST_PARTY_CUE.test(elementText(html, element)));
-  const starScoreChrome =
-    kind === 'ratio' &&
-    (immediateStarChrome ||
-      ancestors
-        .slice(0, 2)
-        .some((element) => /(?:&#9733;|[★☆]){3,}/i.test(elementText(html, element))));
+  const starScoreChrome = kind === 'ratio' && immediateStarChrome;
 
   if (kind === 'bare') {
     if (isOrdinaryBareDecimal(html, position, length)) return false;
     return scoreOnly && (hasScoreChrome(closest) || explicitContext);
   }
-  return scoreOnly || hasScoreChrome(closest) || explicitContext || starScoreChrome;
+  return scoreOnly || starScoreChrome;
 }
 
 function applyTextReplacements(

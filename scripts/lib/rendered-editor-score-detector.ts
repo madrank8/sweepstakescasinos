@@ -55,8 +55,9 @@ function scoreHasNamedThirdPartyAttribution(
   const line = lines[lineIndex];
   if (namedSourceIsNearest(line, scoreIndex)) return true;
   if (
-    NAMED_THIRD_PARTY.test(lines[lineIndex - 1] ?? '') ||
-    NAMED_THIRD_PARTY.test(lines[lineIndex + 1] ?? '')
+    (scoreOnly || !FIRST_PARTY_LANGUAGE.test(line)) &&
+    (NAMED_THIRD_PARTY.test(lines[lineIndex - 1] ?? '') ||
+      NAMED_THIRD_PARTY.test(lines[lineIndex + 1] ?? ''))
   ) {
     return true;
   }
@@ -104,7 +105,7 @@ function plainText(value: string): string {
 function removeExplicitExternalRows(html: string): string {
   return html.replace(/<tr\b[\s\S]*?<\/tr\s*>/gi, (row) => {
     const text = plainText(row);
-    if (FIRST_PARTY_LANGUAGE.test(text)) return row;
+    if (STRONG_FIRST_PARTY_LANGUAGE.test(text)) return row;
     if (
       hasNamedThirdPartyAttribution(text) ||
       /<a\b[^>]*\bhref\s*=\s*["']https?:\/\//i.test(row)

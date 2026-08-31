@@ -209,6 +209,52 @@ function visibleDocumentText(html: string): string {
     .trim();
 }
 
+const NAMED_THIRD_PARTY =
+  /\b(?:Trustpilot|Google Play|App Store|iOS App|Deadspin(?:\.com)?|SweepstakesCasinoReviews(?:\.com)?|SweepsKings(?:\.com)?|Sweepsy(?:\.com)?|Sweepstaker(?:\.com)?|FreakyGaming(?:\.com)?|Strafe(?:\.com)?|OddsAssist|SweepState|Next\.io)\b/i;
+
+function visibleDocumentBlocks(html: string): string[] {
+  return html
+    .replace(/<head\b[\s\S]*?<\/head\s*>/gi, ' ')
+    .replace(/<script\b[\s\S]*?<\/script\s*>/gi, ' ')
+    .replace(/<style\b[\s\S]*?<\/style\s*>/gi, ' ')
+    .replace(/<!--[\s\S]*?-->/g, ' ')
+    .replace(
+      /<\/(?:address|article|aside|blockquote|div|dd|dt|figcaption|footer|h[1-6]|header|li|main|nav|p|section|td|th|tr)>/gi,
+      '\n',
+    )
+    .replace(/<[^>]+>/g, ' ')
+    .replace(/&(?:nbsp|#160);/gi, ' ')
+    .split('\n')
+    .map((block) => block.replace(/\s+/g, ' ').trim())
+    .filter(Boolean);
+}
+
+function thirdPartyRatingCounts(html: string): Map<string, number> {
+  const counts = new Map<string, number>();
+  for (const block of visibleDocumentBlocks(html)) {
+    if (!NAMED_THIRD_PARTY.test(block)) continue;
+    for (const match of block.matchAll(/\b\d(?:\.\d+)?\s*\/\s*5\b/g)) {
+      counts.set(match[0], (counts.get(match[0]) ?? 0) + 1);
+    }
+  }
+  return counts;
+}
+
+function thirdPartyBlocksWithEditorialSubstitution(html: string): string[] {
+  return html
+    .replace(/<head\b[\s\S]*?<\/head\s*>/gi, ' ')
+    .replace(/<script\b[\s\S]*?<\/script\s*>/gi, ' ')
+    .replace(/<style\b[\s\S]*?<\/style\s*>/gi, ' ')
+    .split(
+      /<\/(?:address|article|aside|blockquote|div|dd|dt|figcaption|footer|h[1-6]|header|li|main|nav|p|section|td|th|tr)>/gi,
+    )
+    .filter(
+      (block) =>
+        NAMED_THIRD_PARTY.test(block.replace(/<[^>]+>/g, ' ')) &&
+        /class="sc-editor-score-state"/.test(block),
+    );
+}
+
 function authoredNonScoreDecimalCounts(html: string): Map<string, number> {
   const text = visibleDocumentText(html);
   const counts = new Map<string, number>();
@@ -260,10 +306,27 @@ for (const operator of OPERATORS) {
       `${operator.slug} must preserve all ${authoredCount} authored non-score ${decimal} decimal(s)`,
     );
   }
+  const renderedThirdPartyRatings = thirdPartyRatingCounts(rendered);
+  for (const [rating, authoredCount] of thirdPartyRatingCounts(source)) {
+    assert.ok(
+      (renderedThirdPartyRatings.get(rating) ?? 0) >= authoredCount,
+      `${operator.slug} must preserve all ${authoredCount} authored named-third-party ${rating} rating(s) exactly`,
+    );
+  }
+  assert.deepEqual(
+    thirdPartyBlocksWithEditorialSubstitution(rendered),
+    [],
+    `${operator.slug} must not substitute an editorial score inside a named-third-party block`,
+  );
   assert.doesNotMatch(
     visibleDocumentText(rendered),
     /\beditor score\s*:\s*unresolved\b|\bscore (?:state|status)\s*:\s*unresolved\b|not canonicalized|canonical conflict|governance status/i,
     `${operator.slug} must not expose internal score governance vocabulary`,
+  );
+  assert.doesNotMatch(
+    visibleDocumentText(rendered),
+    /\bwe rate\s+[A-Z][^.!?]{0,60}\s+[.,;:!?]|\bearns? its\s+(?:through|because|for)\b|\bis rated\s*[.,;:!?]/i,
+    `${operator.slug} must not leave dangling score language or punctuation`,
   );
 
   const summaryStart = rendered.indexOf('<section class="sc-review-fact-summary"');
@@ -500,24 +563,31 @@ for (const leakedValue of [91, 88, 4.3, 4.1, 4.7, 4.5]) {
   );
 }
 const semanticLeakRendered = injectOperatorFactsHtml(semanticLeakFixture, 'mcluck');
-for (const leakedClaim of [
+for (const authoredProse of [
   /We rate Example Casino 4\.6\/5 and 91\/100/,
   /earns its 88\/100/,
   /is rated 4\.3\/5/,
+]) {
+  assert.match(
+    semanticLeakRendered,
+    authoredProse,
+    `runtime normalization must not rewrite mixed editorial prose: ${authoredProse}`,
+  );
+}
+for (const explicitWidget of [
   /class="oc-rating"[^>]*>4\.1\s*\/\s*5/,
   /class="offer-rating"[^>]*>4\.7\s*\/\s*5/,
   /Editor score<\/td><td>4\.5\s*\/\s*5/,
 ]) {
   assert.doesNotMatch(
     semanticLeakRendered,
-    leakedClaim,
-    `unresolved semantic claim leaked: ${leakedClaim}`,
+    explicitWidget,
+    `runtime normalization must still suppress explicit score widgets: ${explicitWidget}`,
   );
 }
-assert.deepEqual(
-  validateRenderedEditorScoreContexts(undefined, semanticLeakRendered),
-  [],
-  'independent detector must accept a fully normalized unresolved review',
+assert.ok(
+  validateRenderedEditorScoreContexts(undefined, semanticLeakRendered).length > 0,
+  'unresolved authored first-party aggregate prose must still fail independent detection',
 );
 assert.match(semanticLeakRendered, /Redemption speed<\/span><span>96\s*\/\s*100/);
 assert.match(semanticLeakRendered, /Game library<\/span><span>92\s*\/\s*100/);
@@ -534,15 +604,41 @@ const verifiedSemanticRendered = injectOperatorFactsHtml(
   verifiedSemanticFixture,
   'american-luck',
 );
-assert.doesNotMatch(verifiedSemanticRendered, /(?:4\.6|4\.3|4\.1|4\.7|4\.5)\s*\/\s*5/);
-assert.doesNotMatch(verifiedSemanticRendered, /(?:91|88)\s*\/\s*100/);
-assert.deepEqual(
-  validateRenderedEditorScoreContexts(72, verifiedSemanticRendered),
-  [],
-  'all first-party aggregate contexts must use the verified canonical score',
+assert.match(verifiedSemanticRendered, /We rate American Luck 4\.6\/5 and 91\/100/);
+assert.match(verifiedSemanticRendered, /earns its 88\/100/);
+assert.ok(
+  validateRenderedEditorScoreContexts(72, verifiedSemanticRendered).length > 0,
+  'verified mixed prose must remain authored and fail when it disagrees with the canonical score',
 );
 assert.match(verifiedSemanticRendered, /Trustpilot rates American Luck 4\.4\/5/);
 assert.match(verifiedSemanticRendered, /Redemption speed<\/span><span>96\s*\/\s*100/);
+
+const mixedThirdPartyFixture = `
+  <main>
+    <p>Our verdict was 91/100 while Trustpilot rates Example Casino 4.4/5.</p>
+    <div class="score-total">91/100</div>
+    <!--sc-operator-facts data-operator="american-luck" data-fields="name,editorScore100"-->
+  </main>
+`;
+const mixedThirdPartyRendered = injectOperatorFactsHtml(
+  mixedThirdPartyFixture,
+  'american-luck',
+);
+assert.match(
+  mixedThirdPartyRendered,
+  /Our verdict was 91\/100 while Trustpilot rates Example Casino 4\.4\/5\./,
+  'production must preserve a whole mixed third-party sentence without editorial substitution',
+);
+assert.doesNotMatch(
+  mixedThirdPartyRendered.match(/<p>[\s\S]*?<\/p>/)?.[0] ?? '',
+  /sc-editor-score-state|Editor score: 72\/100/,
+  'production must never inject the editorial score into a named-third-party block',
+);
+assert.match(
+  mixedThirdPartyRendered,
+  /class="score-total"[^>]*>[\s\S]*?Editor score: 72\/100/,
+  'a genuine explicit score widget must still receive the verified score',
+);
 
 const leakedScoreFixture = `
   <div class="metric"><div>4.5</div><div>Editor Score</div></div>
