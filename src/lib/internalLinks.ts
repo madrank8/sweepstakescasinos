@@ -209,6 +209,23 @@ export function contextualLinksForGuide(guideSlug: string): ContextualLink[] {
   ];
 }
 
+export function contextualLinksForArticle(
+  state?: UsStateCode | null,
+): ContextualLink[] {
+  return [
+    { href: '/guides/', label: 'Read the sweepstakes casino guides' },
+    state
+      ? {
+          href: `/states/${stateSlug(state)}/`,
+          label: `${stateName(state)} availability and legal context`,
+        }
+      : {
+          href: '/state-legality/',
+          label: 'Check state-by-state availability context',
+        },
+  ];
+}
+
 function escapeHtml(value: string): string {
   return value
     .replaceAll('&', '&amp;')

@@ -4,6 +4,7 @@ import { resolve } from 'node:path';
 import { AFFILIATE_PARTNERS } from '../src/data/affiliates';
 import { OPERATORS } from '../src/data/operators';
 import {
+  contextualLinksForArticle,
   contextualLinksForGuide,
   injectReviewContextualLinks,
   selectAvailableStateReviews,
@@ -145,6 +146,10 @@ for (const guideSlug of [
     `${guideSlug} must receive a context-appropriate commercial destination`,
   );
 }
+
+const articleLinks = contextualLinksForArticle('CA');
+assert.ok(articleLinks.some((link) => link.href === '/guides/'));
+assert.ok(articleLinks.some((link) => link.href === '/states/california/'));
 
 const routeAudit = auditAuthoredRoutes(root);
 assert.ok(

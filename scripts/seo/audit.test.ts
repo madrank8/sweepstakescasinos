@@ -16,6 +16,7 @@ import { softenOverclaimHtml } from '../../src/lib/testingFragments';
 import {
   auditAuthoredRoutes,
   auditSchemaParity,
+  evaluateCommercialHubCandidates,
   inventoryOperatorFacts,
   renderAuditReports,
   scanTestingClaims,
@@ -60,6 +61,25 @@ for (const slug of ['jackpota', 'jackpot-go']) {
     `${slug} score conflict must remain explicit`,
   );
 }
+
+const hubCandidates = evaluateCommercialHubCandidates();
+assert.ok(hubCandidates.length >= 2);
+assert.ok(
+  hubCandidates.every((candidate) => candidate.decision === 'DEFER'),
+  'freshness-dependent candidate hubs must remain deferred',
+);
+assert.ok(
+  hubCandidates.every((candidate) =>
+    candidate.unmetGates.some((gate) => /lastVerifiedDate|freshness/i.test(gate)),
+  ),
+  'every freshness-dependent candidate must name the missing freshness gate',
+);
+assert.ok(
+  hubCandidates
+    .find((candidate) => candidate.id === 'free-sweeps-coins-superlative')
+    ?.unmetGates.some((gate) => /bonuses\/no-deposit/i.test(gate)),
+  'the free-SC candidate must record the existing competing URL',
+);
 
 assert.equal(
   classifyTestingClaim({

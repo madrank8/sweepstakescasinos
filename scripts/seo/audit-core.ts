@@ -79,6 +79,125 @@ export interface OperatorAudit {
   conflicts: OperatorConflict[];
 }
 
+export interface HubApprovalGate {
+  name:
+    | 'canonical field coverage'
+    | 'freshness'
+    | 'distinct intent'
+    | 'competing URLs'
+    | 'internal-link sources'
+    | 'conversion action';
+  status: 'PASS' | 'FAIL';
+  evidence: string;
+}
+
+export interface CommercialHubCandidateDecision {
+  id: string;
+  candidate: string;
+  decision: 'DEFER';
+  gates: HubApprovalGate[];
+  unmetGates: string[];
+}
+
+export function evaluateCommercialHubCandidates(
+  operators: readonly typeof OPERATORS[number][] = OPERATORS,
+): CommercialHubCandidateDecision[] {
+  const total = operators.length;
+  const freshnessCount = operators.filter(
+    (operator) => verifiedValue(operator.lastVerifiedDate) !== undefined,
+  ).length;
+  const payoutTimingCount = operators.filter(
+    (operator) => verifiedValue(operator.publishedRedemptionTiming) !== undefined,
+  ).length;
+  const signupOfferCount = operators.filter(
+    (operator) => verifiedValue(operator.signupOffer) !== undefined,
+  ).length;
+
+  const candidates: Array<Omit<CommercialHubCandidateDecision, 'decision' | 'unmetGates'>> = [
+    {
+      id: 'fastest-payout-superlative',
+      candidate: 'Fastest payout sweepstakes casinos',
+      gates: [
+        {
+          name: 'canonical field coverage',
+          status: 'FAIL',
+          evidence:
+            `${payoutTimingCount}/${total} records have verified published timing text, ` +
+            'but 0 have a normalized comparable payout-duration metric.',
+        },
+        {
+          name: 'freshness',
+          status: 'FAIL',
+          evidence: `${freshnessCount}/${total} records have a verified lastVerifiedDate.`,
+        },
+        {
+          name: 'distinct intent',
+          status: 'PASS',
+          evidence: 'A ranked payout-speed decision page would be distinct from the redemption explainer.',
+        },
+        {
+          name: 'competing URLs',
+          status: 'PASS',
+          evidence: 'No existing route ranks operators by a comparable payout-duration metric.',
+        },
+        {
+          name: 'internal-link sources',
+          status: 'PASS',
+          evidence: 'Reviews, the redemption guide, and the main comparison could supply contextual links.',
+        },
+        {
+          name: 'conversion action',
+          status: 'PASS',
+          evidence: 'The supported action would be reading operator reviews after comparing published terms.',
+        },
+      ],
+    },
+    {
+      id: 'free-sweeps-coins-superlative',
+      candidate: 'Most free Sweeps Coins',
+      gates: [
+        {
+          name: 'canonical field coverage',
+          status: signupOfferCount === total ? 'PASS' : 'FAIL',
+          evidence: `${signupOfferCount}/${total} records have a verified signup offer.`,
+        },
+        {
+          name: 'freshness',
+          status: 'FAIL',
+          evidence: `${freshnessCount}/${total} records have a verified lastVerifiedDate.`,
+        },
+        {
+          name: 'distinct intent',
+          status: 'FAIL',
+          evidence: 'The intent is already served by /bonuses/no-deposit/.',
+        },
+        {
+          name: 'competing URLs',
+          status: 'FAIL',
+          evidence: '/bonuses/no-deposit/ is the existing canonical no-purchase offer destination.',
+        },
+        {
+          name: 'internal-link sources',
+          status: 'PASS',
+          evidence: 'Reviews, the AMOE guide, and the homepage can link to the existing destination.',
+        },
+        {
+          name: 'conversion action',
+          status: 'PASS',
+          evidence: 'The supported action is comparing published offers and then reading a review.',
+        },
+      ],
+    },
+  ];
+
+  return candidates.map((candidate) => {
+    const unmetGates = candidate.gates
+      .filter((gate) => gate.status === 'FAIL')
+      .map((gate) => `${gate.name}: ${gate.evidence}`);
+    return { ...candidate, decision: 'DEFER', unmetGates };
+  });
+}
+
 type JsonNode = Record<string, unknown>;
 
 function read(root: string, path: string): string {
@@ -843,6 +962,7 @@ function cannibalisationReport(root: string): string {
 }
 
 function commercialHubReport(audit: OperatorAudit): string {
+  const candidates = evaluateCommercialHubCandidates();
   return [
     reportHeader('Commercial Hub Plan'),
     '## Current factual shape\n\n',
@@ -857,7 +977,22 @@ function commercialHubReport(audit: OperatorAudit): string {
     '3. Treat `/best/sweepstakes-casinos/` as deeper ranked comparison coverage.\n',
     '4. Preserve affiliate tracking, per-partner availability, and site-level suppression as separate authorities.\n',
     '5. Resolve each `UNRESOLVED` or `MANUAL_REVIEW` row in `operator-data-conflicts.md` only against cited source evidence.\n\n',
-    'No ranking, offer, legal status, redirect, or canonical winner is asserted here.\n',
+    '## Candidate approval gates\n\n',
+    'A candidate is created only when every gate passes. Current freshness-dependent candidates are explicitly deferred; no thin route or filter permutation is created.\n\n',
+    '| Candidate | Gate | Status | Deterministic evidence |\n',
+    '|---|---|---|---|\n',
+    ...candidates.flatMap((candidate) =>
+      candidate.gates.map(
+        (gate) =>
+          `| ${md(candidate.candidate)} | ${md(gate.name)} | ${gate.status} | ${md(gate.evidence)} |\n`,
+      ),
+    ),
+    '\n## Decisions\n\n',
+    ...candidates.map(
+      (candidate) =>
+        `- **${candidate.decision}: ${candidate.candidate}.** Unmet gates: ${candidate.unmetGates.map(md).join('; ')}\n`,
+    ),
+    '\nNo ranking, offer, legal status, redirect, or canonical winner is asserted here.\n',
   ].join('');
 }
 
