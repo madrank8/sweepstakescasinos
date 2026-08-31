@@ -266,7 +266,7 @@ function writeSitemapAndRobots() {
    * Prefer content files over shared route shells when both exist.
    */
   function sourcePathsForUrl(url) {
-    if (url === '/') return ['index.html'];
+    if (url === '/') return ['src/routes/index.astro'];
     const review = url.match(/^\/reviews\/([^/]+)\/$/);
     if (review) return [`reviews/${review[1]}.html`];
     const author = url.match(/^\/author\/([^/]+)\/$/);
@@ -286,6 +286,7 @@ function writeSitemapAndRobots() {
       '/tools/sweepstakes-odds-calculator/': 'src/routes/tools/sweepstakes-odds-calculator/index.astro',
       '/news/': 'src/routes/news/index.astro',
       '/new/': 'src/routes/new/index.astro',
+      '/reviews/': 'src/routes/reviews/index.astro',
       '/bonuses/no-deposit/': 'src/routes/bonuses/no-deposit/index.astro',
       '/state-legality/': 'src/routes/state-legality/index.astro',
       '/sweepstakes-tracker/': 'src/routes/sweepstakes-tracker/index.astro',
@@ -320,6 +321,9 @@ function writeSitemapAndRobots() {
   };
 
   push('/');
+  if (existsSync(join(root, 'src', 'routes', 'reviews', 'index.astro'))) {
+    push('/reviews/');
+  }
   const reviewsDir = join(root, 'reviews');
   if (existsSync(reviewsDir)) {
     for (const f of readdirSync(reviewsDir).sort()) {
@@ -456,7 +460,9 @@ function writeSitemapAndRobots() {
     `# Sweepstakes Wiz\n\n` +
     `> Sweepstakes Wiz (sweepstakeswiz.com) is an independent US guide that reviews and ranks sweepstakes (social) casinos — focused on published redemption terms, bonus value, and state eligibility. Sweepstakes play only; no real-money gambling. 21+.\n\n` +
     `## Start here\n` +
+    `- [Best sweepstakes casinos decision guide](${ORIGIN}/)\n` +
     `- [Best sweepstakes casinos](${ORIGIN}/best/sweepstakes-casinos/)\n` +
+    `- [All casino reviews](${ORIGIN}/reviews/)\n` +
     `- [New sweepstakes casinos](${ORIGIN}/new/)\n` +
     `- [No deposit bonuses & free Sweeps Coins](${ORIGIN}/bonuses/no-deposit/)\n` +
     `- [Sweepstakes odds calculator](${ORIGIN}/tools/sweepstakes-odds-calculator/)\n` +

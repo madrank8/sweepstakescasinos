@@ -1,0 +1,332 @@
+---
+export const prerender = false;
+
+import AffiliateLink from '../components/AffiliateLink.astro';
+import ContentLayout from '../layouts/ContentLayout.astro';
+import { brandEntityId, getBrandEntity } from '../data/brandEntities';
+import { OPERATORS } from '../data/operators';
+import { SITE } from '../data/site';
+import {
+  buildRankedRecommendationViews,
+  cashMinimumCandidates,
+  selectComparisonOperators,
+  selectUniqueSuperlative,
+} from '../lib/homepage';
+import { faqPageNode } from '../lib/schema';
+
+const canonicalPath = '/';
+const canonical = `${SITE.origin}/`;
+const title = 'Best Sweepstakes Casinos: 4 Resolved Editor Picks | Sweepstakes Wiz';
+const description =
+  'Compare four sweepstakes casinos with resolved editor scores, plus a deterministic 12-operator fact table with honest unresolved and unavailable fields.';
+const ranked = buildRankedRecommendationViews(OPERATORS, Astro.locals.usState);
+const comparison = selectComparisonOperators(OPERATORS);
+const lowestCashMinimum = selectUniqueSuperlative(
+  cashMinimumCandidates(OPERATORS),
+  {
+    label: 'Lowest verified cash redemption minimum',
+    asOf: new Date(),
+    maxAgeDays: 90,
+    metric: (minimum) => minimum.amount,
+  },
+);
+const faq = [
+  {
+    q: 'What is a sweepstakes casino?',
+    a: 'A sweepstakes casino is a social gaming site that usually uses free-play Gold Coins and promotional Sweeps Coins. Eligible Sweeps Coins may be redeemed under the operator’s rules. No purchase is necessary.',
+  },
+  {
+    q: 'Why are only four casinos ranked here?',
+    a: 'Only four operators currently have a resolved canonical Sweepstakes Wiz editor score and enough verified decision facts. We do not convert conflicting five-star values or invent scores to fill a longer list.',
+  },
+  {
+    q: 'How is the 12-operator comparison selected?',
+    a: 'Operators need verified names and ownership plus at least three of seven decision-fact categories. We sort by completeness, then slug for deterministic ties, and take the first 12. Affiliate payout is not used.',
+  },
+  {
+    q: 'Are sweepstakes casinos legal in every state?',
+    a: 'No. Laws and operator rules differ by state. Check the state legality hub and the operator’s current official rules before playing or attempting a redemption.',
+  },
+];
+const itemList = {
+  '@type': 'ItemList',
+  '@id': `${canonical}#ranked-recommendations`,
+  name: 'Sweepstakes casinos with resolved editor scores',
+  numberOfItems: ranked.length,
+  itemListOrder: 'https://schema.org/ItemListOrderDescending',
+  itemListElement: ranked.map((operator, index) => ({
+    '@type': 'ListItem',
+    position: index + 1,
+    name: operator.name,
+    url: `${SITE.origin}/reviews/${operator.slug}/`,
+    ...(getBrandEntity(operator.slug)
+      ? { item: { '@id': brandEntityId(operator.slug) } }
+      : {}),
+  })),
+};
+const faqLd = faqPageNode(canonical, faq);
+---
+<ContentLayout
+  title={title}
+  description={description}
+  canonicalPath={canonicalPath}
+  breadcrumbs={[{ name: 'Home', path: '/' }]}
+  heroTitle={'Best <span class="accent">Sweepstakes Casinos</span>'}
+  heroSubtitle="Four supported editor picks, followed by a broader facts-first comparison. Missing and conflicting data stays visible instead of becoming a score."
+  pageType="CollectionPage"
+  mainEntityId={`${canonical}#ranked-recommendations`}
+  jsonLd={faqLd ? [itemList, faqLd] : [itemList]}
+>
+  <section id="answer" class="answer" aria-labelledby="answer-title">
+    <h2 id="answer-title">The short answer</h2>
+    <p>
+      <strong>Best sweepstakes casinos</strong> are social gaming sites that combine
+      clear no-purchase rules, state eligibility, usable redemption terms and a
+      strong editorial assessment. Today, only four operators meet our resolved-score
+      threshold. The table below broadens your research without pretending all 12 are ranked.
+    </p>
+  </section>
+
+  <section id="recommendations" aria-labelledby="recommendations-title">
+    <div class="section-heading">
+      <div>
+        <p class="eyebrow">Supported ranked set</p>
+        <h2 id="recommendations-title">Top recommendations with resolved scores</h2>
+      </div>
+      <a href="/best/sweepstakes-casinos/">Open the deeper comparison</a>
+    </div>
+    <p class="section-note">
+      Ranked by canonical editor score only. Each entry also has at least three verified
+      decision-fact categories. Unresolved scores are excluded.
+    </p>
+    <ol class="recommendation-list">
+      {ranked.map((operator, index) => (
+        <li class="recommendation-card">
+          <div class="rank" aria-label={`Rank ${index + 1}`}>{index + 1}</div>
+          <div class="recommendation-copy">
+            <div class="recommendation-title">
+              <h3><a href={`/reviews/${operator.slug}/`}>{operator.name}</a></h3>
+              <strong class="score">{operator.score}/100</strong>
+            </div>
+            <dl>
+              <div>
+                <dt>Welcome offer</dt>
+                <dd>{operator.signupOffer ?? 'Not verified'}</dd>
+              </div>
+              <div>
+                <dt>Redemption minimum</dt>
+                <dd>{operator.redemptionMinimum}</dd>
+              </div>
+            </dl>
+            <p class:list={['availability', { available: operator.canCta }]}>
+              {operator.availabilityLabel}
+            </p>
+          </div>
+          <div class="actions">
+            <a class="review-link" href={`/reviews/${operator.slug}/`}>
+              Read {operator.name} review
+            </a>
+            {operator.hasPartner && (
+              <AffiliateLink
+                slug={operator.slug}
+                label={`Visit ${operator.name}`}
+                clickId="homepage-ranked"
+                showUnavailableNote
+              />
+            )}
+          </div>
+        </li>
+      ))}
+    </ol>
+  </section>
+
+  <section id="use-cases" aria-labelledby="use-cases-title">
+    <p class="eyebrow">Best by use case</p>
+    <h2 id="use-cases-title">Only when one verified result is defensible</h2>
+    {lowestCashMinimum ? (
+      <article class="use-case-card">
+        <p>{lowestCashMinimum.label}</p>
+        <h3><a href={`/reviews/${lowestCashMinimum.slug}/`}>{lowestCashMinimum.name}</a></h3>
+        <p>
+          Published minimum: {lowestCashMinimum.value.amount}{' '}
+          {lowestCashMinimum.value.currency}. This describes a published threshold,
+          not an observed payout.
+        </p>
+      </article>
+    ) : (
+      <p class="honesty-note">
+        No use-case winner is shown. Canonical operator verification dates are currently
+        unavailable, so a “fastest” or “lowest” badge would overstate the evidence.
+      </p>
+    )}
+  </section>
+
+  <section id="comparison" aria-labelledby="comparison-title">
+    <p class="eyebrow">Decision support, not ranks 5–12</p>
+    <h2 id="comparison-title">Compare 12 fact-complete operators</h2>
+    <p>
+      Eligibility requires verified name and operator identity plus at least three of:
+      launch date, welcome offer, daily offer, redemption minimum, published redemption
+      estimate, payment methods and game count. Order is completeness descending, then
+      slug ascending. Affiliate economics are not inputs.
+    </p>
+    <div class="table-wrap" tabindex="0" aria-label="Scrollable operator comparison">
+      <table>
+        <caption>
+          Deterministic comparison set. “Unresolved” means canonical sources conflict;
+          “Not verified” means no supported value is available.
+        </caption>
+        <thead>
+          <tr>
+            <th scope="col">Operator</th>
+            <th scope="col">Editor score</th>
+            <th scope="col">Welcome offer</th>
+            <th scope="col">Redemption minimum</th>
+            <th scope="col">Published redemption estimate</th>
+            <th scope="col">Games</th>
+          </tr>
+        </thead>
+        <tbody>
+          {comparison.map((operator) => (
+            <tr>
+              <th scope="row">
+                <a href={`/reviews/${operator.slug}/`}>{operator.name}</a>
+              </th>
+              <td>{operator.editorScore}</td>
+              <td>{operator.welcomeOffer}</td>
+              <td>{operator.redemptionMinimum}</td>
+              <td>{operator.publishedRedemptionTiming}</td>
+              <td>{operator.gameCount}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section id="methodology" aria-labelledby="methodology-title">
+    <p class="eyebrow">Methodology and trust</p>
+    <h2 id="methodology-title">Scores are earned, not backfilled</h2>
+    <p>
+      We assess published redemption terms, offer clarity, game experience and trust
+      signals under our <a href="/how-we-rate/">rating methodology</a>. Affiliate
+      relationships never resolve missing data or change rank. Read our
+      <a href="/editorial-policy/">editorial policy</a> and
+      <a href="/legal/affiliate-disclosure/">affiliate disclosure</a>.
+    </p>
+  </section>
+
+  <section id="legality" aria-labelledby="legality-title">
+    <p class="eyebrow">Essential legality and safety</p>
+    <h2 id="legality-title">Check two layers before you play</h2>
+    <ul>
+      <li>Your state’s current treatment of sweepstakes casino play and promotion.</li>
+      <li>The operator’s own restricted-state list and official sweepstakes rules.</li>
+      <li>No purchase is necessary. Sweeps Coins have no cash value until eligible redemption.</li>
+      <li>Set limits and call <strong>1-800-GAMBLER</strong> if play stops being fun.</li>
+    </ul>
+    <p>
+      Start with the <a href="/state-legality/">state legality hub</a> and our
+      <a href="/responsible-gaming/">responsible gaming resources</a>.
+    </p>
+  </section>
+
+  <section id="buyer-guidance" aria-labelledby="buyer-guidance-title">
+    <p class="eyebrow">Buyer guidance</p>
+    <h2 id="buyer-guidance-title">Choose by the constraint that matters to you</h2>
+    <div class="guidance-grid">
+      <article>
+        <h3>Start with eligibility</h3>
+        <p>A generous offer has no value if either our geo policy or the operator’s rules exclude your state.</p>
+      </article>
+      <article>
+        <h3>Compare redemption routes</h3>
+        <p>Review the minimum, identity checks, payment method and published estimate together.</p>
+      </article>
+      <article>
+        <h3>Read offer terms</h3>
+        <p>Gold Coin totals are not cash value. Check Sweeps Coin amounts, playthrough and expiry.</p>
+      </article>
+    </div>
+  </section>
+
+  <section id="faq" aria-labelledby="faq-title">
+    <p class="eyebrow">Quick answers</p>
+    <h2 id="faq-title">Frequently asked questions</h2>
+    <div class="faq-list">
+      {faq.map((item) => (
+        <article>
+          <h3>{item.q}</h3>
+          <p>{item.a}</p>
+        </article>
+      ))}
+    </div>
+  </section>
+
+  <section id="specialist-hubs" aria-labelledby="specialist-hubs-title">
+    <p class="eyebrow">Go deeper</p>
+    <h2 id="specialist-hubs-title">Specialist research hubs</h2>
+    <nav class="hub-links" aria-label="Specialist sweepstakes casino hubs">
+      <a href="/reviews/">All casino reviews</a>
+      <a href="/best/sweepstakes-casinos/">Full best-casinos comparison</a>
+      <a href="/new/">New sweepstakes casinos</a>
+      <a href="/bonuses/no-deposit/">No-deposit offers</a>
+      <a href="/guides/">Guides</a>
+      <a href="/tools/">Decision tools</a>
+    </nav>
+  </section>
+
+  <style>
+    :global(.content-card){border-top:3px solid #fbbf24;}
+    section{scroll-margin-top:1rem;margin:0 0 3rem;}
+    .answer{background:#0a1628;color:#e2e8f0;border-radius:16px;padding:1.25rem 1.4rem;}
+    .answer h2{color:#fbbf24;margin-top:0;}
+    .answer p{margin-bottom:0;}
+    .eyebrow{margin:0 0 .25rem;color:#9a6700;font-size:.76rem;font-weight:800;letter-spacing:.09em;text-transform:uppercase;}
+    .section-heading{display:flex;align-items:end;justify-content:space-between;gap:1rem;flex-wrap:wrap;}
+    .section-heading h2{margin:0;}
+    .section-note{color:#475569;}
+    .recommendation-list{list-style:none;padding:0;display:grid;gap:1rem;}
+    .recommendation-card{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:1rem;align-items:center;border:1px solid #dbe3ee;border-radius:16px;padding:1rem;background:linear-gradient(145deg,#fff,#f8fafc);}
+    .rank{display:grid;place-items:center;width:2.25rem;height:2.25rem;border-radius:50%;background:#0a1628;color:#fbbf24;font-weight:900;}
+    .recommendation-title{display:flex;justify-content:space-between;gap:1rem;align-items:baseline;}
+    .recommendation-title h3{margin:0;}
+    .score{white-space:nowrap;color:#0a1628;}
+    dl{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.5rem;margin:.65rem 0;}
+    dl div{min-width:0;}
+    dt{font-size:.72rem;font-weight:800;text-transform:uppercase;color:#64748b;}
+    dd{margin:0;color:#334155;}
+    .availability{font-size:.78rem;color:#64748b;margin:0;}
+    .availability.available{color:#047857;font-weight:700;}
+    .actions{display:flex;flex-direction:column;gap:.6rem;align-items:stretch;max-width:13rem;}
+    .review-link,.actions :global(.affiliate-cta){display:inline-block;text-align:center;border-radius:10px;padding:.7rem .9rem;font-weight:800;text-decoration:none;}
+    .review-link{border:1px solid #0a1628;color:#0a1628;}
+    .actions :global(.affiliate-cta){background:linear-gradient(135deg,#fbbf24,#f59e0b);color:#0a1628;}
+    .actions :global(.affiliate-unavailable){font-size:.75rem;color:#991b1b;margin:0;}
+    a:focus-visible,.table-wrap:focus-visible{outline:3px solid #d97706;outline-offset:3px;}
+    .honesty-note,.use-case-card{border-left:4px solid #fbbf24;background:#fffbeb;padding:1rem 1.1rem;border-radius:0 12px 12px 0;}
+    .table-wrap{max-width:100%;overflow-x:auto;border:1px solid #dbe3ee;border-radius:12px;}
+    table{width:100%;min-width:880px;border-collapse:collapse;font-size:.86rem;}
+    caption{text-align:left;padding:.9rem;background:#0a1628;color:#e2e8f0;}
+    th,td{text-align:left;vertical-align:top;padding:.75rem;border-bottom:1px solid #e2e8f0;}
+    thead th{background:#fbbf24;color:#0a1628;}
+    tbody tr:nth-child(even){background:#f8fafc;}
+    .guidance-grid,.faq-list{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1rem;}
+    .guidance-grid article,.faq-list article{border:1px solid #e2e8f0;border-radius:12px;padding:1rem;}
+    .guidance-grid h3,.faq-list h3{margin-top:0;}
+    .hub-links{display:flex;flex-wrap:wrap;gap:.65rem;}
+    .hub-links a{background:#0a1628;color:#fbbf24;border-radius:999px;padding:.55rem .85rem;text-decoration:none;font-weight:700;}
+    @media(max-width:760px){
+      .recommendation-card{grid-template-columns:auto minmax(0,1fr);}
+      .actions{grid-column:1/-1;width:100%;max-width:none;}
+      .guidance-grid,.faq-list{grid-template-columns:1fr;}
+    }
+    @media(max-width:480px){
+      .recommendation-card{grid-template-columns:1fr;}
+      .rank{width:2rem;height:2rem;}
+      .recommendation-title,dl{display:block;}
+      dl div+div{margin-top:.5rem;}
+      section{margin-bottom:2.25rem;}
+    }
+  </style>
+</ContentLayout>

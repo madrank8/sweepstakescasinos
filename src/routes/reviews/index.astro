@@ -1,0 +1,125 @@
+---
+import ContentLayout from '../../layouts/ContentLayout.astro';
+import { OPERATORS, verifiedValue } from '../../data/operators';
+import { SITE } from '../../data/site';
+import { decisionFactCompleteness, formatMinimum } from '../../lib/homepage';
+
+export const prerender = true;
+
+const canonicalPath = '/reviews/';
+const canonical = `${SITE.origin}${canonicalPath}`;
+const title = 'Sweepstakes Casino Reviews: All 29 Operators | Sweepstakes Wiz';
+const description =
+  'Browse all 29 Sweepstakes Wiz casino reviews alphabetically. This complete directory is not a best-casino ranking and does not infer missing editor scores.';
+const operators = OPERATORS
+  .map((operator) => ({
+    slug: operator.slug,
+    name: verifiedValue(operator.name) ?? operator.slug,
+    operatorName: verifiedValue(operator.operatorName) ?? 'Operator identity not verified',
+    redemptionMinimum: formatMinimum(operator),
+    completeness: decisionFactCompleteness(operator),
+  }))
+  .sort((a, b) => a.name.localeCompare(b.name) || a.slug.localeCompare(b.slug));
+
+// ContentLayout emits CollectionPage + BreadcrumbList; this route adds ItemList.
+const itemList = {
+  '@type': 'ItemList',
+  '@id': `${canonical}#directory`,
+  name: 'All Sweepstakes Wiz casino reviews',
+  numberOfItems: operators.length,
+  itemListOrder: 'https://schema.org/ItemListOrderAscending',
+  itemListElement: operators.map((operator, index) => ({
+    '@type': 'ListItem',
+    position: index + 1,
+    name: operator.name,
+    url: `${SITE.origin}/reviews/${operator.slug}/`,
+  })),
+};
+---
+<ContentLayout
+  title={title}
+  description={description}
+  canonicalPath={canonicalPath}
+  breadcrumbs={[
+    { name: 'Home', path: '/' },
+    { name: 'Casino Reviews', path: canonicalPath },
+  ]}
+  heroTitle={'All <span class="accent">Sweepstakes Casino Reviews</span>'}
+  heroSubtitle="A complete A–Z directory of our 29 operator reviews. Use it to find a brand, not as a ranking."
+  pageType="CollectionPage"
+  mainEntityId={`${canonical}#directory`}
+  jsonLd={itemList}
+>
+  <section class="directory-intro" aria-labelledby="directory-purpose">
+    <h2 id="directory-purpose">Find an operator review</h2>
+    <p>
+      This directory lists every current review alphabetically. It does not label an
+      operator “best,” reorder brands for commercial reasons, or display unresolved
+      editor scores. For a supported ranked set, start on the
+      <a href="/">homepage</a>; for deeper ranking methodology, use the
+      <a href="/best/sweepstakes-casinos/">best sweepstakes casinos comparison</a>.
+    </p>
+  </section>
+
+  <p class="directory-count"><strong>{operators.length} reviews</strong> · Alphabetical order</p>
+  <div class="review-directory" role="list">
+    {operators.map((operator) => (
+      <article class="review-entry" role="listitem">
+        <div>
+          <h2>
+            <a href={`/reviews/${operator.slug}/`}>{operator.name}</a>
+          </h2>
+          <p>{operator.operatorName}</p>
+        </div>
+        <dl>
+          <div>
+            <dt>Published redemption minimum</dt>
+            <dd>{operator.redemptionMinimum}</dd>
+          </div>
+          <div>
+            <dt>Verified decision-fact categories</dt>
+            <dd>{operator.completeness} of 7</dd>
+          </div>
+        </dl>
+        <a class="review-action" href={`/reviews/${operator.slug}/`}>
+          Read {operator.name} review
+        </a>
+      </article>
+    ))}
+  </div>
+
+  <aside class="directory-note" aria-label="Review directory data note">
+    <h2>How to use this directory</h2>
+    <p>
+      “Not verified” means the canonical record cannot support a display value.
+      Review operator rules directly for time-sensitive offers, eligibility and
+      redemption requirements.
+    </p>
+  </aside>
+
+  <style>
+    :global(.content-card){border-top:3px solid #fbbf24;}
+    .directory-intro{background:#0a1628;color:#e2e8f0;border-radius:14px;padding:1.2rem 1.35rem;}
+    .directory-intro h2{color:#fbbf24;margin-top:0;}
+    .directory-intro a{color:#fbbf24;}
+    .directory-count{color:#475569;margin:1.5rem 0 .75rem;}
+    .review-directory{display:grid;gap:.85rem;}
+    .review-entry{display:grid;grid-template-columns:minmax(13rem,1.2fr) minmax(16rem,1.5fr) auto;gap:1rem;align-items:center;border:1px solid #dbe3ee;border-radius:14px;padding:1rem;background:#fff;}
+    .review-entry h2{font-size:1.05rem;margin:0;}
+    .review-entry p{font-size:.82rem;color:#64748b;margin:.25rem 0 0;}
+    dl{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.75rem;margin:0;}
+    dt{font-size:.68rem;text-transform:uppercase;font-weight:800;color:#64748b;}
+    dd{margin:0;color:#334155;font-size:.84rem;}
+    .review-action{display:inline-block;background:linear-gradient(135deg,#fbbf24,#f59e0b);color:#0a1628;border-radius:10px;padding:.7rem .9rem;font-weight:800;text-decoration:none;text-align:center;}
+    a:focus-visible{outline:3px solid #d97706;outline-offset:3px;}
+    .directory-note{margin-top:2rem;border-left:4px solid #fbbf24;background:#fffbeb;padding:1rem 1.2rem;border-radius:0 12px 12px 0;}
+    .directory-note h2{margin-top:0;}
+    @media(max-width:850px){
+      .review-entry{grid-template-columns:1fr;}
+      dl{grid-template-columns:repeat(2,minmax(0,1fr));}
+    }
+    @media(max-width:480px){
+      dl{grid-template-columns:1fr;}
+    }
+  </style>
+</ContentLayout>
