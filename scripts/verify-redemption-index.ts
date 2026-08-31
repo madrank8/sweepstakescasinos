@@ -3,47 +3,52 @@ import { existsSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { READER_REPORT_AGGREGATES } from '../src/data/readerReports.generated';
 import { OPERATORS } from '../src/data/operators';
-import { loadTestingResultsCsv } from '../src/data/testingResults';
+import { validateAllResults } from '../src/data/testingResults';
 import { brandAggregateRating } from '../src/lib/brandAggregateRating';
-import { assessRedemptionIndex } from '../src/lib/redemptionIndex';
+import { assessProductionRedemptionEvidence } from '../src/lib/redemptionEvidenceAdapter';
 
-const testingRows = loadTestingResultsCsv();
-const readerAggregateOperators = Object.keys(READER_REPORT_AGGREGATES);
-// This fallback keeps the empty-evidence verification reproducible. A future
-// production publisher must supply its evaluation date explicitly.
+const { rows: testingRows, issues: testingIssues } = validateAllResults();
+const readerAggregateOperators = Object.keys(READER_REPORT_AGGREGATES).sort();
 const verificationAsOf =
-  process.env.REDEMPTION_INDEX_AS_OF ?? '2026-08-31';
-const assessment = assessRedemptionIndex([], { asOf: verificationAsOf });
-
-assert.equal(testingRows.length, 0, 'production testing data is no longer empty');
-assert.equal(
-  readerAggregateOperators.length,
-  0,
-  'production reader aggregate data is no longer empty',
-);
-assert.deepEqual(assessment, {
-  status: 'not-publishable',
-  reason: 'no-approved-records',
-  diagnostics: [],
+  process.env.REDEMPTION_INDEX_AS_OF ?? new Date().toISOString().slice(0, 10);
+const production = assessProductionRedemptionEvidence({
+  testingRows,
+  testingIssues,
+  readerAggregates: READER_REPORT_AGGREGATES,
+  asOf: verificationAsOf,
 });
-assert.ok(
-  OPERATORS.every((operator) => brandAggregateRating(operator.slug) === undefined),
-  'empty reader data must not emit AggregateRating',
+const publicResultsRoute = existsSync(
+  resolve('src/routes/redemption-index/index.astro'),
 );
-assert.equal(
-  existsSync(resolve('src/routes/redemption-index/index.astro')),
-  false,
-  'a public redemption-index route must not exist while evidence is empty',
-);
+
+if (production.assessment.status === 'not-publishable') {
+  assert.equal(
+    publicResultsRoute,
+    false,
+    'a public redemption-index route must not exist while production evidence is non-publishable',
+  );
+  assert.doesNotMatch(
+    JSON.stringify(production.assessment),
+    /medianHours|approvedSampleSize|rank":/i,
+    'non-publishable production state must not expose result metrics',
+  );
+}
+
+const aggregateRatings = OPERATORS.filter(
+  (operator) => brandAggregateRating(operator.slug) !== undefined,
+).length;
 
 console.log(
   JSON.stringify(
     {
-      testingRows: testingRows.length,
-      readerAggregateOperators: readerAggregateOperators.length,
-      assessment,
-      publicResultsRoute: false,
-      aggregateRatings: 0,
+      asOf: verificationAsOf,
+      testingRows: production.testingRowsLoaded,
+      readerAggregateOperators: production.readerAggregateOperatorsLoaded,
+      adaptedRecords: production.records.length,
+      adapterDiagnostics: production.diagnostics,
+      assessment: production.assessment,
+      publicResultsRoute,
+      aggregateRatings,
     },
     null,
     2,

@@ -2,9 +2,11 @@
 
 ## Publication status
 
-The redemption index is not publishable. Production first-party testing and
-reader-report datasets are empty, so no public result route, median, sample
-size, observation, ranking, or AggregateRating is emitted.
+CI evaluates the current approved first-party testing rows and reader aggregate
+inputs on every run. A non-publishable assessment exposes no public result
+route, median, sample size, observation, or ranking. Aggregate-only reader data
+is loaded but is not expanded into synthetic individual redemption records
+because it cannot preserve an exact minimum and record-level provenance.
 
 ## Source eligibility and moderation
 
