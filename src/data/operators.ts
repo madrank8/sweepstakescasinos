@@ -305,7 +305,7 @@ function signupFact(slug: string): CanonicalFact<string> {
         {
           value: conflict[0],
           provenance: {
-            source: 'index.html (historical homepage snapshot; not served)',
+            source: 'index.html#historical-homepage-snapshot-not-served',
             publishedOn: PUBLISHED_ON,
           },
         },
