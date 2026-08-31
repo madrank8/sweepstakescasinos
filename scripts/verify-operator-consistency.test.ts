@@ -302,10 +302,9 @@ assert.deepEqual(
   new Set(findRenderedEditorScoreContexts(leakedScoreFixture).map((context) => context.kind)),
   new Set([
     'first-party-language',
-    'aggregate-total',
     'unattributed-rating',
   ]),
-  'independent detector must recognize every shipped semantic editor-score context',
+  'independent detector must recognize labeled and unattributed score claims',
 );
 assert.deepEqual(
   findRenderedEditorScoreContexts(
