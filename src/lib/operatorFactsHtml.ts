@@ -236,7 +236,7 @@ function isBreakdownSubcategory(
     if (!/[a-z]{3}/i.test(label)) continue;
     if (
       ancestors
-        .slice(index + 1, index + 3)
+        .slice(index + 1, index + 2)
         .some((ancestor) => BREAKDOWN_CUE.test(elementText(html, ancestor)))
     ) {
       return true;
