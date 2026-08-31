@@ -98,8 +98,8 @@ Self-review confirmed:
 - Review ratings use only visible verdict `/100` values and are removed without
   one;
 - the final breadcrumb omits `item`;
-- all 51 Wikidata IDs match live English entity labels and state Articles use
-  their entity IRIs;
+- Wikidata IDs for the 50 states and the District of Columbia match live
+  English entity labels, and jurisdiction Articles use their entity IRIs;
 - the empty approved-reader aggregate emits no `AggregateRating`;
 - the verifier covers static and SSR sitemap URLs, duplicate/unresolved IDs,
   score parity, safe literals, tracking parameters, breadcrumb shape, and
@@ -111,3 +111,98 @@ No blocking concerns. CI logs retain two expected repository/environment notes:
 the unused `src/content/reviews` MDX collection is empty, and local CI has no
 Supabase credentials, so the committed empty reader-report aggregate remains
 unchanged.
+
+## Review Fixes
+
+### Status
+
+DONE
+
+### Coverage
+
+- `scripts/verify-schema-helpers.ts` reads the real Big Pirate, Sweepico, author,
+  and canonical-brand source files. It covers visible `/100` extraction and
+  rating parity, verified brand `sameAs` preservation, shared aggregate-rating
+  threshold boundaries, identified ProfilePage replacement, and FAQPage/content
+  separation.
+- `scripts/verify-schema-built.ts` now detects a rendered `/100` verdict
+  independently of the production class-aware parser.
+
+### Red evidence
+
+Command:
+
+```bash
+npx tsx scripts/verify-schema-helpers.ts
+```
+
+Outcome: exit `1` with
+`big-pirate.html visible verdict score must be detected` (`undefined !== 79`).
+Subsequent focused runs failed as expected for the missing shared threshold
+predicate, the truncated American Luck `sameAs` array, and duplicate identified
+ProfilePage output before each corresponding implementation.
+
+Command:
+
+```bash
+npm run schema:check
+```
+
+Outcome: exit `1`; the independent built-output detector reported exactly:
+
+- Big Pirate: rating did not match visible `79/100`;
+- Sweepico: rating did not match visible `85/100`.
+
+### Green evidence
+
+Command:
+
+```bash
+npx tsx scripts/verify-schema-helpers.ts
+```
+
+Outcome: exit `0` with `verify-schema-helpers: OK`.
+
+Command:
+
+```bash
+npm run schema:verify && npm run build && npm run schema:check
+```
+
+Outcome: exit `0`; 36 static source pages and all focused helpers passed, Astro
+built successfully, and the independent post-build gate validated all 114
+indexable pages.
+
+Command:
+
+```bash
+npm run ci
+```
+
+Outcome: exit `0`; every availability, content, tracker, methodology, odds,
+testing-evidence, build, structured-data, and integration gate passed.
+
+### Commits
+
+- `910ab07d2f9a5e3aa0b97092398b3c3c54fc078b` — test: cover reviewed JSON-LD regressions
+- `9489799ff4d81780f6cb1b1604b81bacbec201ed` — fix: preserve review ratings across legacy templates
+- `8d940de734fc1a110185c17413353602ebea7869` — fix: retain verified brand identity URLs
+- `728d168eab3971295d92a701131b49017a53f518` — refactor: share reader rating threshold
+
+### Self-review and concerns
+
+- The production detector remains intentionally class-aware and now covers all
+  four shipped verdict container families; the acceptance gate instead inspects
+  rendered text following the verdict heading.
+- Canonical brand replacement preserves every richer `sameAs` array from legacy
+  reviews for the seven affected canonical brands.
+- One predicate now controls both reader-report display eligibility and
+  AggregateRating emission at 10 approved reports with a non-null average.
+- Identified and anonymous legacy ProfilePage nodes are both replaced by the
+  canonical `#webpage`, while FAQPage remains a content entity.
+- No prohibited plan, controller ledger, beads, or instruction file was edited,
+  and no push was performed.
+
+No blocking concerns. The two existing CI notes remain unchanged: the optional
+review MDX collection is empty, and reader-report aggregation is skipped locally
+without Supabase credentials.

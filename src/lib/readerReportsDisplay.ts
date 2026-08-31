@@ -4,7 +4,7 @@
  * submission form. Aggregates come from the build-time generated data file.
  *
  * AggregateRating JSON-LD is intentionally NOT emitted until a brand reaches
- * SCHEMA_MIN approved reports (avoids thin/manipulable markup); see plan §6.
+ * the shared approved-report threshold (avoids thin/manipulable markup); see plan §6.
  */
 import { READER_REPORT_AGGREGATES } from '../data/readerReports.generated';
 import { meetsBrandAggregateRatingThreshold } from './brandAggregateRating';
