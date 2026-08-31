@@ -306,7 +306,9 @@ const legacy = `<!doctype html><html><head>
 <link rel="canonical" href="https://sweepstakeswiz.com/reviews/example/">
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"Review","@id":"https://sweepstakeswiz.com/reviews/example/#review","reviewRating":{"@type":"Rating","ratingValue":"4.5","bestRating":"5","worstRating":"1"},"itemReviewed":{"@id":"https://sweepstakeswiz.com/reviews/example/#brand"}}</script>
 <script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"Organization","@id":"https://sweepstakeswiz.com/reviews/example/#brand","name":"Example"},{"@type":"FAQPage","@id":"https://sweepstakeswiz.com/reviews/example/#faq","mainEntity":[{"@type":"Question","name":"Is it safe?","acceptedAnswer":{"@type":"Answer","text":"Use <care>."}}]},{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://sweepstakeswiz.com/"},{"@type":"ListItem","position":2,"name":"Example Review","item":"https://sweepstakeswiz.com/reviews/example/"}]}]}</script>
-</head><body><div class="verdict-box"><div class="verdict-score"><span class="big">88</span><span class="denom">/100</span></div></div></body></html>`;
+</head><body><div class="verdict-box"><div class="verdict-score"><span class="big">88</span><span class="denom">/100</span></div></div>
+<div class="faq"><div class="faq-item"><button class="faq-btn">Is it safe?<span class="faq-arrow">+</span></button><div class="faq-inner">Use &lt;care&gt;.</div></div></div>
+</body></html>`;
 const consolidated = consolidateJsonLd(legacy);
 const blocks = [
   ...consolidated.matchAll(
@@ -340,6 +342,18 @@ for (const id of [
     `consolidated graph must preserve or define ${id}`,
   );
 }
+assert.deepEqual(
+  consolidatedGraph['@graph'].find((node) => node['@type'] === 'FAQPage')
+    ?.mainEntity,
+  [
+    {
+      '@type': 'Question',
+      name: 'Is it safe?',
+      acceptedAnswer: { '@type': 'Answer', text: 'Use <care>.' },
+    },
+  ],
+  'FAQPage schema must mirror the visible FAQ only',
+);
 const review = consolidatedGraph['@graph'].find((node) => node['@type'] === 'Review')!;
 assert.equal(
   review.reviewRating,
