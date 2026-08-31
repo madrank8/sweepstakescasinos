@@ -310,20 +310,55 @@ assert.ok(
   'five-star values must not be converted when no visible /100 score exists',
 );
 
-// --- Legal status badge (grounded date, idempotent) ---
+// --- Review availability summary (three authorities, grounded dates) ---
 import { SITE_LEGAL_STATUS_VERIFIED_ON } from '../src/data/geo';
 import { injectLegalStatusBadge } from '../src/lib/legalStatusBadge';
+import { fallbackStates } from '../src/lib/tracker/fallback';
+import { getPartner } from '../src/data/affiliates';
 
-assert.equal(SITE_LEGAL_STATUS_VERIFIED_ON, '2026-07-09', 'badge date must match geo verification note');
 const sample = `<body><div class="restricted-box" id="restricted"><div class="rh">x</div></div></body>`;
-const badged = injectLegalStatusBadge(sample);
-assert.match(badged, /Legal status last verified/);
-assert.match(badged, new RegExp(`datetime="${SITE_LEGAL_STATUS_VERIFIED_ON}"`));
+const unknownBadged = injectLegalStatusBadge(sample, {
+  partner: getPartner('mcluck'),
+});
+assert.match(unknownBadged, /Location unknown/);
+assert.match(unknownBadged, /Affiliate offer availability: unknown/);
+assert.doesNotMatch(
+  unknownBadged,
+  /Legal status last verified/,
+  'site-policy date must not masquerade as tracker legal freshness',
+);
+assert.doesNotMatch(unknownBadged, /datetime=/, 'unknown legal freshness must remain absent');
+
+const txState = fallbackStates.find((state) => state.state_code === 'TX')!;
+const badged = injectLegalStatusBadge(sample, {
+  state: 'TX',
+  trackerState: txState,
+  partner: getPartner('mcluck'),
+});
+assert.match(badged, /Tracker legal status/);
+assert.match(badged, /Gray market/);
+assert.match(badged, /Affiliate offer availability: available/);
+assert.match(badged, /datetime="2026-07-12T00:00:00.000Z"/);
+assert.match(badged, new RegExp(`Site CTA policy verified[\\s\\S]*${SITE_LEGAL_STATUS_VERIFIED_ON}`));
 assert.equal(injectLegalStatusBadge(badged), badged, 'badge inject is idempotent');
+
+const caState = fallbackStates.find((state) => state.state_code === 'CA')!;
+const cardCrushBadge = injectLegalStatusBadge(sample, {
+  state: 'CA',
+  trackerState: caState,
+  partner: getPartner('card-crush'),
+});
+assert.match(cardCrushBadge, /Commercially listed by the affiliate partner/);
+assert.match(cardCrushBadge, /site CTA policy suppresses this offer/);
+assert.doesNotMatch(cardCrushBadge, /Card Crush is illegal/i);
 
 // Chrome-light reviews: prefer verdict-box over dumping the badge at <body>
 const light = `<body><nav>n</nav><main><div class="verdict-box"><div class="vtext">v</div></div></main></body>`;
-const lightBadged = injectLegalStatusBadge(light);
+const lightBadged = injectLegalStatusBadge(light, {
+  state: 'TX',
+  trackerState: txState,
+  partner: getPartner('mcluck'),
+});
 assert.ok(
   lightBadged.indexOf('sc-legal-verified') < lightBadged.indexOf('class="verdict-box"'),
   'badge should sit immediately before verdict-box',
