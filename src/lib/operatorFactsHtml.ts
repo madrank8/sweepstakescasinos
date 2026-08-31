@@ -251,7 +251,9 @@ function isBreakdownSubcategory(
     if (
       ancestors
         .slice(index + 1, index + 2)
-        .some((ancestor) => BREAKDOWN_CUE.test(elementText(html, ancestor)))
+        .some((ancestor) =>
+          BREAKDOWN_CUE.test(elementText(html, ancestor).slice(0, 140)),
+        )
     ) {
       return true;
     }
