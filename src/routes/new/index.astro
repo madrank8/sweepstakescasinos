@@ -97,10 +97,11 @@ function canonicalOperator(slug: string) {
   return operator;
 }
 
-const operators = operatorCards.map((card) => {
+const operators = operatorCards.map((card, index) => {
   const operator = canonicalOperator(card.slug);
   return {
     ...card,
+    position: index + 1,
     name: verifiedValue(operator.name)!,
     note: operatorFactNote(operator),
     outbound: reviewOutboundAvailabilityView(card.slug, state),
@@ -180,10 +181,10 @@ const itemListLd = {
   '@id': `${canonical}#itemlist`,
   name: title,
   numberOfItems: operators.length,
-  itemListOrder: 'https://schema.org/ItemListOrderDescending',
-  itemListElement: operators.map((o, i) => ({
+  itemListOrder: 'https://schema.org/ItemListUnordered',
+  itemListElement: operators.map((o) => ({
     '@type': 'ListItem',
-    position: i + 1,
+    position: o.position,
     url: `${ORIGIN}/reviews/${o.slug}/`,
     name: o.name,
   })),
@@ -249,33 +250,50 @@ const jsonLd = [
     that decide whether you can play at all.
   </p>
 
-  <section aria-label="Newest addition">
-    <h2>Newest addition</h2>
-    {newest.map((o) => (
-      <a class="new-card new-card--feature" href={`/reviews/${o.slug}/`}>
-        <span class="new-tag new-tag--new">{o.added}</span>
-        <span class="new-card-title">{o.name}</span>
-        <span class="new-card-note">{o.note}</span>
-        <span class="new-card-availability">{o.outbound.label}</span>
-        <span class="new-card-cta">Read the full review &#8594;</span>
-      </a>
-    ))}
-  </section>
+  <div
+    data-item-list={`${canonical}#itemlist`}
+    data-item-list-order="https://schema.org/ItemListUnordered"
+  >
+    <section aria-label="Newest addition">
+      <h2>Newest addition</h2>
+      {newest.map((o) => (
+        <a
+          class="new-card new-card--feature"
+          href={`/reviews/${o.slug}/`}
+          data-item-position={o.position}
+          data-item-name={o.name}
+          data-item-url={`${ORIGIN}/reviews/${o.slug}/`}
+        >
+          <span class="new-tag new-tag--new">{o.added}</span>
+          <span class="new-card-title">{o.name}</span>
+          <span class="new-card-note">{o.note}</span>
+          <span class="new-card-availability">{o.outbound.label}</span>
+          <span class="new-card-cta">Read the full review &#8594;</span>
+        </a>
+      ))}
+    </section>
 
-  <section aria-label="Recently added and newer-generation operators">
-    <h2>Recently added &amp; newer-generation operators</h2>
-    <div class="new-grid">
-      {recent.map((o) => (
-        <a class="new-card" href={`/reviews/${o.slug}/`}>
+    <section aria-label="Recently added and newer-generation operators">
+      <h2>Recently added &amp; newer-generation operators</h2>
+      <div class="new-grid">
+        {recent.map((o) => (
+          <a
+            class="new-card"
+            href={`/reviews/${o.slug}/`}
+            data-item-position={o.position}
+            data-item-name={o.name}
+            data-item-url={`${ORIGIN}/reviews/${o.slug}/`}
+          >
           <span class="new-tag">{o.added}</span>
           <span class="new-card-title">{o.name}</span>
           <span class="new-card-note">{o.note}</span>
           <span class="new-card-availability">{o.outbound.label}</span>
           <span class="new-card-cta">Read review &#8594;</span>
-        </a>
-      ))}
-    </div>
-  </section>
+          </a>
+        ))}
+      </div>
+    </section>
+  </div>
 
   <section class="checklist-sec" aria-label="How to vet a new sweepstakes casino">
     <h2>New &ne; trustworthy: how to vet a new sweepstakes casino</h2>

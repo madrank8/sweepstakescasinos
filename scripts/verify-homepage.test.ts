@@ -294,6 +294,16 @@ assert.doesNotMatch(
 );
 assert.match(newHubSource, /operatorFactNote/);
 assert.match(newHubSource, /reviewOutboundAvailabilityView/);
+assert.match(
+  newHubSource,
+  /itemListOrder:\s*'https:\/\/schema\.org\/ItemListUnordered'/,
+  'new hub must not claim a ranking through ItemList order',
+);
+assert.match(newHubSource, /data-item-list=\{`\$\{canonical\}#itemlist`\}/);
+assert.match(newHubSource, /data-item-list-order="https:\/\/schema\.org\/ItemListUnordered"/);
+assert.match(newHubSource, /data-item-position=\{o\.position\}/);
+assert.match(newHubSource, /data-item-name=\{o\.name\}/);
+assert.match(newHubSource, /data-item-url=\{`\$\{ORIGIN\}\/reviews\/\$\{o\.slug\}\/`\}/);
 
 const generatorSource = readFileSync(resolve(root, 'scripts/generate-astro-pages.mjs'), 'utf8');
 const generatedDates = readFileSync(
