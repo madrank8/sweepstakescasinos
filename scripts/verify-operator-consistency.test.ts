@@ -130,4 +130,23 @@ assert.ok(malformedErrors.some((error) => error.includes('provenance')));
 
 assert.deepEqual(validateOperatorConsistency(root), []);
 
+const packageJson = JSON.parse(readFileSync(resolve(root, 'package.json'), 'utf8')) as {
+  scripts: Record<string, string>;
+};
+assert.match(packageJson.scripts.prebuild, /\boperator:verify\b/);
+assert.match(packageJson.scripts.ci, /\boperator:test\b/);
+assert.match(packageJson.scripts.ci, /\boperator:verify\b/);
+
+const noDepositRoute = readFileSync(
+  resolve(root, 'src/routes/bonuses/no-deposit/index.astro'),
+  'utf8',
+);
+assert.match(noDepositRoute, /from '\.\.\/\.\.\/\.\.\/data\/operators'/);
+assert.doesNotMatch(noDepositRoute, /\bsignup:\s*['"]/);
+const newRoute = readFileSync(resolve(root, 'src/routes/new/index.astro'), 'utf8');
+assert.match(newRoute, /from '\.\.\/\.\.\/data\/operators'/);
+assert.match(newRoute, /canonicalOperatorName/);
+const bestRoute = readFileSync(resolve(root, 'src/routes/best/\[slug\]\.astro'), 'utf8');
+assert.match(bestRoute, /from '\.\.\/\.\.\/data\/operators'/);
+
 console.log('verify-operator-consistency tests: OK — 29 records, markers, validation, rendering');
