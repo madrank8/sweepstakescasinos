@@ -1,7 +1,7 @@
 # Sitewide JSON-LD Gap-Fill Implementation Plan
 
-> Status: Recovered and executed  
-> Design: `docs/superpowers/specs/2026-08-19-jsonld-gapfill-design.md`  
+> Status: Recovered and executed
+> Design: `docs/superpowers/specs/2026-08-19-jsonld-gapfill-design.md`
 > Issue: `sw-fbz`
 
 **Goal:** Consolidate every indexable legacy and native page into one safe,
@@ -36,11 +36,13 @@ Modify:
 - `src/lib/pngDimensions.ts`
 - `src/lib/brandAggregateRating.ts`
 - `src/data/usStates.ts`
+- `src/data/publisherLogo.generated.ts`
+- `scripts/generate-astro-pages.mjs`
 
 Steps:
 
 1. Add `serializeJsonLd()` with HTML-safe character escaping.
-2. Read publisher logo dimensions from the PNG.
+2. Read publisher logo dimensions from the PNG into bundled generated metadata.
 3. Remove `item` from the final breadcrumb.
 4. Add reader-report aggregate gating and attach only eligible brand ratings.
 5. Add the verified 51-jurisdiction Wikidata mapping and IRI helper.

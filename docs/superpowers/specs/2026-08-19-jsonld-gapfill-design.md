@@ -1,7 +1,7 @@
 # Sitewide JSON-LD Gap-Fill Design
 
-> Status: Approved design, recovered and implemented  
-> Date: 2026-08-19  
+> Status: Approved design, recovered and implemented
+> Date: 2026-08-19
 > Issue: `sw-fbz`
 
 ## Goal
@@ -37,9 +37,10 @@ Stable identities remain:
 - brand: `https://sweepstakeswiz.com/reviews/<slug>/#brand`
 
 `buildPageGraph()` owns foundation definitions and resolves author and known
-brand references on-page. The publisher logo dimensions come from the PNG IHDR,
-using either the copied `public/` asset or its source-tree location. The final
-breadcrumb `ListItem` has no `item`, because it represents the current page.
+brand references on-page. The route generator reads the publisher PNG IHDR into
+bundled metadata; the PNG helper accepts both source-tree and copied `public/`
+paths. The final breadcrumb `ListItem` has no `item`, because it represents the
+current page.
 
 ## Legacy consolidation
 
