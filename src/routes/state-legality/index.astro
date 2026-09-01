@@ -14,8 +14,11 @@ import ContentLayout from '../../layouts/ContentLayout.astro';
 import UsLegalityMap from '../../components/tracker/UsLegalityMap.astro';
 import { getTrackerData } from '../../lib/tracker/data';
 import { SWEEPS_STATUS_META } from '../../lib/tracker/types';
-import { wizAvailabilityForState } from '../../data/trackerReconcile';
 import { AFFILIATE_PARTNERS } from '../../data/affiliates';
+import {
+  availabilityForPartner,
+  availabilityForState,
+} from '../../lib/availability';
 import { stateName, isUsStateCode, type UsStateCode } from '../../data/usStates';
 import { AUTHOR_ID } from '../../lib/schema';
 import { SITE } from '../../data/site';
@@ -30,13 +33,18 @@ const totalOperators = AFFILIATE_PARTNERS.length;
 const rows = [...bundle.states]
   .sort((a, b) => a.state_name.localeCompare(b.state_name))
   .map((s) => {
-    const avail = wizAvailabilityForState(s.state_code);
+    const availability = availabilityForState(s.state_code, s, bundle.generatedAt);
+    const operators = AFFILIATE_PARTNERS.filter(
+      (partner) =>
+        availabilityForPartner(partner, availability.state, s, bundle.generatedAt).cta
+          .eligible,
+    ).length;
     return {
       code: s.state_code,
       name: s.state_name,
       slug: s.state_slug,
-      siteStatus: avail.banned ? 'Info only' : 'Offers shown',
-      operators: avail.banned ? 0 : avail.availableCount,
+      siteStatus: availability.site.status === 'suppressed' ? 'Info only' : 'Offers shown',
+      operators,
       trackerStatus: s.sweeps_casino_status,
     };
   });
@@ -180,9 +188,13 @@ const banWaveImageNode = {
       <thead>
         <tr><th>State</th><th>Site status</th><th>Operators</th><th>Legal status</th><th>Guide</th></tr>
       </thead>
-      <tbody>
-        {rows.map((r) => (
-          <tr>
+      <tbody data-item-list={`${canonical}#states`}>
+        {rows.map((r, i) => (
+          <tr
+            data-item-position={i + 1}
+            data-item-name={`${r.name}: ${SWEEPS_STATUS_META[r.trackerStatus].label}`}
+            data-item-url={`${ORIGIN}/states/${r.slug}/`}
+          >
             <td>{r.name}</td>
             <td><span class:list={['sl-site', r.siteStatus === 'Info only' ? 'info' : 'offers']}>{r.siteStatus}</span></td>
             <td>{r.operators} of {totalOperators}</td>
@@ -316,7 +328,7 @@ const banWaveImageNode = {
       taking effect. Check the table above, and if you have an existing balance, look for the
       operator's own wind-down or redemption notice rather than assuming your account still works.</li>
     <li><strong>If you're not sure this page is current for your state:</strong> click through to your
-      <a href="/states/">state guide</a> for the full sourcing, or check the
+      <a href="/state-legality/">state guide hub</a> for the full sourcing, or check the
       <a href="/sweepstakes-tracker/">live tracker</a> directly &mdash; both pull from the same daily-
       refreshed dataset as this page.</li>
     <li><strong>If you're treating this page as legal advice:</strong> don't. This is editorial analysis

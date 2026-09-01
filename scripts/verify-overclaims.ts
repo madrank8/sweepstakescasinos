@@ -5,10 +5,12 @@
 import { readFileSync, existsSync } from 'node:fs';
 import { join } from 'node:path';
 import { TESTING_BRANDS } from '../src/data/testingBrands';
-import { OVERCLAIM_PATTERNS } from '../src/lib/testingFragments';
+import { documentedTestingSlugs } from './seo/audit-core';
+import { findUnsupportedTestingClaims } from './seo/claim-policy';
 
 const cwd = process.cwd();
 const flagged = TESTING_BRANDS.filter((b) => b.overclaimFlag);
+const documented = documentedTestingSlugs(cwd);
 
 let failures = 0;
 
@@ -23,18 +25,17 @@ for (const brand of flagged) {
     continue;
   }
   const html = readFileSync(path, 'utf8');
-  const hits: string[] = [];
-  for (const [re] of OVERCLAIM_PATTERNS) {
-    re.lastIndex = 0;
-    const m = html.match(re);
-    if (m?.length) hits.push(`${re}: ${m.slice(0, 2).join(' | ')}`);
-  }
-  // Extra first-person pattern applied in softenOverclaimHtml after the table.
-  if (/\bWe tested\b/i.test(html)) hits.push('/\\bWe tested\\b/i');
+  const hits = findUnsupportedTestingClaims(
+    html,
+    brand.reviewPath,
+    documented.has(brand.slug),
+  );
 
   if (hits.length) {
     console.error(`  ✗ ${brand.slug}: ${hits.length} pattern hit(s)`);
-    for (const h of hits.slice(0, 5)) console.error(`      - ${h}`);
+    for (const hit of hits.slice(0, 5)) {
+      console.error(`      - ${hit.phrase} at ${hit.path}:${hit.line} (${hit.surface})`);
+    }
     failures += 1;
   } else {
     console.log(`  ✓ ${brand.slug}`);

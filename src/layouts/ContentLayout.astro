@@ -8,15 +8,16 @@
  * See docs/schema-markup-plan.md §3.2 and src/lib/schema.ts.
  */
 import { stampUpdatedDate } from '../lib/htmlStamp';
+import { SITE } from '../data/site';
 import {
   complianceRibbonMarkup,
   faviconMarkup,
   googleAnalyticsMarkup,
 } from '../lib/pageChrome';
-import { buildPageGraph, type WebPageType } from '../lib/schema';
+import { buildPageGraph, serializeJsonLd, type WebPageType } from '../lib/schema';
 
 
-const ORIGIN = 'https://sweepstakeswiz.com';
+const ORIGIN = SITE.origin;
 
 interface Crumb {
   name: string;
@@ -84,6 +85,7 @@ const pageGraph = buildPageGraph({
   primaryImageId,
   nodes: contentNodes,
 });
+const serializedPageGraph = serializeJsonLd(pageGraph);
 ---
 <!doctype html>
 <html lang="en">
@@ -111,7 +113,7 @@ const pageGraph = buildPageGraph({
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link href="/_external/fonts.googleapis.com/css2__qba979b498c" rel="stylesheet" />
     <link rel="stylesheet" href="/partials/trust.css" />
-    <script type="application/ld+json" set:html={JSON.stringify(pageGraph)} />
+    <script type="application/ld+json" set:html={serializedPageGraph} />
   </head>
   <body>
     <Fragment set:html={ribbon} />

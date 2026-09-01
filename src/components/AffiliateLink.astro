@@ -8,12 +8,12 @@
  *   server-side geo check).
  * - Geo-suppresses: returns nothing (or an info note) when the visitor's state
  *   is site-banned or the partner is restricted there. Decision is centralized
- *   in `shouldRenderAffiliateCta()` — do not branch on states here.
+ *   in the availability facade — do not branch on states here.
  *
  * Requires geo middleware to have populated `Astro.locals.usState` (SSR).
  */
 import { getPartner, type AffiliatePartner } from '../data/affiliates';
-import { shouldRenderAffiliateCta, suppressionReason } from '../data/geo';
+import { availabilityForPartner } from '../lib/availability';
 
 interface Props {
   /** Partner slug (preferred) ... */
@@ -49,8 +49,9 @@ if (!partner) {
 }
 
 const state = Astro.locals.usState;
-const canRender = shouldRenderAffiliateCta(partner, state);
-const reason = suppressionReason(partner, state);
+const availability = availabilityForPartner(partner, state);
+const canRender = availability.cta.eligible;
+const reason = availability.cta.reason;
 const ctaLabel = label ?? `Visit ${partner.name}`;
 const href = `/bonuses/${partner.slug}/${clickId ? `?clickId=${clickId}` : ''}`;
 ---

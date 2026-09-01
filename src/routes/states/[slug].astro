@@ -7,9 +7,9 @@
  *   - 8 states have rich hand-authored MDX guides (rendered via <Content/>).
  *   - The other 43 render a substantive data-driven template from the tracker.
  *
- * Authority split: affiliate availability/CTA suppression is decided by
- * src/data/geo.ts (legal layer). The tracker supplies the DISPLAYED legal
- * status, pending bills, sources, and freshness. Affiliate partners are shown
+ * Authority split: the availability facade preserves geo.ts as site CTA policy,
+ * affiliates.ts as commercial availability, and the tracker as the displayed
+ * legal status, pending-bill, source, and freshness authority. Partners are shown
  * as EDITORIAL links to reviews here (no affiliate CTAs); real affiliate clicks
  * always route through the geo-gated /bonuses/ gateway.
  *
@@ -18,13 +18,22 @@
 import { getCollection, render } from 'astro:content';
 import ContentLayout from '../../layouts/ContentLayout.astro';
 import { AFFILIATE_PARTNERS } from '../../data/affiliates';
-import { isPartnerAvailableInState, isStateBannedSitewide } from '../../data/geo';
-import { stateName, isUsStateCode, type UsStateCode } from '../../data/usStates';
+import {
+  availabilityForState,
+} from '../../lib/availability';
+import { selectAvailableStateReviews } from '../../lib/internalLinks';
+import {
+  stateName,
+  stateWikidataIri,
+  isUsStateCode,
+  type UsStateCode,
+} from '../../data/usStates';
 import { ORG_ID, AUTHOR_ID, faqPageNode, legislationNode } from '../../lib/schema';
 import { pngDimensions } from '../../lib/pngDimensions';
 import { svgDimensions } from '../../lib/svgDimensions';
 import { brandEntityId, getBrandEntity } from '../../data/brandEntities';
 import { keyLegislationForState } from '../../data/keyLegislation';
+import { SITE } from '../../data/site';
 import { getTrackerData, legislationForState } from '../../lib/tracker/data';
 import { SWEEPS_STATUS_META } from '../../lib/tracker/types';
 import type { StateRecord, PendingLegislation } from '../../lib/tracker/types';
@@ -45,7 +54,6 @@ export async function getStaticPaths() {
         code: ts.state_code,
         trackerState: ts,
         bills: legislationForState(bundle, ts.state_code),
-        generatedAt: bundle.generatedAt,
       },
     };
   });
@@ -56,19 +64,28 @@ interface Props {
   code: string;
   trackerState: StateRecord;
   bills: PendingLegislation[];
-  generatedAt: string;
 }
 
 const { entry, code: rawCode, trackerState, bills } = Astro.props as Props;
 const code = (isUsStateCode(rawCode) ? rawCode : 'AL') as UsStateCode;
 const name = stateName(code);
+const stateIri = stateWikidataIri(code);
 const meta = SWEEPS_STATUS_META[trackerState.sweeps_casino_status];
 
 const ORIGIN = 'https://sweepstakeswiz.com';
-const banned = isStateBannedSitewide(code);
-const availablePartners = banned
-  ? []
-  : AFFILIATE_PARTNERS.filter((p) => isPartnerAvailableInState(p, code));
+const stateAvailability = availabilityForState(code, trackerState);
+const banned = stateAvailability.site.status === 'suppressed';
+const availableReviewLinks = selectAvailableStateReviews(
+  code,
+  trackerState,
+  AFFILIATE_PARTNERS,
+);
+const availablePartnerSlugs = new Set(
+  availableReviewLinks.map((link) => link.href.split('/').at(-2)),
+);
+const availablePartners = AFFILIATE_PARTNERS.filter((partner) =>
+  availablePartnerSlugs.has(partner.slug),
+);
 
 const slug = entry ? entry.id : trackerState.state_slug;
 const canonicalPath = `/states/${slug}/`;
@@ -79,12 +96,30 @@ const description =
   entry?.data.description ??
   `${name} sweepstakes casino legal status: ${meta.label.toLowerCase()}. ${trackerState.sweeps_status_summary} Editorial legal monitor, updated regularly.`;
 
-// dateModified: MDX 'updated' if present, else the tracker's freshness stamp.
-const mdxUpdated = entry?.data.updated instanceof Date ? entry.data.updated : undefined;
-const updatedIso = mdxUpdated ? mdxUpdated.toISOString() : trackerState.last_auto_updated_at;
-const updatedHuman = new Date(updatedIso).toLocaleDateString('en-US', {
-  year: 'numeric', month: 'long', day: 'numeric', timeZone: 'UTC',
-});
+// Visible legal freshness comes only from the tracker. Schema modification
+// reflects the later real event: a legal-source review or a status change.
+const legalFreshnessIso = stateAvailability.legal?.freshness.value ?? undefined;
+const statusChangedTimestamp = new Date(trackerState.sweeps_status_changed_at).getTime();
+const statusChangedIso = Number.isFinite(statusChangedTimestamp)
+  ? new Date(statusChangedTimestamp).toISOString()
+  : undefined;
+const legalFreshnessTimestamp = legalFreshnessIso
+  ? new Date(legalFreshnessIso).getTime()
+  : Number.NaN;
+const statePageModifiedTimestamp =
+  Number.isFinite(statusChangedTimestamp) && Number.isFinite(legalFreshnessTimestamp)
+    ? Math.max(statusChangedTimestamp, legalFreshnessTimestamp)
+    : Number.isFinite(legalFreshnessTimestamp)
+      ? legalFreshnessTimestamp
+      : statusChangedTimestamp;
+const statePageModifiedIso = Number.isFinite(statePageModifiedTimestamp)
+  ? new Date(statePageModifiedTimestamp).toISOString()
+  : undefined;
+const updatedHuman = legalFreshnessIso
+  ? new Date(legalFreshnessIso).toLocaleDateString('en-US', {
+      year: 'numeric', month: 'long', day: 'numeric', timeZone: 'UTC',
+    })
+  : null;
 
 const { Content } = entry ? await render(entry) : { Content: null };
 
@@ -106,8 +141,8 @@ const faq =
         {
           q: `Which sweepstakes casinos are available in ${name}?`,
           a: banned
-            ? `Because of ${name}'s rules on marketing sweepstakes casinos, we show informational content only and do not promote affiliate offers here.`
-            : `${availablePartners.length} of the ${AFFILIATE_PARTNERS.length} operators we review list availability in ${name}. See the list below.`,
+            ? `Under Sweepstakes Wiz's site CTA policy, this page is information-only and does not promote affiliate offers. The site CTA policy is separate from the tracker legal status shown above.`
+            : `${availablePartners.length} of ${AFFILIATE_PARTNERS.length} affiliate partners have offers eligible for display in ${name}. This commercial and site-policy result is separate from the tracker legal status.`,
         },
       ];
 
@@ -130,9 +165,7 @@ const curatedLegs = keyLegislationForState(code).map((b) =>
     legalForce: b.legalForce,
     jurisdictionName: name,
     url: b.url,
-    ...(trackerState.wikidata_id
-      ? { jurisdictionSameAs: `https://www.wikidata.org/wiki/${trackerState.wikidata_id}` }
-      : {}),
+    jurisdictionSameAs: stateIri,
   }),
 );
 
@@ -149,9 +182,7 @@ const trackerLegs = bills
       legalForce: trackerForce(b.status),
       jurisdictionName: name,
       url: b.state_bill_url || b.bill_url || undefined,
-      ...(trackerState.wikidata_id
-        ? { jurisdictionSameAs: `https://www.wikidata.org/wiki/${trackerState.wikidata_id}` }
-        : {}),
+      jurisdictionSameAs: stateIri,
     });
   });
 
@@ -207,9 +238,10 @@ const articleLd = {
   image: stateImageDims
     ? { '@type': 'ImageObject', url: `${ORIGIN}${stateImagePath}`, ...stateImageDims }
     : `${ORIGIN}${stateImagePath}`,
-  datePublished: updatedIso,
-  dateModified: updatedIso,
+  ...(statusChangedIso ? { datePublished: statusChangedIso } : {}),
+  ...(statePageModifiedIso ? { dateModified: statePageModifiedIso } : {}),
   about: [
+    { '@type': 'State', '@id': stateIri, name },
     { '@type': 'Thing', name: `Sweepstakes casino legality in ${name}` },
     { '@type': 'Thing', name: 'Sweepstake', sameAs: 'https://en.wikipedia.org/wiki/Sweepstake' },
     ...legislationLd.map((n) => ({ '@id': n['@id'] as string })),
@@ -236,7 +268,8 @@ const siblings = bundle2.states
   .map((s) => ({
     slug: s.state_slug,
     name: s.state_name,
-    banned: isUsStateCode(s.state_code) ? isStateBannedSitewide(s.state_code as UsStateCode) : false,
+    banned:
+      availabilityForState(s.state_code, s).site.status === 'suppressed',
   }))
   .sort((a, b) => a.name.localeCompare(b.name));
 
@@ -258,8 +291,8 @@ const regulated: Array<[string, string]> = [
   canonicalPath={canonicalPath}
   breadcrumbs={breadcrumbs}
   heroSubtitle={description}
-  datePublished={updatedIso}
-  dateModified={updatedIso}
+  datePublished={statusChangedIso}
+  dateModified={statePageModifiedIso}
   mainEntityId={`${canonical}#article`}
   jsonLd={jsonLd}
 >
@@ -281,7 +314,11 @@ const regulated: Array<[string, string]> = [
     <p class="status-sum">{trackerState.sweeps_status_summary}</p>
     <p class="status-meta">
       Source: <a href="/sweepstakes-tracker/">Sweepstakes Wiz Legality Tracker</a> &middot;
-      last updated {updatedHuman}
+      {legalFreshnessIso ? (
+        <>last reviewed <time datetime={legalFreshnessIso}>{updatedHuman}</time></>
+      ) : (
+        <>source freshness unavailable</>
+      )}
     </p>
   </div>
 
@@ -348,22 +385,28 @@ const regulated: Array<[string, string]> = [
     {banned ? (
       <div class="notice-box">
         <p>
-          Because of {name}&rsquo;s rules on marketing sweepstakes casinos, we show
-          informational content only here and do not promote affiliate offers.
-          Please review the law and each operator&rsquo;s official rules before
-          playing.
+          Under Sweepstakes Wiz&rsquo;s site CTA policy, we show informational
+          content only here and do not promote affiliate offers. This site CTA
+          policy is separate from the tracker legal status above and from each
+          operator&rsquo;s commercial restrictions.
         </p>
       </div>
-    ) : availablePartners.length > 0 ? (
+    ) : availableReviewLinks.length > 0 ? (
       <ul>
-        {availablePartners.map((p) => (
-          <li><a href={`/reviews/${p.slug}/`}>{p.name} review</a></li>
+        {availableReviewLinks.map((link) => (
+          <li><a href={link.href}>{link.label}</a></li>
         ))}
       </ul>
     ) : (
-      <p>No reviewed operators currently list availability in {name}.</p>
+      <p>No reviewed affiliate offers are currently eligible for display in {name}.</p>
     )}
   </section>
+
+  <nav class="state-research-links" aria-label={`More casino research for ${name}`}>
+    <a href="/reviews/">Browse every operator review</a>
+    <a href="/best/sweepstakes-casinos/">Open the deeper casino comparison</a>
+    <a href="/state-legality/">Compare availability across all states</a>
+  </nav>
 
   {!Content && (
     <section aria-label="Practical guidance">
@@ -430,8 +473,8 @@ const regulated: Array<[string, string]> = [
   </section>
 
   <p class="state-byline">
-    Researched and written by <a href="/author/ilija-milosevic/">Ilija Milosevic</a>,
-    iGaming Writer &amp; Analyst.{updatedHuman ? ` Last updated ${updatedHuman}.` : ''} This page
+    Researched and written by <a href={SITE.author.path}>{SITE.author.name}</a>,
+    {SITE.author.jobTitle}.{updatedHuman ? ` Legal status last reviewed ${updatedHuman}.` : ' Legal source freshness unavailable.'} This page
     is editorial analysis of public law and operator terms &mdash; not legal advice.
   </p>
 
@@ -460,6 +503,8 @@ const regulated: Array<[string, string]> = [
     .bills-list,.src-list{padding-left:20px;} .bills-list li,.src-list li{margin:6px 0;line-height:1.5;}
     .src-list a{word-break:break-all;font-size:.86rem;}
     .bill-status{color:#64748b;font-size:.85rem;}
+    .state-research-links{display:flex;flex-wrap:wrap;gap:8px 16px;margin:0 0 24px;padding:14px 16px;border-left:4px solid #fbbf24;background:#fffbeb;border-radius:0 10px 10px 0;}
+    .state-research-links a{font-weight:700;color:#1d4ed8;}
     .state-siblings{margin:8px 0 22px;}
     .sib-grid{list-style:none;padding:0;margin:10px 0 0;display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:4px 14px;}
     .sib-grid li{margin:3px 0;line-height:1.5;}

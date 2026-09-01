@@ -9,21 +9,43 @@ import { join } from 'node:path';
 const cache = new Map<string, { width: number; height: number } | null>();
 
 /**
- * @param publicPath Absolute-from-root path as referenced in markup, e.g.
- *   "/images/states/ca.png" (must live under the repo's `public/` dir).
+ * Accepts a URL-root path (`/images/x.png`), source-tree path
+ * (`images/x.png`), or copied-public path (`public/images/x.png`).
  */
-export function pngDimensions(publicPath: string): { width: number; height: number } | null {
-  if (cache.has(publicPath)) return cache.get(publicPath)!;
-  try {
-    const abs = join(process.cwd(), 'public', publicPath.replace(/^\//, ''));
-    const buf = readFileSync(abs);
-    const width = buf.readUInt32BE(16);
-    const height = buf.readUInt32BE(20);
-    const dims = { width, height };
-    cache.set(publicPath, dims);
-    return dims;
-  } catch {
-    cache.set(publicPath, null);
-    return null;
+export function pngDimensions(publicPath: string | URL): { width: number; height: number } | null {
+  const cacheKey = publicPath.toString();
+  if (cache.has(cacheKey)) return cache.get(cacheKey)!;
+
+  const candidates: Array<string | URL> =
+    publicPath instanceof URL
+      ? [publicPath]
+      : (() => {
+          const rel = publicPath.replace(/^\/+/, '');
+          const sourceRel = rel.replace(/^public\//, '');
+          return rel.startsWith('public/')
+            ? [join(process.cwd(), rel), join(process.cwd(), sourceRel)]
+            : publicPath.startsWith('/')
+              ? [join(process.cwd(), 'public', rel), join(process.cwd(), sourceRel)]
+              : [join(process.cwd(), sourceRel), join(process.cwd(), 'public', rel)];
+        })();
+
+  for (const abs of candidates) {
+    try {
+      const buf = readFileSync(abs);
+      if (
+        buf.length < 24 ||
+        buf.toString('ascii', 1, 4) !== 'PNG' ||
+        buf.toString('ascii', 12, 16) !== 'IHDR'
+      ) {
+        continue;
+      }
+      const dims = { width: buf.readUInt32BE(16), height: buf.readUInt32BE(20) };
+      cache.set(cacheKey, dims);
+      return dims;
+    } catch {
+      // Try the next source-tree/copied-public candidate.
+    }
   }
+  cache.set(cacheKey, null);
+  return null;
 }

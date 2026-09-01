@@ -73,9 +73,18 @@ const CATEGORY_LABEL: Record<string, string> = {
     {sorted.length === 0 ? (
       <p>No news stories published yet.</p>
     ) : (
-      <ul class="news-list">
-        {sorted.map((e) => (
-          <li class="news-card">
+      <ul
+        class="news-list"
+        data-item-list={`${canonical}#itemlist`}
+        data-item-list-order="https://schema.org/ItemListOrderDescending"
+      >
+        {sorted.map((e, i) => (
+          <li
+            class="news-card"
+            data-item-position={i + 1}
+            data-item-name={e.data.title}
+            data-item-url={`${ORIGIN}/news/${e.id}/`}
+          >
             <div class="news-meta">
               <span class="news-cat">{CATEGORY_LABEL[e.data.category] ?? e.data.category}</span>
               {e.data.stateCode && <span class="news-state">{e.data.stateCode}</span>}

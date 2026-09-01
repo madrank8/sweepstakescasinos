@@ -10,6 +10,7 @@ import { getCollection, render } from 'astro:content';
 import ContentLayout from '../../layouts/ContentLayout.astro';
 import { ORG_ID, AUTHOR_ID, faqPageNode } from '../../lib/schema';
 import { imageDimensions } from '../../lib/svgDimensions';
+import { contextualLinksForGuide } from '../../lib/internalLinks';
 
 export const prerender = true;
 
@@ -60,6 +61,7 @@ const image = entry.data.image
     }
   : undefined;
 const citations = entry.data.citations ?? [];
+const contextualLinks = contextualLinksForGuide(entry.id, entry.body);
 
 // Inline figures declared in MDX frontmatter -> one ImageObject per figure.
 // Dimensions are resolved from the file first; frontmatter-declared dims are
@@ -177,6 +179,10 @@ const jsonLd = [
 >
   <Content />
 
+  <nav class="guide-contextual-links" aria-label="Continue your research">
+    {contextualLinks.map((link) => <a href={link.href}>{link.label}</a>)}
+  </nav>
+
   {faq.length > 0 && (
     <section aria-label="Frequently asked questions">
       <h2>Frequently asked questions</h2>
@@ -188,4 +194,8 @@ const jsonLd = [
       ))}
     </section>
   )}
+  <style>
+    .guide-contextual-links{display:flex;flex-wrap:wrap;gap:8px 16px;margin:28px 0;padding:14px 16px;border-left:4px solid #fbbf24;background:#fffbeb;border-radius:0 10px 10px 0;}
+    .guide-contextual-links a{font-weight:700;color:#1d4ed8;}
+  </style>
 </ContentLayout>

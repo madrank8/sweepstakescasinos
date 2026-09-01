@@ -1,0 +1,317 @@
+---
+export const prerender = false;
+
+import AffiliateLink from '../components/AffiliateLink.astro';
+import ContentLayout from '../layouts/ContentLayout.astro';
+import { brandEntityId, getBrandEntity } from '../data/brandEntities';
+import { OPERATORS } from '../data/operators';
+import { SITE } from '../data/site';
+import {
+  buildComparisonOperatorViews,
+  cashMinimumCandidates,
+  selectVerifiedEditorScores,
+  selectUniqueSuperlative,
+} from '../lib/homepage';
+import { faqPageNode } from '../lib/schema';
+
+const canonicalPath = '/';
+const canonical = `${SITE.origin}/`;
+const title = 'Compare Sweepstakes Casinos by Published Facts | Sweepstakes Wiz';
+const description =
+  'Compare reviewed sweepstakes casinos using sourced operator details, redemption terms, and available editor scores without filling evidence gaps.';
+const primary = buildComparisonOperatorViews(OPERATORS, Astro.locals.usState);
+const verifiedScores = selectVerifiedEditorScores(OPERATORS);
+const lowestCashMinimum = selectUniqueSuperlative(
+  cashMinimumCandidates(OPERATORS),
+  {
+    label: 'Lowest verified cash redemption minimum',
+    asOf: new Date(),
+    maxAgeDays: 90,
+    metric: (minimum) => minimum.amount,
+  },
+);
+const faq = [
+  {
+    q: 'What is a sweepstakes casino?',
+    a: 'A sweepstakes casino is a social gaming site that usually uses free-play Gold Coins and promotional Sweeps Coins. Eligible Sweeps Coins may be redeemed under the operator’s rules. No purchase is necessary.',
+  },
+  {
+    q: 'Does every operator have an editor score?',
+    a: 'No. We display an editor score only when the available records support one consistent value. An operator can still appear in the comparison when it has enough useful published details.',
+  },
+  {
+    q: 'How are operators selected for this comparison?',
+    a: 'Operators need a sourced name and company plus useful details in at least three decision areas. Entries with more available details appear first, with a stable name-based tie-break. Referral terms are not used.',
+  },
+  {
+    q: 'Are sweepstakes casinos legal in every state?',
+    a: 'No. Laws and operator rules differ by state. Check the state legality hub and the operator’s current official rules before playing or attempting a redemption.',
+  },
+];
+const itemList = {
+  '@type': 'ItemList',
+  '@id': `${canonical}#comparison-operators`,
+  name: 'Sweepstakes casino operators to compare',
+  numberOfItems: primary.length,
+  itemListOrder: 'https://schema.org/ItemListUnordered',
+  itemListElement: primary.map((operator, index) => ({
+    '@type': 'ListItem',
+    position: index + 1,
+    name: operator.name,
+    url: `${SITE.origin}/reviews/${operator.slug}/`,
+    ...(getBrandEntity(operator.slug)
+      ? { item: { '@id': brandEntityId(operator.slug) } }
+      : {}),
+  })),
+};
+const faqLd = faqPageNode(canonical, faq);
+---
+<ContentLayout
+  title={title}
+  description={description}
+  canonicalPath={canonicalPath}
+  breadcrumbs={[{ name: 'Home', path: '/' }]}
+  heroTitle={'Compare <span class="accent">Sweepstakes Casinos</span>'}
+  heroSubtitle="Compare reviewed operators through sourced details, redemption terms, and clearly labeled editor scores. Evidence gaps stay blank instead of becoming claims."
+  pageType="CollectionPage"
+  mainEntityId={`${canonical}#comparison-operators`}
+  jsonLd={faqLd ? [itemList, faqLd] : [itemList]}
+>
+  <section id="answer" class="answer" aria-labelledby="answer-title">
+    <h2 id="answer-title">The short answer</h2>
+    <p>
+      A useful <strong>sweepstakes casino comparison</strong> starts with state
+      eligibility, no-purchase rules, redemption terms and the quality of the
+      available sources. The table below is a research starting point, not a claim
+      that every listed operator has been assigned a complete score.
+    </p>
+  </section>
+
+  <section id="comparison" aria-labelledby="comparison-title">
+    <p class="eyebrow">Operators to compare</p>
+    <h2 id="comparison-title">A broader evidence-based comparison</h2>
+    <p>
+      We include operators with a sourced name and company plus useful details in at
+      least three decision areas. Entries with more available details appear first.
+      Referral terms are not an input, and blank cells are not inferred.
+    </p>
+    <div class="table-wrap" tabindex="0" aria-label="Scrollable operator comparison">
+      <table>
+        <caption>
+          Reviewed operators with enough published information to support comparison.
+        </caption>
+        <thead>
+          <tr>
+            <th scope="col">Operator</th>
+            <th scope="col">Editor score</th>
+            <th scope="col">Welcome offer</th>
+            <th scope="col">Redemption minimum</th>
+            <th scope="col">Published redemption estimate</th>
+            <th scope="col">Games</th>
+            <th scope="col">Next step</th>
+          </tr>
+        </thead>
+        <tbody
+          data-comparison-list
+          data-item-list={`${canonical}#comparison-operators`}
+          data-item-list-order="https://schema.org/ItemListUnordered"
+        >
+          {primary.map((operator, index) => (
+            <tr
+              data-item-position={index + 1}
+              data-item-name={operator.name}
+              data-item-url={`${SITE.origin}/reviews/${operator.slug}/`}
+            >
+              <th scope="row">
+                <a href={`/reviews/${operator.slug}/`}>{operator.name}</a>
+              </th>
+              <td>{operator.editorScore ?? <span aria-label="Details unavailable">—</span>}</td>
+              <td>{operator.welcomeOffer ?? <span aria-label="Details unavailable">—</span>}</td>
+              <td>{operator.redemptionMinimum ?? <span aria-label="Details unavailable">—</span>}</td>
+              <td>{operator.publishedRedemptionTiming ?? <span aria-label="Details unavailable">—</span>}</td>
+              <td>{operator.gameCount ?? <span aria-label="Details unavailable">—</span>}</td>
+              <td>
+                {operator.hasPartner ? (
+                  <AffiliateLink
+                    slug={operator.slug}
+                    label={`Visit ${operator.name}`}
+                    clickId="homepage-comparison"
+                    showUnavailableNote
+                  />
+                ) : (
+                  <a href={`/reviews/${operator.slug}/`}>Read review</a>
+                )}
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+    <p><a href="/best/sweepstakes-casinos/">Open the deeper comparison guide</a>.</p>
+  </section>
+
+  <section id="score-context" aria-labelledby="score-context-title">
+    <p class="eyebrow">Available editor scores</p>
+    <h2 id="score-context-title">Scores shown as supporting details</h2>
+    <p>
+      A score appears only where our records support one consistent Sweepstakes Wiz
+      value. This alphabetical list does not define the complete comparison above.
+    </p>
+    <ul class="score-list">
+      {verifiedScores.map((operator) => (
+        <li>
+          <a href={`/reviews/${operator.slug}/`}>{operator.name}</a>
+          <strong>{operator.score}/100</strong>
+        </li>
+      ))}
+    </ul>
+  </section>
+
+  <section id="use-cases" aria-labelledby="use-cases-title">
+    <p class="eyebrow">Evidence-gated use cases</p>
+    <h2 id="use-cases-title">A winner appears only with current comparable evidence</h2>
+    {lowestCashMinimum ? (
+      <article class="use-case-card">
+        <p>{lowestCashMinimum.label}</p>
+        <h3><a href={`/reviews/${lowestCashMinimum.slug}/`}>{lowestCashMinimum.name}</a></h3>
+        <p>
+          Published minimum: {lowestCashMinimum.value.amount}{' '}
+          {lowestCashMinimum.value.currency}. This is a published threshold, not an
+          observed payout.
+        </p>
+      </article>
+    ) : (
+      <p class="honesty-note">
+        No single winner is shown because comparable freshness dates are unavailable.
+      </p>
+    )}
+  </section>
+
+  <section id="methodology" aria-labelledby="methodology-title">
+    <p class="eyebrow">Methodology and trust</p>
+    <h2 id="methodology-title">Scores are earned, not backfilled</h2>
+    <p>
+      We assess published redemption terms, offer clarity, game experience and trust
+      signals under our <a href="/how-we-rate/">rating methodology</a>. Affiliate
+      relationships never resolve missing data or change rank. Read our
+      <a href="/editorial-policy/">editorial policy</a> and
+      <a href="/legal/affiliate-disclosure/">affiliate disclosure</a>.
+    </p>
+  </section>
+
+  <section id="legality" aria-labelledby="legality-title">
+    <p class="eyebrow">Essential legality and safety</p>
+    <h2 id="legality-title">Check two layers before you play</h2>
+    <ul>
+      <li>Your state’s current treatment of sweepstakes casino play and promotion.</li>
+      <li>The operator’s own restricted-state list and official sweepstakes rules.</li>
+      <li>No purchase is necessary. Sweeps Coins have no cash value until eligible redemption.</li>
+      <li>Set limits and call <strong>1-800-GAMBLER</strong> if play stops being fun.</li>
+    </ul>
+    <p>
+      Start with the <a href="/state-legality/">state legality hub</a> and our
+      <a href="/responsible-gaming/">responsible gaming resources</a>.
+    </p>
+  </section>
+
+  <section id="buyer-guidance" aria-labelledby="buyer-guidance-title">
+    <p class="eyebrow">Buyer guidance</p>
+    <h2 id="buyer-guidance-title">Choose by the constraint that matters to you</h2>
+    <div class="guidance-grid">
+      <article>
+        <h3>Start with eligibility</h3>
+        <p>A generous offer has no value if either our geo policy or the operator’s rules exclude your state.</p>
+      </article>
+      <article>
+        <h3>Compare redemption routes</h3>
+        <p>Review the minimum, identity checks, payment method and published estimate together.</p>
+      </article>
+      <article>
+        <h3>Read offer terms</h3>
+        <p>Gold Coin totals are not cash value. Check Sweeps Coin amounts, playthrough and expiry.</p>
+      </article>
+    </div>
+  </section>
+
+  <section id="faq" aria-labelledby="faq-title">
+    <p class="eyebrow">Quick answers</p>
+    <h2 id="faq-title">Frequently asked questions</h2>
+    <div class="faq-list">
+      {faq.map((item) => (
+        <article>
+          <h3>{item.q}</h3>
+          <p>{item.a}</p>
+        </article>
+      ))}
+    </div>
+  </section>
+
+  <section id="specialist-hubs" aria-labelledby="specialist-hubs-title">
+    <p class="eyebrow">Go deeper</p>
+    <h2 id="specialist-hubs-title">Specialist research hubs</h2>
+    <nav class="hub-links" aria-label="Specialist sweepstakes casino hubs">
+      <a href="/reviews/">All casino reviews</a>
+      <a href="/best/sweepstakes-casinos/">Full best-casinos comparison</a>
+      <a href="/new/">New sweepstakes casinos</a>
+      <a href="/bonuses/no-deposit/">No-deposit offers</a>
+      <a href="/guides/">Guides</a>
+      <a href="/tools/">Decision tools</a>
+    </nav>
+  </section>
+
+  <style>
+    :global(.content-card){border-top:3px solid #fbbf24;}
+    section{scroll-margin-top:1rem;margin:0 0 3rem;}
+    .answer{background:#0a1628;color:#e2e8f0;border-radius:16px;padding:1.25rem 1.4rem;}
+    .answer h2{color:#fbbf24;margin-top:0;}
+    .answer p{margin-bottom:0;}
+    .eyebrow{margin:0 0 .25rem;color:#9a6700;font-size:.76rem;font-weight:800;letter-spacing:.09em;text-transform:uppercase;}
+    .section-heading{display:flex;align-items:end;justify-content:space-between;gap:1rem;flex-wrap:wrap;}
+    .section-heading h2{margin:0;}
+    .section-note{color:#475569;}
+    .recommendation-list{list-style:none;padding:0;display:grid;gap:1rem;}
+    .recommendation-card{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:1rem;align-items:center;border:1px solid #dbe3ee;border-radius:16px;padding:1rem;background:linear-gradient(145deg,#fff,#f8fafc);}
+    .rank{display:grid;place-items:center;width:2.25rem;height:2.25rem;border-radius:50%;background:#0a1628;color:#fbbf24;font-weight:900;}
+    .recommendation-title{display:flex;justify-content:space-between;gap:1rem;align-items:baseline;}
+    .recommendation-title h3{margin:0;}
+    .score{white-space:nowrap;color:#0a1628;}
+    dl{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.5rem;margin:.65rem 0;}
+    dl div{min-width:0;}
+    dt{font-size:.72rem;font-weight:800;text-transform:uppercase;color:#64748b;}
+    dd{margin:0;color:#334155;}
+    .availability{font-size:.78rem;color:#64748b;margin:0;}
+    .availability.available{color:#047857;font-weight:700;}
+    .actions{display:flex;flex-direction:column;gap:.6rem;align-items:stretch;max-width:13rem;}
+    .review-link,.actions :global(.affiliate-cta){display:inline-block;text-align:center;border-radius:10px;padding:.7rem .9rem;font-weight:800;text-decoration:none;}
+    .review-link{border:1px solid #0a1628;color:#0a1628;}
+    .actions :global(.affiliate-cta){background:linear-gradient(135deg,#fbbf24,#f59e0b);color:#0a1628;}
+    .actions :global(.affiliate-unavailable){font-size:.75rem;color:#991b1b;margin:0;}
+    a:focus-visible,.table-wrap:focus-visible{outline:3px solid #d97706;outline-offset:3px;}
+    .honesty-note,.use-case-card{border-left:4px solid #fbbf24;background:#fffbeb;padding:1rem 1.1rem;border-radius:0 12px 12px 0;}
+    .score-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:.75rem;list-style:none;padding:0;}
+    .score-list li{display:flex;justify-content:space-between;gap:1rem;border:1px solid #e2e8f0;border-radius:10px;padding:.75rem .9rem;}
+    .table-wrap{max-width:100%;overflow-x:auto;border:1px solid #dbe3ee;border-radius:12px;}
+    table{width:100%;min-width:880px;border-collapse:collapse;font-size:.86rem;}
+    caption{text-align:left;padding:.9rem;background:#0a1628;color:#e2e8f0;}
+    th,td{text-align:left;vertical-align:top;padding:.75rem;border-bottom:1px solid #e2e8f0;}
+    thead th{background:#fbbf24;color:#0a1628;}
+    tbody tr:nth-child(even){background:#f8fafc;}
+    .guidance-grid,.faq-list{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1rem;}
+    .guidance-grid article,.faq-list article{border:1px solid #e2e8f0;border-radius:12px;padding:1rem;}
+    .guidance-grid h3,.faq-list h3{margin-top:0;}
+    .hub-links{display:flex;flex-wrap:wrap;gap:.65rem;}
+    .hub-links a{background:#0a1628;color:#fbbf24;border-radius:999px;padding:.55rem .85rem;text-decoration:none;font-weight:700;}
+    @media(max-width:760px){
+      .recommendation-card{grid-template-columns:auto minmax(0,1fr);}
+      .actions{grid-column:1/-1;width:100%;max-width:none;}
+      .guidance-grid,.faq-list{grid-template-columns:1fr;}
+    }
+    @media(max-width:480px){
+      .recommendation-card{grid-template-columns:1fr;}
+      .rank{width:2rem;height:2rem;}
+      .recommendation-title,dl{display:block;}
+      dl div+div{margin-top:.5rem;}
+      section{margin-bottom:2.25rem;}
+    }
+  </style>
+</ContentLayout>

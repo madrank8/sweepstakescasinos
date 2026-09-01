@@ -4,13 +4,12 @@
  * submission form. Aggregates come from the build-time generated data file.
  *
  * AggregateRating JSON-LD is intentionally NOT emitted until a brand reaches
- * SCHEMA_MIN approved reports (avoids thin/manipulable markup); see plan §6.
+ * the shared approved-report threshold (avoids thin/manipulable markup); see plan §6.
  */
 import { READER_REPORT_AGGREGATES } from '../data/readerReports.generated';
+import { meetsBrandAggregateRatingThreshold } from './brandAggregateRating';
 import { renderReaderReportForm } from './readerReportForm';
 import { TESTING_BRAND_BY_SLUG } from '../data/testingBrands';
-
-const SCHEMA_MIN = 10;
 
 function fmtHours(h: number | null): string | null {
   if (h == null) return null;
@@ -19,8 +18,7 @@ function fmtHours(h: number | null): string | null {
 }
 
 export function hasSchemaThreshold(slug: string): boolean {
-  const agg = READER_REPORT_AGGREGATES[slug];
-  return !!agg && agg.count >= SCHEMA_MIN && agg.avgRating != null;
+  return meetsBrandAggregateRatingThreshold(READER_REPORT_AGGREGATES[slug]);
 }
 
 export function renderReaderReportBlock(slug: string): string {
@@ -67,6 +65,7 @@ export function renderReaderReportBlock(slug: string): string {
  * last </main>, falling back to </body>). Safe to call on any review HTML.
  */
 export function injectReaderReports(html: string, slug: string): string {
+  if (/<section\b[^>]*\bid=["']reader-reports["']/i.test(html)) return html;
   const block = renderReaderReportBlock(slug);
   const i = html.lastIndexOf('</main>');
   if (i !== -1) return html.slice(0, i) + block + html.slice(i);

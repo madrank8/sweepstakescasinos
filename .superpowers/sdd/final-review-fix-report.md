@@ -1,197 +1,390 @@
-# Final Review Fix Report
+# Final Whole-Branch Review Fix Report
 
-Date: 2026-07-30  
-Branch: `feat/sweepstakes-odds-calculator`  
-Starting head: `fb34ba895572e441d8ad0637dbea36cf5065469e`
+Date: 2026-08-31
+Branch: `cursor/seo-coherence-5d71`
+Baseline: `1fecd69`
+Implementation snapshot before report commits: `a5cb2e8`
 
-## Outcome
+## Status
 
-All Critical and Important findings were addressed. Low-risk Minor findings A, B, D, E, G, H, and J were fixed. Minor C was intentionally left unchanged because the approved requirement mandates field-level issues before cross-field issues. Minor F was deferred to avoid changing the broader CI execution model during a final correctness wave; command membership and relative ordering are now verified semantically. Minor I was documentation-only by instruction.
+COMPLETE. Fresh full-branch CI, deterministic audit parity, all-review QA,
+built-schema verification, geo crawl, and representative browser checks pass.
+No push was performed. No `.beads` data, attached plan/brief, instructions, or
+controller ledger was edited.
 
-No push was performed. No beads files, git configuration, SDD brief, or SDD ledger were changed in the target worktree.
+## Critical and Important findings addressed
+
+1. **Reproducible audits and conflicts**
+   - Every deterministic audit in `docs/seo/*.md` has a byte-parity CI gate.
+   - The four unresolved welcome offers remain unresolved and cite canonical
+     source records, served review/hub evidence, and the explicitly historical,
+     non-served `index.html` snapshot.
+   - Deterministic audit counts and wording were regenerated after source edits.
+
+2. **Comparison safety and ItemList parity**
+   - `/best/sweepstakes-casinos/` is an operators-to-compare surface, not a
+     ten-item ranking.
+   - Unsupported McLuck winner/game-count copy and all settled presentations of
+     the four conflicted offers were removed.
+   - Visible list and ItemList schema share one view model. Built verification
+     compares count, order semantics, positions, names, and URLs, including
+     nested visible list markup.
+
+3. **Reader-facing missing and unresolved facts**
+   - Reviews retain machine-readable statuses but omit unresolved/missing rows.
+   - Reader-visible internal governance strings were removed from reviews,
+     homepage, directory, and no-deposit surfaces.
+   - The homepage now shows 12 canonical-completeness decision-support entries.
+     The four verified editor scores are supporting details only.
+
+4. **Claim-policy hardening**
+   - First-person test claims are not exempted by loose policy/terms words or
+     trailing attribution.
+   - Past-tense editor actions and About process/frequency claims have red
+     fixtures.
+   - Unsupported About history/frequency statements were rewritten as policies.
+
+5. **Editor-score detector hardening**
+   - First-party aggregate language such as “our reviewers”, “our verdict”, and
+     “final rating” is detected.
+   - A domain or external score exemption requires directly tied named
+     third-party attribution.
+
+6. **Production redemption evidence**
+   - Real testing rows and reader aggregates are loaded by an adapter.
+   - Invalid rows produce diagnostics; reader aggregates are not expanded into
+     fabricated pseudo-records.
+   - The explicit `2026-08-31` audit snapshot currently evaluates legitimate
+     empty production evidence as non-publishable while synthetic publishable
+     fixtures continue to enforce thresholds.
+
+7. **Editorial outbound eligibility**
+   - Partner, editorial-outbound, and no-outbound reviews use one availability
+     view.
+   - All 29 review wrappers are request-rendered because summary eligibility and
+     contextual state links are geo-dependent even when no authored CTA exists.
+   - The built crawl ties each review’s summary kind/reason/text and own gateway
+     CTA presence to unknown, Texas, and California policy.
+
+8. **`/new/` authority-safe facts**
+   - Card Crush’s hard-coded CA/NY claim was removed.
+   - Availability uses the shared facade and fact notes use canonical facts.
+   - Hub-note drift is represented in deterministic operator audit output.
+
+9. **No-deposit superlatives and freshness**
+   - Freshness-gated selectors suppress unsupported winners.
+   - Missing/conflicted cells use an em dash with “Details unavailable”.
+   - Visible/schema `dateModified` is generated from the authored source date
+     used by sitemap `lastmod`.
+
+10. **Review information gain**
+    - Canonical summaries follow the authored verdict.
+    - Injected answer blocks are deduplicated against authored answers and
+      limited to two; current all-review output contains 32.
+    - Disclosure, category content, FAQ parity, and contextual navigation remain.
+
+11. **Homepage primary set and cross-surface wording**
+    - The primary set uses decision-fact completeness and stable slug tie-breaks,
+      not affiliate economics or unresolved editor scores.
+    - Homepage H1 and supporting copy use evidence-based comparison language.
+    - Guide/state links no longer describe the comparison as ranked or expose
+      CPA language.
+
+## Red evidence
+
+- `npm run seo:audit:test`
+  - Initially failed because the audit core lacked `findAuditReportDrift`.
+  - Later failed on committed deterministic report drift, proving the byte gate.
+- `npm run operator:test`
+  - Failed on first-party aggregate-score fixtures and unresolved rendered score
+    leakage before attribution proximity was corrected.
+- `npm run verify:homepage`
+  - Failed while the decision-support selectors/presentation utilities were
+    absent and again when evidence-based H1/link wording contracts found
+    residual “Best”, “ranked comparison”, and CPA copy.
+- `npm run verify:reviews`
+  - Failed when answer blocks exceeded two, summaries preceded verdicts, and
+    generated `american-luck.astro` remained `prerender = true`.
+  - After the count contract changed, failed with `2 !== 0`, proving the QA
+    still modeled two static reviews.
+- `npm run verify:redemption-index`
+  - Failed while the production evidence adapter module was absent.
+- `npm run verify:availability`
+  - Failed while editorial outbound availability was not exported through the
+    shared view.
+- `npm run verify:internal-links`
+  - Failed with a missing `expectedReviewCtaEligibility` export.
+- `npm run seo:crawl`
+  - Failed with false Texas CTA expectations for `/`,
+    `/best/sweepstakes-casinos/`, and the odds calculator.
+  - Once route expectations used canonical views, it exposed build-frozen
+    American Luck/Card Crush state summaries and contextual links.
+- `npm run seo:audit:test`
+  - Failed on stale internal-link bytes (`1447`, then `1446`) and stale ranked
+    audit prose before deterministic snapshots were updated to 1,443 links.
+
+## Green evidence
+
+Focused gates:
+
+- `npm run verify:homepage` — exit 0.
+- `npm run verify:availability` — exit 0; 51 jurisdictions and 13 partners.
+- `npm run verify:internal-links` — exit 0; all 29 review paths covered.
+- `npm run seo:audit:test && npm run seo:audit` — exit 0; deterministic bytes
+  match, 54 matched claims, zero unsupported claims, 103 routes, 1,443 links.
+- `npm run operator:test && npm run operator:verify` — exit 0; 29 operators.
+- `npm run verify:reviews` — exit 0; 29 request-rendered reviews, 32 answer
+  blocks, 87 geo/outbound assertions, zero errors.
+- `npm run verify:redemption-index` — exit 0; production remains legitimately
+  non-publishable with zero adapted records.
+- `npm run build && npm run seo:crawl` — exit 0; 123 pages, 6,013 rendered
+  links, 32 geo routes × three modes, zero geo failures.
+
+Representative browser checks:
+
+- Homepage, comparison hub, and no-deposit hub returned 200 with one H1,
+  expected visible ItemList counts (12, 10, 12), no governance/ranking copy,
+  no document overflow, and zero console errors.
+- Rolla: Texas summary eligible with three own CTAs; California and unknown
+  summaries ineligible with zero own CTAs.
+- Card Crush and American Luck: Texas summaries ineligible with zero own CTAs.
+
+Final full verification:
+
+- `npm run ci` — exit 0 after commit `00aa628`.
+- Built schema — 115 indexable pages, zero errors.
+- Review QA — 29 request-rendered reviews, 32 answer blocks, 87 geo/outbound
+  assertions, zero errors.
+- Rendered crawl — 123 pages, 6,013 links, 96 geo renders, zero failures.
 
 ## Commits
 
-- `23858e0` — `fix: cap odds calculations and honest formatting`
-- `6ab57e0` — `fix: harden odds calculator accessibility and resilience`
+- `4540157` — `test: expose audit and claim safety gaps`
+- `1cbfa56` — `test: define coordinated presentation and evidence contracts`
+- `547c387` — `fix: harden claim attribution and editorial policy`
+- `2add333` — `fix: align review facts with outbound policy`
+- `d1d7398` — `fix: make comparison hubs evidence driven`
+- `eddf59e` — `test: align canonical presentation contracts`
+- `fb138da` — `fix: remove internal status copy from reviews directory`
+- `509bffd` — `fix: adapt production redemption evidence`
+- `e804278` — `fix: enforce deterministic seo audit parity`
+- `c082bc2` — `test: align operator rendering assertions`
+- `5973a82` — `fix: validate hidden canonical fact statuses`
+- `1049962` — `test: verify canonical new-hub presentation`
+- `c231a0a` — `docs: refresh deterministic seo audits`
+- `197a6c0` — `fix: fail closed without editorial ranking data`
+- `f1a998d` — `test: use configured odds card fixtures`
+- `498db50` — `chore: refresh source-derived route freshness`
+- `9fa86fc` — `fix: parse nested visible item lists`
+- `ce5d2b8` — `fix: align geo crawl with outbound eligibility`
+- `6d3bd7e` — `fix: render review availability per request`
+- `041656f` — `docs: refresh deterministic link audit`
+- `7e57620` — `docs: align audits with decision support model`
+- `6cd9b7c` — `fix: remove unsupported comparison ranking copy`
+- `218e4d8` — `docs: refresh audits after comparison copy`
+- `a5cb2e8` — `chore: refresh comparison source freshness`
+- `00aa628` — `docs: report final review fix wave`
 
-## Findings Addressed
+## Remaining concerns
 
-### Critical
+- 25 editor scores and four signup offers still require human source resolution.
+- Six tracker/site-policy differences and the Card Crush authority intersection
+  require legal/compliance ownership; current output does not infer legality.
+- All 29 canonical operator verification dates remain missing.
+- Production first-party testing and reader aggregate inputs are empty, so no
+  payout result, ranking, or AggregateRating is publishable.
+- The source audit still records 23 legacy visible/schema score mismatches;
+  rendered output suppresses or aligns them without guessing source truth.
+- CI emits the existing non-failing empty `src/content/reviews` MDX warning.
 
-1. **Calculation freeze**
-   - Added a 1,000,000-iteration ceiling to the exact-product path.
-   - `exactWinProbability` now throws a clear `RangeError` before an oversized product.
-   - `validateCalculatorInput` now emits `calculation_too_large` with the deterministic instant-calculation message.
-   - Validation covers known, estimated, and entry-mix scenarios while preserving billion-entry inputs when the shorter product is small.
+## Whole-branch re-review addendum
 
-2. **Native form query leakage**
-   - The calculator form now uses `method="dialog"` with no `action`.
-   - Source and integration verifiers assert both properties.
-   - Browser QA verified controller-backed Enter/button calculations and cloned controller-free Enter/button submissions stayed on the same clean URL.
+### Status
 
-3. **False certainty formatting**
-   - Literal certainty remains exclusive to `probability === 1`.
-   - Near-certain values now return `Almost certain`, `>99.9%`, and `approximate: true`.
-   - Regression coverage includes `0.9996` and `1 - 1e-12`.
+COMPLETE. The remaining Critical/Important findings were reproduced, fixed,
+and verified without adding caching scope. No push was performed. No `.beads`
+data, attached plan/brief, instructions, or controller ledger was edited.
 
-### Important
+### Findings fixed
 
-4. **Reduced motion**
-   - Added an html-level `scroll-behavior: auto !important` override in `partials/trust.css`.
-   - Removed the ineffective component descendant rule.
-   - Replaced minified-source pinning with semantic declaration checks.
+- Score normalization now replaces only score-only elements, direct
+  first-party score contexts, and recognizable score chrome. It preserves
+  authored SC amounts, dollar prices, percentages, multipliers, app/third-party
+  ratings, and third-party ranges.
+- An unresolved score replacement carries state only in a data attribute and
+  HTML comment; it emits no reader-visible “unresolved” label. Verified
+  replacements emit the canonical `/100` value only in genuine score contexts.
+- The all-29 request-rendered regression compares authored non-score decimals
+  with rendered output and scans each complete visible document for score
+  governance vocabulary.
+- All production inbound links found describing
+  `/best/sweepstakes-casinos/` as ranked/scored were rewritten as neutral
+  comparison links. A repository gate now rejects ranking language tied to
+  that destination.
+- `/new/` now declares `ItemListUnordered` and exposes the same position, name,
+  and URL for every visible card, allowing built ItemList parity to validate
+  all ten entries.
+- Partial ISO launch dates render as human-readable month/year values. Legacy
+  `index.html` provenance is explicitly historical/not served. State Article
+  schema uses the later real status-change or legal-review event for
+  `dateModified`, and built verification rejects chronology inversion.
+- Dormant odds recommendation rank badges, `/5` scores, and offer amounts were
+  deleted. About now names the four actual methodology criteria.
 
-5. **Hidden live-region writes**
-   - Result and alert regions are unhidden before their announced content is populated.
-   - Bounded function/callback extraction verifies operation order.
+### Red evidence
 
-6. **Ranking-caused SSR failure**
-   - Request-time ranking resolution now returns an `OddsRecommendationTuple` or `null`.
-   - Recommendation cards and derived contextual review links are omitted when ranking data is unavailable.
-   - Build verification enforces published, non-draft ranking data, at least three valid slugs, review existence, uniqueness, and partner resolution.
+- `npm run operator:test` failed first on reader-visible `Editor score:
+  unresolved`, then exposed lost authored decimals (including Casino Click
+  `2.5` values) before the normalizer was narrowed.
+- The all-review detector then exposed genuine sticky score chrome still
+  leaking for High 5, SpinBlitz, and Thrillzz; the green implementation fixed
+  those without deleting app or third-party ratings.
+- `npm run verify:internal-links` failed on the American Luck “ranked picks”
+  inbound link before the repository-wide destination gate was satisfied.
+- `npm run verify:homepage` failed while `/new/` still declared
+  `ItemListOrderDescending` and lacked visible parity attributes.
+- `npm run verify:availability` failed while state schema still passed tracker
+  freshness directly as `dateModified`.
+- `npm run verify:odds`, `npm run seo:audit:test`, and `npm run seo:audit`
+  failed respectively on dormant score/offer/rank copy, the seven-criteria
+  About claim, and deterministic report drift.
 
-7. **Contextual review coupling**
-   - Fixed nav/footer/guide/no-deposit obligations remain explicit.
-   - Review-page coverage now scans all authored HTML reviews and requires at least three exact calculator links independently of ranking.
+### Green evidence
 
-8. **Closed advanced errors**
-   - `showErrors` opens each errored control’s ancestor `details` before moving focus to the summary.
-   - Browser QA confirmed a closed advanced section reopened and exposed the invalid free-entry control.
+- `npm run operator:test` — 29 canonical reviews rendered and checked,
+  including full-document governance and non-score decimal preservation.
+- `npm run verify:internal-links` — 29 reviews and the inbound comparison
+  language gate passed.
+- `npm run verify:homepage` — unordered `/new/` schema/visible parity source
+  contract passed.
+- `npm run verify:availability` — 51 jurisdictions and state date chronology
+  contract passed.
+- `npm run verify:odds` — cleaned recommendation model/component passed.
+- `npm run seo:audit:test && npm run seo:audit` — deterministic byte parity,
+  54 claim matches, zero unsupported claims, 103 routes, and 1,443 authored
+  links.
+- Final `npm run ci` — exit 0. Review QA rendered all 29 reviews by request
+  with 32 answer blocks, 87 geo/outbound assertions, and zero errors. Built
+  schema validated 115 indexable pages, including `/new/` ItemList parity and
+  state date chronology. Rendered crawl validated 123 pages, 6,013 links, and
+  96 geo renders with zero failures.
 
-9. **Opposite estimated bound order**
-   - Added `formatEstimatedProbabilityRange`.
-   - Reciprocal and percentage displays now both run best to worst.
-   - The pinned example is `1 in 400 to 1 in 625` and `0.25% to 0.16%`.
+### Addendum commits
 
-10. **Estimated-mode semantics**
-    - Added a stable toggle ID, `aria-controls="odds-pool"`, and programmatic instructions.
-    - The dynamic pool hint is a polite status region that announces assumption changes.
-    - Existing keyboard order remains verified.
+- `6463c19` — `fix: preserve non-score review decimals`
+- `3d37450` — `fix: remove unsupported comparison ranking claims`
+- `e85f7dc` — `fix: expose unordered new-hub ItemList parity`
+- `115f781` — `fix: preserve state schema date chronology`
+- `8ba7983` — `fix: clarify operator fact presentation`
+- `01b2b33` — `fix: remove dormant odds ranking facts`
+- `b8f771d` — `fix: align About methodology criteria`
+- `40c679f` — `chore: refresh comparison source freshness`
+- `3369082` — `docs: refresh final review audits`
+- `6252035` — `test: cover verified score decimal preservation`
 
-11. **Verifier false confidence**
-    - CI verification now checks command membership and relative order.
-    - Function wiring checks use bounded body extraction.
-    - Self-referential verifier-source checks were removed.
-    - Reduced-motion and narrow-nav CSS checks inspect parsed declarations.
-    - Positive analytics, privacy, schema, form-order, ranking, and generated-route contracts remain.
+### Remaining concerns after re-review
 
-## Minor Triage
+- The same 25 editor-score and four signup-offer conflicts still require human
+  source resolution; this wave deliberately did not guess values.
+- The six tracker/site-policy differences, Card Crush policy intersection, 29
+  missing operator verification dates, empty first-party evidence, and empty
+  reader aggregates remain unchanged.
+- The source audit still records 23 legacy source/schema score mismatches.
+- CI still emits the existing non-failing empty `src/content/reviews` warning.
 
-- **A — fixed:** dedicated percentage formatting preserves three significant digits down to the existing `<0.000001%` floor. `3.456e-8` renders as `0.00000346%`.
-- **B — fixed:** integration verification enforces `ODDS_DATE_MODIFIED` equality with the calculator sitemap `lastmod`, without runtime git access.
-- **C — intentionally unchanged:** approved ordering remains all field-level issues first, followed by cross-field issues.
-- **D — fixed:** result invalidation listeners are wired through `RESULT_INVALIDATING_INPUT_IDS`.
-- **E — fixed:** estimated entry-mix UI calculates the displayed base-pool comparison directly; the all-band helper remains available and tested.
-- **F — deferred:** CI still has duplicated prebuild gates. The duplication is harmless, explicit, and outside the correctness fixes; changing execution ownership here would broaden release risk.
-- **G — fixed:** shallow-history and authored-lastmod git failures now receive clear contextual wrapper messages.
-- **H — fixed:** contextual operator review links derive from resolved `topPartners` and disappear with unavailable ranking data.
-- **I — deferred by instruction:** no historical sitemap artifact architecture changes were attempted.
-- **J — fixed:** the result heading is now `h3`, with CSS and verifier expectations updated.
+## Final C1/I2/I3/I4 closure
 
-## Red Evidence
+### Status
 
-1. `npm run verify:odds`
-   - Exit 1.
-   - `Missing expected exception: direct exact calculations above the product-iteration cap must fail fast`.
+COMPLETE. The final whole-branch rejection was reproduced and fixed without
+resolving the four offer conflicts, changing state publication semantics,
+adding caching scope, or editing beads, plans, instructions, or controller
+state. No push was performed.
 
-2. `npm run verify:odds`
-   - Exit 1.
-   - `SyntaxError: ... oddsCalculatorUi does not provide an export named 'formatEstimatedProbabilityRange'`.
+### Findings fixed
 
-3. `npm run verify:odds`
-   - Exit 1.
-   - Form contract expected `method="dialog"` but received `<form data-odds-form novalidate>`.
+- Production score normalization now changes only score-only chrome and
+  explicit widgets. Mixed prose is never rewritten, named-third-party
+  attribution takes precedence over first-party cue words and star chrome, and
+  a third-party source name used as a promo code is not treated as attribution.
+- Eleven review sources with affected aggregate score prose now contain
+  grammatical non-numeric editorial copy. The independent rendered detector,
+  rather than runtime deletion, remains responsible for rejecting future
+  unresolved aggregate prose.
+- All 29 source/rendered pairs now prove that authored named-third-party `N/5`
+  ratings survive, no editorial replacement appears inside a named-third-party
+  block, no score-governance vocabulary is visible, and no dangling
+  score-language punctuation or gaps remain. The identified Trustpilot/app and
+  external-review values were preserved rather than converted into editorial
+  scores.
+- `how-we-rate.html` now describes the four-criteria methodology in metadata.
+  The dedicated consistency gate and SEO audit both reject seven-criteria
+  metadata drift.
+- The built ItemList verifier now fails every top-level emitted ItemList that
+  lacks visible parity markup. `/state-legality/`, `/guides/`,
+  `/guides/social-casinos/`, and `/news/` expose matching item position, name,
+  and URL markers. The stronger gate also exposed the request-rendered
+  legislation tracker, whose populated table and empty notice now opt in.
 
-4. `npm run verify:odds:integration`
-   - Exit 1.
-   - Reduced-motion contract found the old component-scoped media rule.
+### Red evidence
 
-5. `npm run verify:odds`
-   - Exit 1.
-   - Graceful-route contract found request-time `throw new Error` branches.
+- `npm run operator:test` first failed on Acebet's reader-visible dangling
+  “We rate Acebet .” output. After runtime normalization was narrowed, it
+  enumerated the authored first-party aggregate clauses that could no longer be
+  hidden at render time.
+- The same all-29 gate then exposed an iOS `4.8/5` preservation loss caused by
+  missing `iOS App` attribution and promo-code text (`SWEEPSY` /
+  `SWEEPSKINGS`) being mistaken for reviewer attribution.
+- The deliberate mixed fixture retained
+  `Our verdict was 91/100 while Trustpilot ... 4.4/5`; the independent detector
+  continued to reject the unresolved first-party value while the production
+  normalizer left the sentence untouched.
+- `npm run verify:homepage` failed because
+  `itemListParityErrors('', parityGraph)` did not reject an unmarked emitted
+  ItemList.
+- `npm run methodology:check` and `npm run seo:audit:test` failed on the
+  seven-criteria How We Rate meta description.
+- `npm run seo:audit:test` subsequently failed on stale deterministic
+  `testing-claims-audit.md` bytes after authored source lines moved.
+- The first full `npm run ci` failed at built schema on the unmarked
+  `/sweepstakes-tracker/legislation/` ItemList. A focused rebuild then proved
+  the empty-data branch also needed a visible marker.
 
-## Green Evidence
+### Green evidence
 
-Focused:
+- `npm run operator:test` — exit 0; all 29 canonical reviews passed source and
+  rendered score preservation, attribution, governance, dangling-language,
+  and unresolved-leak checks.
+- `npm run operator:verify` — 29 canonical operators passed.
+- `npm run verify:homepage` — ItemList opt-in and parity contracts passed.
+- `npm run methodology:check` — four criteria, weights totaling 100%, matched
+  on every surface.
+- `npm run seo:audit:test && npm run seo:audit` — deterministic byte parity,
+  29 reviews, 54 claim matches, zero unsupported claims, 103 routes, and 1,443
+  authored links.
+- `npm run build && npm run schema:check` — 115 indexable pages passed,
+  including every emitted top-level ItemList.
+- Final `npm run ci` — exit 0. Review QA rendered 29 reviews with 32 answer
+  blocks and 87 geo/outbound assertions. The rendered crawl covered 123 pages,
+  6,013 links, and 96 geo renders with zero failures.
 
-- `npm run verify:odds` — `verify-sweepstakes-odds: OK`
-- `npm run build` — exit 0, `[build] Complete!`
-- `npm run verify:odds:integration` — `verify-sweepstakes-odds-integration: OK`
+### Commits
 
-Final chained run after both commits:
+- `12a4583` — `fix: prevent mixed-prose score substitution`
+- `36d99fc` — `fix: require ItemList visible parity`
+- `2b2c25b` — `fix: align methodology metadata criteria`
+- `5901976` — `docs: refresh score safety audit`
+- `4f77fab` — `fix: expose legislation ItemList parity`
+- `5e1ea7a` — `chore: refresh source-derived route freshness`
+- `5e047b4` — `fix: mark empty legislation ItemList`
+- `c0854ee` — `chore: refresh tracker source freshness`
 
-- `npm run verify:odds` — exit 0
-- `npm run build` — exit 0
-- `npm run verify:odds:integration` — exit 0
-- `npm run ci` — exit 0
-- Overall elapsed time: 19.145s
+### Remaining concerns
 
-The build emitted the existing warning that `src/content/reviews` contains no MDX files; authored review coverage is HTML-based and all gates passed.
-
-## Browser Evidence
-
-Local Astro dev server, Texas development geo, tested through mandated gstack browse:
-
-- Form inspection: `{"method":"dialog","action":null}`.
-- Normal Enter: result visible, `Your calculated chance is 1 in 500.`, `0.2%`, result heading focused, URL unchanged.
-- Normal button: result visible, updated `about 1 in 250`, heading focused, URL unchanged.
-- Estimated mode: live hint changed to the 0.8×/1.25× assumption; result displayed `1 in 400 to 1 in 625` and `0.25% to 0.16%`; heading focused.
-- Invalid advanced input: previously closed `details` reopened, alert and inline error became visible, free-entry control was visible, error summary received focus.
-- Controller-free cloned form, button: URL remained clean and unchanged; no action attribute.
-- Controller-free cloned form, Enter: URL remained clean and unchanged; no network request.
-- Console: no calculation errors.
-- Storage: empty localStorage and sessionStorage.
-- Network: no entered counts or derived probability appeared in URLs or requests. Existing Google Analytics page-view/form-start requests were observed without entered values.
-
-## Remaining Concerns
-
-- CI/prebuild gate duplication remains as documented in Minor F.
-- Historical sitemap churn remains as documented in Minor I.
-- The build’s pre-existing empty-MDX-review warning remains; HTML review pages are verified separately.
-
-## Whole-Branch Re-review Fix
-
-### Commit
-
-- `24f2121` — `fix: close remaining odds review gaps`
-
-### Files
-
-- `src/lib/sweepstakesOdds.ts`
-- `src/lib/oddsCalculatorUi.ts`
-- `src/components/odds/OddsCalculator.astro`
-- `scripts/verify-sweepstakes-odds.ts`
-- `scripts/verify-sweepstakes-odds-integration.ts`
-
-### Red Evidence
-
-- `npm run verify:odds` exited 1: `oddsCalculatorUi` did not provide the new `formatEstimatedChanceHeadline` export.
-- `npm run verify:odds:integration` exited 1 after the contract harness was corrected: `AssertionError: no-JS notice appears before the form`.
-
-### Green Evidence
-
-- `npm run verify:odds` — exit 0, `verify-sweepstakes-odds: OK`.
-- `npm run build` — exit 0.
-- `npm run verify:odds:integration` — exit 0, `verify-sweepstakes-odds-integration: OK`.
-- `npm run ci` — exit 0.
-- Ordering contracts now use a guarded `assertOrder`; a mutation assertion confirms deleting the before-statement fails.
-- Date contracts preserve ISO validation, require `datePublished <= dateModified <= sitemap lastmod`, retain authored-source git checks, and prove a later git lastmod remains valid.
-
-### Browser Evidence
-
-Focused local QA used mandated gstack browse:
-
-- Known near certainty, Enter: `Almost certain under these inputs (>99.9%).`.
-- Estimated near certainty, button: `Your estimated chance ranges from almost certain under the low-pool assumption to 1 in 1.56 (base estimate: 1 in 1.25).`.
-- Normal button: `Your calculated chance is 1 in 500.` with `0.2%`; result heading received focus.
-- Server HTML: no-JS notice precedes the single form and retains its existing fallback copy.
-- Advanced error: closed details reopened, alert and inline error appeared, stale result hid, and summary received focus.
-- Privacy: URL stayed query-free, storage remained empty, and calculation submission produced no network requests.
-- Console: no errors.
-
-### Remaining Concerns
-
-- Deferred by instruction: duplicated CI/prebuild work.
-- Deferred by instruction: generated sitemap churn.
-- Deferred: a committed-artifact lastmod assertion remains near-tautological; no change was made because improving it would destabilize generation without adding reliable independent evidence.
+- The same 25 editor-score and four signup-offer conflicts still require human
+  source resolution; no conflicting value was selected in this closure.
+- Six tracker/site-policy differences, the Card Crush policy intersection, 29
+  missing operator verification dates, empty first-party evidence, and empty
+  reader aggregates remain unchanged.
+- The source audit still records 23 legacy source/schema score mismatches.
+- CI still emits the existing non-failing empty `src/content/reviews` warning.

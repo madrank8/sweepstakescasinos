@@ -14,6 +14,33 @@ const pagesDir = join(root, 'src', 'pages');
 const publicDir = join(root, 'public');
 const ORIGIN = SITE.origin;
 
+function writePublisherLogoMetadata() {
+  const logoPath = join(root, SITE.logo.replace(/^\/+/, ''));
+  const png = readFileSync(logoPath);
+  if (
+    png.length < 24 ||
+    png.toString('ascii', 1, 4) !== 'PNG' ||
+    png.toString('ascii', 12, 16) !== 'IHDR'
+  ) {
+    throw new Error(`Publisher logo is not a valid PNG: ${SITE.logo}`);
+  }
+  const width = png.readUInt32BE(16);
+  const height = png.readUInt32BE(20);
+  writeFileSync(
+    join(root, 'src', 'data', 'publisherLogo.generated.ts'),
+    `/**
+ * GENERATED FILE — do not edit by hand.
+ *
+ * Written from the publisher PNG's IHDR by scripts/generate-astro-pages.mjs.
+ */
+export const PUBLISHER_LOGO_DIMENSIONS = {
+  width: ${width},
+  height: ${height},
+} as const;
+`,
+  );
+}
+
 // All /bonuses/<slug>/ destinations are served by the SSR gateway
 // (src/pages/bonuses/[slug].astro) — partners AND non-partner editorial outbound.
 // Skip generating static pages from bonuses/*.html so geo can never be bypassed.
@@ -96,11 +123,15 @@ function writePage(sourcePath) {
   const reviewSlug = reviewMatch ? reviewMatch[1] : null;
 
   let content;
-  if (isAffiliatePage(sourcePath)) {
-    // SSR + geo-suppression of affiliate CTAs per request.
+  if (reviewSlug || isAffiliatePage(sourcePath)) {
+    // Every review is request-rendered because its canonical availability
+    // summary and contextual state link are geo-dependent, even when the
+    // authored source has no outbound CTA. Other affiliate pages remain SSR
+    // for request-time CTA suppression.
     // Import the HTML via ?raw so it ships inside the Vercel function bundle
     // (runtime fs reads of source files are NOT available in serverless).
     const suppressImport = relImport(destination, join(root, 'src', 'lib', 'affiliateHtml'));
+    const trackerImport = relImport(destination, join(root, 'src', 'lib', 'tracker', 'data'));
     const rawImport = relImport(destination, join(root, sourcePath));
     const placement = placementLabel(sourcePath);
     if (reviewSlug) {
@@ -109,7 +140,10 @@ function writePage(sourcePath) {
         `export const prerender = false;\n` +
         `import rawHtml from '${rawImport}?raw';\n` +
         `import { prepareSsrAffiliateReviewHtml } from '${suppressImport}';\n` +
-        `const html = prepareSsrAffiliateReviewHtml(rawHtml, Astro.locals.usState, '${reviewSlug}', '${placement}');\n` +
+        `import { getTrackerData } from '${trackerImport}';\n` +
+        `const tracker = await getTrackerData();\n` +
+        `const trackerState = Astro.locals.usState ? tracker.states.find((state) => state.state_code === Astro.locals.usState) : undefined;\n` +
+        `const html = prepareSsrAffiliateReviewHtml(rawHtml, Astro.locals.usState, '${reviewSlug}', '${placement}', trackerState);\n` +
         `---\n<Fragment set:html={html} />\n`;
     } else {
       content =
@@ -120,14 +154,6 @@ function writePage(sourcePath) {
         `const html = prepareSsrAffiliateHtml(rawHtml, Astro.locals.usState, '${placement}');\n` +
         `---\n<Fragment set:html={html} />\n`;
     }
-  } else if (reviewSlug) {
-    // Non-partner review -> static, but still gets the Reader Reports section.
-    content =
-      `---\n` +
-      `export const prerender = true;\n` +
-      `import { getStaticReviewHtml } from '${staticHtmlImport}';\n` +
-      `const html = getStaticReviewHtml('${sourcePath}', '${reviewSlug}');\n` +
-      `---\n<Fragment set:html={html} />\n`;
   } else {
     // No affiliate CTAs -> keep static for performance.
     content =
@@ -235,7 +261,7 @@ function writeSitemapAndRobots() {
    * Prefer content files over shared route shells when both exist.
    */
   function sourcePathsForUrl(url) {
-    if (url === '/') return ['index.html'];
+    if (url === '/') return ['src/routes/index.astro'];
     const review = url.match(/^\/reviews\/([^/]+)\/$/);
     if (review) return [`reviews/${review[1]}.html`];
     const author = url.match(/^\/author\/([^/]+)\/$/);
@@ -255,6 +281,7 @@ function writeSitemapAndRobots() {
       '/tools/sweepstakes-odds-calculator/': 'src/routes/tools/sweepstakes-odds-calculator/index.astro',
       '/news/': 'src/routes/news/index.astro',
       '/new/': 'src/routes/new/index.astro',
+      '/reviews/': 'src/routes/reviews/index.astro',
       '/bonuses/no-deposit/': 'src/routes/bonuses/no-deposit/index.astro',
       '/state-legality/': 'src/routes/state-legality/index.astro',
       '/sweepstakes-tracker/': 'src/routes/sweepstakes-tracker/index.astro',
@@ -289,6 +316,9 @@ function writeSitemapAndRobots() {
   };
 
   push('/');
+  if (existsSync(join(root, 'src', 'routes', 'reviews', 'index.astro'))) {
+    push('/reviews/');
+  }
   const reviewsDir = join(root, 'reviews');
   if (existsSync(reviewsDir)) {
     for (const f of readdirSync(reviewsDir).sort()) {
@@ -374,6 +404,20 @@ function writeSitemapAndRobots() {
     }
   }
 
+  const routeLastmod = Object.fromEntries(
+    entries.map(({ url, lastmod }) => [url, lastmod]),
+  );
+  writeFileSync(
+    join(root, 'src', 'data', 'routeLastmod.generated.ts'),
+    `/**
+ * GENERATED FILE — do not edit by hand.
+ *
+ * Written from the same authored-source git dates as sitemap.xml.
+ */
+export const ROUTE_LASTMOD: Readonly<Record<string, string>> = ${JSON.stringify(routeLastmod, null, 2)};
+`,
+  );
+
   const body = entries.map(({ url: u, lastmod }) =>
     `  <url>\n    <loc>${ORIGIN}${u}</loc>\n    <lastmod>${lastmod}</lastmod>\n    <changefreq>weekly</changefreq>\n    <priority>${u === '/' ? '1.0' : '0.8'}</priority>\n  </url>`
   ).join('\n');
@@ -423,9 +467,11 @@ function writeSitemapAndRobots() {
     : '';
   const llms =
     `# Sweepstakes Wiz\n\n` +
-    `> Sweepstakes Wiz (sweepstakeswiz.com) is an independent US guide that tests and ranks sweepstakes (social) casinos — focused on redemption speed, bonus value, and state eligibility. Sweepstakes play only; no real-money gambling. 21+.\n\n` +
+    `> Sweepstakes Wiz (sweepstakeswiz.com) is an independent US guide that reviews and ranks sweepstakes (social) casinos — focused on published redemption terms, bonus value, and state eligibility. Sweepstakes play only; no real-money gambling. 21+.\n\n` +
     `## Start here\n` +
+    `- [Best sweepstakes casinos decision guide](${ORIGIN}/)\n` +
     `- [Best sweepstakes casinos](${ORIGIN}/best/sweepstakes-casinos/)\n` +
+    `- [All casino reviews](${ORIGIN}/reviews/)\n` +
     `- [New sweepstakes casinos](${ORIGIN}/new/)\n` +
     `- [No deposit bonuses & free Sweeps Coins](${ORIGIN}/bonuses/no-deposit/)\n` +
     `- [Sweepstakes odds calculator](${ORIGIN}/tools/sweepstakes-odds-calculator/)\n` +
@@ -451,7 +497,7 @@ function writeSitemapAndRobots() {
     `## Casino reviews\n${reviewLines}\n\n` +
     `## Citation & compliance\n` +
     `- Cite as: Sweepstakes Wiz (sweepstakeswiz.com).\n` +
-    `- Reviews are hands-on tested and dated; ratings follow the published How We Rate methodology.\n` +
+    `- Reviews distinguish editorial analysis, attributed reader or third-party data, and any separately documented first-hand evidence; ratings follow the published How We Rate methodology.\n` +
     `- Sweepstakes play only — no real-money gambling. Sweeps Coins have no cash value until redeemed per each operator's official rules. No purchase necessary. 21+. Not available in all US states.\n` +
     `- Affiliate disclosure: we may earn referral fees from operators; this never influences rankings.\n`;
 
@@ -464,6 +510,7 @@ function writeSitemapAndRobots() {
   writeFileSync(join(root, 'llms.txt'), llms);
 }
 
+writePublisherLogoMetadata();
 rmSync(pagesDir, { recursive: true, force: true });
 walk(root);
 pageFiles.sort().forEach(writePage);

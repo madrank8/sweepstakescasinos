@@ -34,7 +34,7 @@ const itemListLd = {
   '@id': `${canonical}#bills`,
   name: 'Pending sweepstakes casino legislation',
   numberOfItems: bills.length,
-  itemListElement: bills.slice(0, 50).map((b, i) => ({
+  itemListElement: bills.map((b, i) => ({
     '@type': 'ListItem',
     position: i + 1,
     name: `${b.state_code} ${b.bill_number}: ${b.title}`,
@@ -64,16 +64,22 @@ function dirLabel(d: string) {
   </p>
 
   {bills.length === 0 ? (
-    <div class="notice-box"><p>No pending bills are currently tracked. Check back after the next daily update.</p></div>
+    <div class="notice-box" data-item-list={`${canonical}#bills`}>
+      <p>No pending bills are currently tracked. Check back after the next daily update.</p>
+    </div>
   ) : (
     <div class="lg-tablewrap">
       <table class="lg-table">
         <thead>
           <tr><th>Bill</th><th>State</th><th>Direction</th><th>Status</th><th>Last action</th><th>Title</th></tr>
         </thead>
-        <tbody>
-          {bills.map((b) => (
-            <tr>
+        <tbody data-item-list={`${canonical}#bills`}>
+          {bills.map((b, i) => (
+            <tr
+              data-item-position={i + 1}
+              data-item-name={`${b.state_code} ${b.bill_number}: ${b.title}`}
+              data-item-url={b.bill_url}
+            >
               <td><a href={b.bill_url} rel="nofollow noopener" target="_blank">{b.bill_number}</a></td>
               <td>{isUsStateCode(b.state_code) ? stateName(b.state_code) : b.state_code}</td>
               <td><span class={`lg-dir dir-${b.direction}`}>{dirLabel(b.direction)}</span></td>
