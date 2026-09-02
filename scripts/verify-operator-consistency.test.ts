@@ -29,6 +29,11 @@ const reviewSlugs = readdirSync(resolve(root, 'reviews'))
   .map((file) => file.replace(/\.html$/, ''))
   .sort();
 
+function isRealDate(value: string): boolean {
+  return /^\d{4}-\d{2}-\d{2}$/.test(value) &&
+    !Number.isNaN(Date.parse(`${value}T00:00:00Z`));
+}
+
 assert.equal(OPERATORS.length, 29);
 assert.deepEqual(
   OPERATORS.map((operator) => operator.slug).sort(),
@@ -163,6 +168,28 @@ for (const [slug, source] of [
       ),
     `${slug} unresolved offer must retain the dated official-source evidence gap`,
   );
+}
+
+for (const operator of OPERATORS) {
+  const date = operator.lastVerifiedDate;
+  if (date.status === 'verified') {
+    const verifiedOn = date.provenance[0].verifiedOn;
+    assert.ok(verifiedOn && isRealDate(verifiedOn), `${operator.slug} verified date must be a real date`);
+    for (const field of CANONICAL_OPERATOR_FIELDS) {
+      if (field === 'lastVerifiedDate' || field === 'name' || field === 'operatorName') continue;
+      const fact = operator[field];
+      if (fact.status === 'unresolved') {
+        assert.fail(`${operator.slug}: lastVerifiedDate verified despite ${field} being unresolved`);
+      }
+    }
+  } else {
+    assert.equal(date.status, 'missing', `${operator.slug} verification date must be verified or explicitly missing`);
+    assert.match(
+      date.reason,
+      /official-source pass captured 2026-09-02.*(?:missing|unresolved)/i,
+      `${operator.slug} missing date must document the dated official-source evidence gap`,
+    );
+  }
 }
 
 const fixture =

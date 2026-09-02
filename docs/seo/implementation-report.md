@@ -16,6 +16,9 @@ decisions with typed, evidence-gated paths:
 - A canonical operator inventory covers all 29 existing reviews. Every fact is
   `verified`, `unresolved`, or `missing` and verified values retain provenance.
   Conflicting editor scores and offers are not silently selected.
+- A 2026-09-02 WebFetch pass checked the decision-critical fields for all 29
+  operators against their official sites. None had official support for every
+  canonical field, so no `lastVerifiedDate` was stamped.
 - Review rendering is standardized across all 29 request-rendered review
   paths so visitor eligibility, CTA presence, and state context cannot freeze
   at build time. Each review has a canonical fact summary, evidence-gated answer
@@ -151,8 +154,10 @@ destinations remain functional.
 - Card Crush remains a documented commercial/site-policy intersection:
   affiliate availability is CA/NY while site policy suppresses both. This is
   not treated as a legal conclusion.
-- All 29 operator verification dates remain missing. Review publication or
-  modification dates are not substituted.
+- All 29 operator verification dates remain missing after the dated official-
+  source pass. Each record now identifies its checked official URL and the
+  missing, unresolved, or unsupported decision-critical fields; review
+  publication or modification dates are not substituted.
 - First-party testing has zero production rows. Reader aggregates contain zero
   operators, so the redemption index is non-publishable and no
   `AggregateRating` is emitted.
@@ -168,9 +173,9 @@ destinations remain functional.
 
 - Resolve each editor-score and signup-offer conflict against cited source
   evidence before changing canonical status.
-- Supply qualifying operator verification dates and review the source
-  provenance for missing launch, offer, redemption, payment, game-count, and
-  external-rating fields.
+- Resolve the documented official-source gaps for launch, offer, redemption,
+  payment, and game-count fields before any operator receives a verification
+  date.
 - Decide the six tracker/site-policy differences and the Card Crush policy
   intersection with legal/compliance owners. Current labels are descriptive,
   not legal advice.
