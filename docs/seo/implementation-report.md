@@ -1,7 +1,7 @@
 # SEO Implementation Report
 
-Evidence snapshot: `cursor/seo-coherence-5d71` at `c0854ee`, verified on
-2026-08-31 before this report commit.
+Evidence snapshot: `cursor/seo-conflict-resolution-5d71` at `fc41546`, verified
+on 2026-09-02 before this report commit.
 
 ## 1. Changes made
 
@@ -10,12 +10,15 @@ decisions with typed, evidence-gated paths:
 
 - Every indexable page emits one parseable JSON-LD document with an `@graph`,
   canonical publisher/site/author/page entities, one breadcrumb, and
-  page-specific content entities. Review ratings are emitted only for the four
-  verified canonical editor scores. Empty reader data emits no
-  `AggregateRating`.
+  page-specific content entities. All 29 review `/100` editor scores are now
+  verified canonical facts; legacy `/5` values remain audit evidence rather
+  than rating authority. Empty reader data emits no `AggregateRating`.
 - A canonical operator inventory covers all 29 existing reviews. Every fact is
   `verified`, `unresolved`, or `missing` and verified values retain provenance.
-  Conflicting editor scores and offers are not silently selected.
+  The 25 previously conflicting editor scores now use their cited review
+  `/100` values. Official operator sources resolve the Hello Millions and
+  Spree signup offers; Crown Coins and SpinBlitz remain explicitly unresolved
+  because the captured official pages do not state signup-offer amounts.
 - A 2026-09-02 WebFetch pass checked the decision-critical fields for all 29
   operators against their official sites. None had official support for every
   canonical field, so no `lastVerifiedDate` was stamped.
@@ -109,9 +112,9 @@ The generated `src/pages/` tree remains generator-owned. Legacy
 ## 4. URLs materially changed
 
 - `/` is materially changed from the legacy inventory-led root to an authored
-  answer, a 12-row canonical-completeness decision table, four verified editor
-  scores shown only as supporting details, methodology, legality guidance, FAQ,
-  and specialist-hub navigation.
+  answer, a 12-row canonical-completeness decision table, 12 verified canonical
+  editor scores shown only as supporting details, methodology, legality
+  guidance, FAQ, and specialist-hub navigation.
 - `/reviews/` is the only new indexable route. It is a complete alphabetical
   directory with CollectionPage, ItemList, and breadcrumb entities.
 - All 29 existing `/reviews/<slug>/` URLs now receive the shared canonical fact
@@ -142,12 +145,9 @@ destinations remain functional.
 
 ## 5. Issues intentionally not changed
 
-- 25 editor scores remain unresolved and numeric first-party aggregate
-  presentation is suppressed for those reviews. Legacy homepage score
-  provenance is labeled as a historical `index.html` snapshot that is not
-  served.
-- Four signup offers remain unresolved: Crown Coins, Hello Millions,
-  SpinBlitz, and Spree.
+- Two signup offers remain unresolved: Crown Coins and SpinBlitz. Their
+  captured official help pages describe promotions but do not state a
+  signup-offer amount.
 - Six tracker/site-policy differences remain unresolved: California, Florida,
   Indiana, Maine, Mississippi, and Tennessee. Neither authority overwrites the
   other.
@@ -171,14 +171,19 @@ destinations remain functional.
 
 ## 6. Items requiring human factual or legal review
 
-- Resolve each editor-score and signup-offer conflict against cited source
-  evidence before changing canonical status.
+- Resolve the two remaining signup-offer conflicts for Crown Coins and
+  SpinBlitz against an official source that states the offer amount.
 - Resolve the documented official-source gaps for launch, offer, redemption,
   payment, and game-count fields before any operator receives a verification
-  date.
-- Decide the six tracker/site-policy differences and the Card Crush policy
-  intersection with legal/compliance owners. Current labels are descriptive,
-  not legal advice.
+  date; all 29 `lastVerifiedDate` facts remain missing.
+- Have counsel decide the six state tracker/site-policy briefs (California,
+  Florida, Indiana, Maine, Mississippi, and Tennessee) and the Card Crush
+  commercial/site-policy intersection. Current labels are descriptive, not
+  legal advice.
+- Reconsider the two deferred hubs only after every documented approval gate
+  passes: normalized comparable payout durations plus freshness for “Fastest
+  payout,” and verified offer coverage, freshness, and distinct intent for
+  “Most free Sweeps Coins.”
 - Review legal-page indexation policy and any future change to tracker legal
   classifications.
 - Approve first-party testing records and reader reports through their existing
@@ -224,9 +229,11 @@ After:
 
 Fresh `npm run ci` exited 0 after the coordinated whole-branch fixes.
 
-- Critical score regression: all 29 request-rendered reviews preserve authored
-  non-score SC, dollar, percentage, multiplier, and range decimals; unresolved
-  score state is not visible and complete-document governance scans pass.
+- Critical score regression: all 29 request-rendered reviews use verified
+  canonical `/100` editor scores while preserving authored non-score SC,
+  dollar, percentage, multiplier, and range decimals. Legacy `/5` evidence is
+  not treated as canonical authority, and complete-document governance scans
+  pass.
 - ItemList/date contracts: every top-level emitted ItemList must opt into
   visible count/order/name/URL parity. The four previously unmarked
   `/state-legality/`, `/guides/`, `/guides/social-casinos/`, and `/news/`
@@ -244,17 +251,19 @@ Fresh `npm run ci` exited 0 after the coordinated whole-branch fixes.
   fact summaries, 32 answer blocks, 87 geo/outbound eligibility assertions,
   29 disclosures/contextual blocks, 29 FAQ pages, and zero QA or FAQ/schema errors.
 - Canonical facts: 29 operators validated. Production redemption evidence:
-  zero testing rows, zero reader-aggregate operators, non-publishable status,
-  no public results route, and zero aggregate ratings.
+  all 29 editor scores verified; 26 signup offers verified, two unresolved,
+  and one missing; zero verified operator dates. Redemption evidence has zero
+  testing rows, zero reader-aggregate operators, non-publishable status, no
+  public results route, and zero aggregate ratings.
 - Build: Astro/Vercel output completed; 36 static schema sources and 115
   indexable built pages passed schema validation.
-- Rendered crawl: 123 pages, 6,013 internal links, zero missing targets,
+- Rendered crawl: 123 pages, 6,041 internal links, zero missing targets,
   unintended redirects, duplicate contextual destinations, hierarchy failures,
   missing important inbound links, or geo failures.
 - Built geo crawl: 32 routes in unknown, Texas, and California modes (96
   renders).
 
-Additional browser evidence:
+Previously captured browser evidence (not rerun in this Task 7 CI pass):
 
 - Built-schema verification validated all 115 sitemap pages, including visible
   ItemList count/order/name/URL parity.
@@ -275,14 +284,15 @@ the issue; all 29 reviews now use the request-rendered review pipeline.
 
 ## 9. Remaining recommended work
 
-1. Complete the human factual/legal review items above, then update canonical
-   facts and provenance through focused red/green tests.
+1. Complete the remaining human factual/legal review items above, then update
+   canonical facts and provenance through focused red/green tests.
 2. Populate and approve first-party and reader evidence before reconsidering
    redemption rankings or aggregate ratings.
 3. Normalize comparable payout-duration data and add verified freshness before
    reconsidering the deferred payout hub.
-4. Resolve the four offer conflicts and freshness gaps before introducing any
-   offer superlative; retain `/bonuses/no-deposit/` for the existing intent.
+4. Resolve the two remaining offer conflicts and freshness gaps before
+   introducing any offer superlative; retain `/bonuses/no-deposit/` for the
+   existing intent.
 5. Decide legal indexation and tracker/site-policy differences explicitly.
 6. Investigate the local Astro development-server partial-HTML discrepancy if
    development-server parity is a project requirement; production built output
