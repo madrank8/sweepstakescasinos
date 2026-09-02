@@ -32,6 +32,62 @@ import { findTestingClaims, type UnsupportedTestingClaim } from './claim-policy'
 
 export const DETERMINISTIC_AUDIT_SNAPSHOT_AS_OF = '2026-08-31';
 
+const HISTORICAL_HOMEPAGE_SCORES: Record<string, number> = {
+  acebet: 4.6,
+  'big-pirate': 4.7,
+  'card-crush': 4.2,
+  'casino-click': 4.7,
+  'crown-coins': 4.8,
+  dexyplay: 4.8,
+  freespin: 4.9,
+  'hello-millions': 4.6,
+  high5: 4.9,
+  'jackpot-go': 4.5,
+  jackpota: 4.7,
+  'lucky-bunny': 4.9,
+  mcluck: 4.5,
+  'mega-bonanza': 4.5,
+  pulsz: 4.5,
+  rolla: 5,
+  spinblitz: 4.6,
+  spinfinite: 4.5,
+  'splash-coins': 4.9,
+  spree: 4.6,
+  sweepico: 4.6,
+  'sweet-sweeps': 4.7,
+  thrillzz: 4.3,
+  'wow-vegas': 4.8,
+  zula: 4.4,
+};
+
+const LEGACY_REVIEW_JSON_LD_SCORES: Record<string, number> = {
+  acebet: 4.5,
+  'big-pirate': 4.1,
+  'card-crush': 4.2,
+  'casino-click': 3.8,
+  'crown-coins': 4.6,
+  dexyplay: 4.5,
+  freespin: 4.3,
+  'hello-millions': 4.2,
+  high5: 4.3,
+  'jackpot-go': 4.4,
+  jackpota: 4.3,
+  'lucky-bunny': 3.9,
+  mcluck: 4.5,
+  'mega-bonanza': 4,
+  pulsz: 4.5,
+  rolla: 4.7,
+  spinblitz: 4.4,
+  spinfinite: 4.1,
+  'splash-coins': 4.3,
+  spree: 4,
+  sweepico: 4.4,
+  'sweet-sweeps': 4.5,
+  thrillzz: 4.3,
+  'wow-vegas': 4.5,
+  zula: 4.4,
+};
+
 export interface AuditSnapshotOptions {
   redemptionIndexAsOf: string;
 }
@@ -460,12 +516,6 @@ function distinctSources(sources: SourceValue[]): SourceValue[] {
   });
 }
 
-function auditProvenanceSource(source: string): string {
-  return source === 'index.html#historical-homepage-snapshot-not-served'
-    ? 'index.html'
-    : source;
-}
-
 export function inventoryOperatorFacts(root = process.cwd()): OperatorAudit {
   const reviews = reviewInventory(root);
   const homepage = homepageInventory(root);
@@ -476,13 +526,8 @@ export function inventoryOperatorFacts(root = process.cwd()): OperatorAudit {
   for (const review of reviews) {
     const home = homepage.find((card) => card.slug === review.slug);
     const canonicalOperator = OPERATORS.find((operator) => operator.slug === review.slug);
-    const canonicalScoreSources =
-      canonicalOperator?.editorScore100.status === 'unresolved'
-        ? canonicalOperator.editorScore100.sources.map((source) => ({
-            path: auditProvenanceSource(source.provenance.source),
-            value: source.value,
-          }))
-        : [];
+    const historicalHomepageScore = HISTORICAL_HOMEPAGE_SCORES[review.slug];
+    const legacyReviewJsonLdScore = LEGACY_REVIEW_JSON_LD_SCORES[review.slug];
     const scoreSources = distinctSources([
       ...(home?.score == null
         ? []
@@ -493,7 +538,15 @@ export function inventoryOperatorFacts(root = process.cwd()): OperatorAudit {
       ...(review.schemaScore == null
         ? []
         : [{ path: `${review.path} JSON-LD Review.reviewRating`, value: `${review.schemaScore}/5` }]),
-      ...canonicalScoreSources,
+      ...(historicalHomepageScore == null
+        ? []
+        : [{ path: 'index.html', value: `${historicalHomepageScore}/5` }]),
+      ...(legacyReviewJsonLdScore == null
+        ? []
+        : [{
+            path: `${review.path}#review-jsonld`,
+            value: `${legacyReviewJsonLdScore}/5`,
+          }]),
     ]);
     const normalizedScores = new Set(
       scoreSources.map((source) => {

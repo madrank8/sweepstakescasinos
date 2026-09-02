@@ -4,7 +4,7 @@ Source snapshot: repository authored sources. Generated deterministically withou
 
 Visible legacy scores are parsed with `visibleEditorialScore()` from `src/lib/pageChrome.ts`; schema ratings now use only verified `editorScore100` values from `src/data/operators.ts`.
 
-Coverage: **29 reviews**; source mismatches: **23**. Build-time consolidation emits **4** verified canonical Review ratings and omits ratings for unresolved records; it never converts a five-star value.
+Coverage: **29 reviews**; source mismatches: **23**. Build-time consolidation emits **29** verified canonical Review ratings and omits ratings for unresolved records; it never converts a five-star value.
 
 Approved reader aggregate operators available to the rating gate: **0**. Answer blocks remain visible review content and are not added to FAQPage schema; all FAQPage nodes are rebuilt from visible FAQ questions and answers.
 

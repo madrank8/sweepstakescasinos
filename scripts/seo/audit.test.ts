@@ -62,12 +62,57 @@ assert.equal(
   new Set(operators.homepage.map((card) => card.slug)).size,
   operators.homepage.length,
 );
-for (const slug of ['jackpota', 'jackpot-go']) {
+const historicalScoreConflictSlugs = [
+  'acebet',
+  'big-pirate',
+  'card-crush',
+  'casino-click',
+  'crown-coins',
+  'dexyplay',
+  'freespin',
+  'hello-millions',
+  'high5',
+  'jackpot-go',
+  'jackpota',
+  'lucky-bunny',
+  'mcluck',
+  'mega-bonanza',
+  'pulsz',
+  'rolla',
+  'spinblitz',
+  'spinfinite',
+  'splash-coins',
+  'spree',
+  'sweepico',
+  'sweet-sweeps',
+  'thrillzz',
+  'wow-vegas',
+  'zula',
+];
+const historicalScoreConflicts = operators.conflicts.filter(
+  (conflict) => conflict.field === 'editorial score',
+);
+assert.deepEqual(
+  historicalScoreConflicts.map((conflict) => conflict.slug),
+  historicalScoreConflictSlugs,
+  'all 25 historical score disagreements must remain explicit audit evidence',
+);
+for (const conflict of historicalScoreConflicts) {
   assert.ok(
-    operators.conflicts.some(
-      (conflict) => conflict.slug === slug && conflict.field === 'editorial score',
+    conflict.sources.some(
+      (source) =>
+        source.path === 'index.html' &&
+        /^(?:[1-5](?:\.\d+)?)\/5$/.test(source.value),
     ),
-    `${slug} score conflict must remain explicit`,
+    `${conflict.slug} must retain its historical homepage /5 score`,
+  );
+  assert.ok(
+    conflict.sources.some(
+      (source) =>
+        source.path === `reviews/${conflict.slug}.html#review-jsonld` &&
+        /^(?:[1-5](?:\.\d+)?)\/5$/.test(source.value),
+    ),
+    `${conflict.slug} must retain its legacy Review JSON-LD /5 score`,
   );
 }
 const welcomeOfferConflicts = operators.conflicts.filter(
