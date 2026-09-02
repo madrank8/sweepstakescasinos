@@ -72,7 +72,7 @@ export interface OperatorRecord {
   lastVerifiedDate: CanonicalFact<string>;
 }
 
-const DECISION_CRITICAL_OPERATOR_FIELDS = [
+export const DECISION_CRITICAL_OPERATOR_FIELDS = [
   'name',
   'operatorName',
   'launchDate',
@@ -85,10 +85,10 @@ const DECISION_CRITICAL_OPERATOR_FIELDS = [
   'gameCount',
 ] as const satisfies readonly (keyof OperatorRecord)[];
 
-type DecisionCriticalOperatorField =
+export type DecisionCriticalOperatorField =
   (typeof DECISION_CRITICAL_OPERATOR_FIELDS)[number];
 
-interface OperatorSeed {
+export interface OperatorSeed {
   slug: string;
   name: string;
   operatorName: string;
@@ -250,7 +250,7 @@ const OFFICIAL_OFFER_GAPS: Record<
   },
 };
 
-interface OfficialVerificationPass {
+export interface OfficialVerificationPass {
   source: string;
   verifiedOn: string;
   verifiedFields: readonly DecisionCriticalOperatorField[];
@@ -263,7 +263,7 @@ interface OfficialVerificationPass {
  * were absent, ambiguous, blocked, or disagreed with the canonical value.
  */
 const OFFICIAL_VERIFICATION_PASSES: Record<string, OfficialVerificationPass> = {
-  acebet: { source: 'https://www.acebet.cc/', verifiedOn: '2026-09-02', verifiedFields: [] },
+  acebet: { source: 'https://acebet.cc/', verifiedOn: '2026-09-02', verifiedFields: ['operatorName'] },
   'american-luck': { source: 'https://americanluck.com/', verifiedOn: '2026-09-02', verifiedFields: ['name', 'gameCount'] },
   'big-pirate': { source: 'https://www.bigpirate.com/', verifiedOn: '2026-09-02', verifiedFields: [] },
   'card-crush': { source: 'https://www.cardcrush.com/', verifiedOn: '2026-09-02', verifiedFields: ['name'] },
@@ -409,7 +409,11 @@ function signupFact(slug: string): CanonicalFact<string> {
     : missing('No non-conflicting signup offer has been selected.');
 }
 
-function makeRecord(seed: OperatorSeed): OperatorRecord {
+export function makeRecord(
+  seed: OperatorSeed,
+  pass = OFFICIAL_VERIFICATION_PASSES[seed.slug],
+  verifiedDate = VERIFIED_DATES[seed.slug],
+): OperatorRecord {
   const fact = <K extends keyof OperatorSeed>(
     key: K,
     reason: string,
@@ -422,7 +426,10 @@ function makeRecord(seed: OperatorSeed): OperatorRecord {
     name: verified(seed.name, seed.slug),
     operatorName: verified(seed.operatorName, seed.slug),
     launchDate: fact('launchDate', 'No non-conflicting launch date is canonical.'),
-    signupOffer: signupFact(seed.slug),
+    signupOffer:
+      seed.signupOffer === undefined
+        ? signupFact(seed.slug)
+        : fact('signupOffer', 'No non-conflicting signup offer is canonical.'),
     dailyOffer: fact('dailyOffer', 'No non-conflicting daily offer is canonical.'),
     cashRedemptionMinimum: fact('cashRedemptionMinimum', 'No non-conflicting cash minimum is canonical.'),
     giftCardRedemptionMinimum: fact('giftCardRedemptionMinimum', 'No non-conflicting gift-card minimum is canonical.'),
@@ -432,13 +439,11 @@ function makeRecord(seed: OperatorSeed): OperatorRecord {
     externalRatings: fact('externalRatings', 'No complete external rating with source, scale, URL, and date is canonical.'),
     editorScore100: scoreFact(seed.slug),
   };
-  const pass = OFFICIAL_VERIFICATION_PASSES[seed.slug];
   const incompleteFields = DECISION_CRITICAL_OPERATOR_FIELDS.filter(
     (field) =>
       record[field].status !== 'verified' ||
       !pass?.verifiedFields.includes(field),
   );
-  const verifiedDate = VERIFIED_DATES[seed.slug];
   const qualifies =
     verifiedDate !== undefined &&
     pass !== undefined &&
@@ -464,7 +469,7 @@ function makeRecord(seed: OperatorSeed): OperatorRecord {
   };
 }
 
-export const OPERATORS: OperatorRecord[] = seeds.map(makeRecord);
+export const OPERATORS: OperatorRecord[] = seeds.map((seed) => makeRecord(seed));
 
 const OPERATORS_BY_SLUG = new Map(OPERATORS.map((operator) => [operator.slug, operator]));
 

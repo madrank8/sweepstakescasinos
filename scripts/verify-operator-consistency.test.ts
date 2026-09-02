@@ -6,7 +6,9 @@ import {
   CANONICAL_OPERATOR_FIELDS,
   OPERATORS,
   getOperator,
+  makeRecord,
   verifiedValue,
+  type OfficialVerificationPass,
   type OperatorRecord,
 } from '../src/data/operators';
 import { injectOperatorFactsHtml } from '../src/lib/operatorFactsHtml';
@@ -191,6 +193,82 @@ for (const operator of OPERATORS) {
     );
   }
 }
+
+const acebetVerificationDate = getOperator('acebet')!.lastVerifiedDate;
+assert.equal(acebetVerificationDate.status, 'missing');
+assert.match(acebetVerificationDate.reason, /https:\/\/acebet\.cc\//);
+assert.doesNotMatch(
+  acebetVerificationDate.reason,
+  /:\s*[^.]*\boperatorName\b/,
+  'Acebet operatorName must be verified by the reachable official source',
+);
+
+const syntheticSeed = {
+  slug: 'synthetic-complete',
+  name: 'Synthetic Casino',
+  operatorName: 'Synthetic Operator LLC',
+  launchDate: '2026-09-01',
+  signupOffer: '1 SC',
+  dailyOffer: '1 GC daily',
+  cashRedemptionMinimum: { amount: 50, currency: 'SC' as const },
+  giftCardRedemptionMinimum: { amount: 10, currency: 'SC' as const },
+  publishedRedemptionTiming: '1 business day',
+  paymentMethods: ['ACH'],
+  gameCount: 100,
+};
+const syntheticPass: OfficialVerificationPass = {
+  source: 'https://official.example/terms',
+  verifiedOn: '2026-09-02',
+  verifiedFields: [
+    'name',
+    'operatorName',
+    'launchDate',
+    'signupOffer',
+    'dailyOffer',
+    'cashRedemptionMinimum',
+    'giftCardRedemptionMinimum',
+    'publishedRedemptionTiming',
+    'paymentMethods',
+    'gameCount',
+  ],
+};
+const syntheticDate = { verifiedOn: '2026-09-02' };
+const fullyVerifiedSynthetic = makeRecord(
+  syntheticSeed,
+  syntheticPass,
+  syntheticDate,
+);
+assert.deepEqual(fullyVerifiedSynthetic.lastVerifiedDate, {
+  status: 'verified',
+  value: '2026-09-02',
+  provenance: [
+    {
+      source: 'https://official.example/terms',
+      verifiedOn: '2026-09-02',
+    },
+  ],
+});
+
+const unresolvedSynthetic = makeRecord(
+  {
+    ...syntheticSeed,
+    slug: 'crown-coins',
+    signupOffer: undefined,
+  },
+  syntheticPass,
+  syntheticDate,
+);
+assert.equal(unresolvedSynthetic.signupOffer.status, 'unresolved');
+assert.equal(
+  unresolvedSynthetic.lastVerifiedDate.status,
+  'missing',
+  'one unresolved decision-critical field must disqualify the verification stamp',
+);
+assert.match(
+  unresolvedSynthetic.lastVerifiedDate.reason,
+  /signupOffer/,
+  'the disqualifying unresolved field must be documented',
+);
 
 const fixture =
   '<main><!--sc-operator-facts data-operator="american-luck" ' +
