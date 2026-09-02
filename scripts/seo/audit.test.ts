@@ -26,6 +26,12 @@ import {
 import { classifyTestingClaim, findUnsupportedTestingClaims } from './claim-policy';
 
 const root = resolve(import.meta.dirname, '../..');
+const conflicts = readFileSync(resolve(root, 'docs/seo/operator-data-conflicts.md'), 'utf8');
+const unresolvedScores = (
+  conflicts.match(/^\| [a-z0-9-]+ \| editorial score \|.*\| UNRESOLVED \|$/gm) ?? []
+).length;
+assert.equal(unresolvedScores, 0, 'no editorial score conflicts may remain unresolved');
+
 const generator = readFileSync(resolve(root, 'scripts/generate-astro-pages.mjs'), 'utf8');
 assert.doesNotMatch(generator, /independent US guide that tests and ranks/i);
 assert.doesNotMatch(generator, /Reviews are hands-on tested and dated/i);

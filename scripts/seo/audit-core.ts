@@ -559,7 +559,10 @@ export function inventoryOperatorFacts(root = process.cwd()): OperatorAudit {
         slug: review.slug,
         field: 'editorial score',
         sources: scoreSources,
-        status: 'UNRESOLVED',
+        status:
+          canonicalOperator?.editorScore100.status === 'verified'
+            ? 'RESOLVED'
+            : 'UNRESOLVED',
       });
     }
 
