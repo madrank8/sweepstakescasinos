@@ -48,12 +48,12 @@ const operators = inventoryOperatorFacts(root);
 assert.equal(operators.reviews.length, 29, 'all 29 authored reviews must be inventoried');
 assert.equal(
   operators.homepage.length,
-  12,
-  'the served homepage primary decision-support set must be inventoried',
+  28,
+  'the served original homepage ranked card set must be inventoried',
 );
 assert.ok(
-  operators.homepage.every((operator) => operator.path === 'src/routes/index.astro'),
-  'homepage inventory must use the served authored Astro source',
+  operators.homepage.every((operator) => operator.path === 'index.html'),
+  'homepage inventory must use the served index.html source',
 );
 assert.ok(
   operators.hubs.some((entry) => entry.path === 'src/routes/new/index.astro'),
@@ -442,8 +442,8 @@ const routes = auditAuthoredRoutes(root);
 assert.ok(routes.routes.some((route) => route.url === '/'));
 assert.deepEqual(
   routes.routes.filter((route) => route.url === '/').map((route) => route.source),
-  ['src/routes/index.astro'],
-  'legacy index.html must remain audit evidence, not a live route',
+  ['index.html'],
+  'the original index.html homepage must be the live root route',
 );
 assert.ok(routes.routes.some((route) => route.url === '/reviews/'));
 assert.ok(routes.routes.some((route) => route.url === '/reviews/jackpota/'));
@@ -496,8 +496,8 @@ assert.match(
 );
 assert.match(
   reports.get('cannibalisation-review.md') ?? '',
-  /historical audit evidence/i,
-  'cannibalisation report must identify legacy index.html as historical only',
+  /served original homepage/i,
+  'cannibalisation report must identify index.html as the live homepage',
 );
 for (const name of [
   'cannibalisation-review.md',
@@ -512,11 +512,11 @@ for (const name of [
 }
 assert.match(
   reports.get('commercial-hub-plan.md') ?? '',
-  /12 operator decision-support entries/i,
+  /28 ranked operator cards/i,
 );
 assert.match(
   reports.get('cannibalisation-review.md') ?? '',
-  /verified editor scores as supporting details/i,
+  /28-operator ranked toplist/i,
 );
 assert.match(
   reports.get('commercial-hub-plan.md') ?? '',

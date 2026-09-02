@@ -18,10 +18,7 @@ import {
   fallbackOperators,
   fallbackStates,
 } from '../../src/lib/tracker/fallback';
-import {
-  selectComparisonOperators,
-  selectVerifiedEditorScores,
-} from '../../src/lib/homepage';
+import { selectComparisonOperators } from '../../src/lib/homepage';
 import { operatorFactNote } from '../../src/lib/operatorPresentation';
 import { visibleEditorialScore } from '../../src/lib/pageChrome';
 import { selectReviewContextualLinks } from '../../src/lib/internalLinks';
@@ -412,20 +409,38 @@ function reviewInventory(root: string): ReviewInventory[] {
 }
 
 function homepageInventory(root: string): HomepageOperator[] {
-  void root;
-  const scores = new Map(
-    selectVerifiedEditorScores(OPERATORS).map((operator) => [
-      operator.slug,
-      operator.score,
-    ]),
-  );
-  return selectComparisonOperators(OPERATORS).map((operator) => ({
-    slug: operator.slug,
-    path: 'src/routes/index.astro',
-    name: operator.name,
-    ...(scores.has(operator.slug) ? { score: scores.get(operator.slug) } : {}),
-    offer: operator.welcomeOffer ?? '',
-  }));
+  const html = read(root, 'index.html');
+  const cards: HomepageOperator[] = [];
+  for (const match of html.matchAll(/<article\b([^>]*)>([\s\S]*?)<\/article>/gi)) {
+    if (!/\bclass=["'][^"']*\bcard\b/.test(match[1])) continue;
+    const body = match[2];
+    const slug = body.match(/href=["']\/reviews\/([a-z0-9-]+)\/["']/i)?.[1];
+    if (!slug) continue;
+    const name = plain(
+      body.match(
+        /<div\b[^>]*class=["'][^"']*\bcard-cname\b[^"']*["'][^>]*>([\s\S]*?)<\/div>/i,
+      )?.[1] ?? '',
+    );
+    const scoreText = plain(
+      body.match(
+        /<div\b[^>]*class=["'][^"']*\bcard-score\b[^"']*["'][^>]*>([\s\S]*?)<\/div>/i,
+      )?.[1] ?? '',
+    );
+    const score = Number(scoreText.match(/([0-9]+(?:\.[0-9]+)?)/)?.[1]);
+    const offer = plain(
+      body.match(
+        /<h3\b[^>]*class=["'][^"']*\bcard-offer\b[^"']*["'][^>]*>([\s\S]*?)<\/h3>/i,
+      )?.[1] ?? '',
+    );
+    cards.push({
+      slug,
+      path: 'index.html',
+      name,
+      ...(Number.isFinite(score) ? { score } : {}),
+      offer,
+    });
+  }
+  return cards;
 }
 
 function slugForName(name: string, homepage: HomepageOperator[]): string | undefined {
@@ -542,7 +557,7 @@ export function inventoryOperatorFacts(root = process.cwd()): OperatorAudit {
     const scoreSources = distinctSources([
       ...(home?.score == null
         ? []
-        : [{ path: home.path, value: `${home.score}/100 (${home.score / 20}/5)` }]),
+        : [{ path: home.path, value: `${home.score}/5` }]),
       ...(review.visibleScore == null
         ? []
         : [{ path: review.path, value: `${review.visibleScore}/100 (${review.visibleScore / 20}/5)` }]),
@@ -770,9 +785,6 @@ function sourceRouteInventory(root: string): AuthoredRoute[] {
     ),
   ];
   for (const path of [...new Set(htmlPaths)].sort()) {
-    if (path === 'index.html' && existsSync(join(root, 'src/routes/index.astro'))) {
-      continue;
-    }
     const html = read(root, path);
     const url = htmlUrl(path);
     routes.push({
@@ -974,7 +986,7 @@ function operatorReport(audit: OperatorAudit): string {
     reportHeader('Operator Data Conflicts'),
     `Coverage: **${audit.reviews.length} authored reviews**, **${audit.homepage.length} homepage cards**, **${audit.comparison.length} comparison rows**, and **${audit.hubs.length} relevant hub facts**.\n\n`,
     'The audit reports canonical resolution status but never resolves a conflict itself. Values remain exactly as authored or captured from the cited official source.\n\n',
-    '`src/data/operators.ts` records unresolved conflicts and verified canonical selections; canonical selectors omit unresolved values. Every `index.html` score source is a historical homepage snapshot that is not served. Verified canonical values retain field-level provenance, while affiliate restrictions and schema identity remain in their separate data modules.\n\n',
+    '`src/data/operators.ts` records unresolved conflicts and verified canonical selections; canonical selectors omit unresolved values. Live `index.html` homepage /5 scores remain inventoried against canonical /100 review scores. Verified canonical values retain field-level provenance, while affiliate restrictions and schema identity remain in their separate data modules.\n\n',
     '| Operator | Field | Exact source values | Status |\n',
     '|---|---|---|---|\n',
     ...audit.conflicts.map(
@@ -1096,31 +1108,31 @@ function technicalReport(
     '- Clean authored URL/canonical strategy remains unresolved: root `.html` sources are rendered at trailing-slash routes while canonical tags use the clean routes. No redirects or URL paths changed.\n',
     '\n## OPPORTUNISTIC\n\n',
     `- **${routes.orphanCandidates.length}** authored routes have no detected inbound source link and are candidates for manual review; dynamic and bonus endpoints are excluded from this count.\n`,
-    '- Homepage and `/best/sweepstakes-casinos/` share a topic but now serve concise decision-support and deeper evidence-based comparison intents respectively; see `cannibalisation-review.md`.\n',
+    '- Homepage and `/best/sweepstakes-casinos/` share a topic but now serve the original ranked toplist and a deeper evidence-based comparison respectively; see `cannibalisation-review.md`.\n',
     '\n## NOISE\n\n',
-    '- `src/pages/` is generated and excluded from source findings. `index.html` is retained as historical audit evidence and is not inventoried as the served root route.\n',
+    '- `src/pages/` is generated and excluded from source findings. `index.html` is the served original homepage and is inventoried as the live root route.\n',
     '- Bonus source HTML is intentionally replaced by the SSR geo-aware gateway; its source-file presence alone is not treated as an indexation defect.\n',
   ].join('');
 }
 
 function cannibalisationReport(root: string): string {
-  const homePath = 'src/routes/index.astro';
+  const homePath = 'index.html';
   const home = read(root, homePath);
   const reviewsPath = 'src/routes/reviews/index.astro';
   const reviews = read(root, reviewsPath);
   const comparison = read(root, 'src/content/comparisons/sweepstakes-casinos.mdx');
-  const homeTitle = home.match(/const title = '([^']+)'/)?.[1] ?? '';
+  const homeTitle = plain(home.match(/<title\b[^>]*>([\s\S]*?)<\/title>/i)?.[1] ?? '');
   const reviewsTitle = reviews.match(/const title = '([^']+)'/)?.[1] ?? '';
   const comparisonTitle = comparison.match(/^title:\s*"([^"]+)"/m)?.[1] ?? '';
   return [
     reportHeader('Cannibalisation Review'),
     '| Surface | Exact title value | Distinct search intent | Status |\n',
     '|---|---|---|---|\n',
-    `| \`/\` from \`${homePath}\` | \`${md(homeTitle)}\` | Concise answer and a 12-entry facts-first decision-support set, with verified editor scores as supporting details only. | DISTINCT |\n`,
+    `| \`/\` from \`${homePath}\` | \`${md(homeTitle)}\` | Original 28-operator ranked toplist of current welcome offers. | DISTINCT |\n`,
     `| \`/reviews/\` from \`${reviewsPath}\` | \`${md(reviewsTitle)}\` | Directory intent: find any of the 29 reviews alphabetically; no “best” ordering. | DISTINCT |\n`,
     `| \`/best/sweepstakes-casinos/\` from \`src/content/comparisons/sweepstakes-casinos.mdx\` | \`${md(comparisonTitle)}\` | Deeper comparison guidance and a 10-entry canonical evidence set without unsupported rank semantics. | DISTINCT |\n`,
     '\nFreshness-dependent superlative routes remain deferred. “Most free Sweeps Coins” overlaps `/bonuses/no-deposit/`, while a payout-speed route lacks normalized, freshly verified comparison data. No thin route or filter permutation was created.\n',
-    '\n`index.html` remains historical audit evidence only. The generator copies the authored `src/routes/index.astro` over the generated root wrapper, so legacy markup is not treated as live.\n',
+    '\nThe served original homepage is `index.html`. The generator wraps it with geo CTA suppression and no longer copies an authored `src/routes/index.astro` over that wrapper.\n',
   ].join('');
 }
 
@@ -1129,13 +1141,13 @@ function commercialHubReport(audit: OperatorAudit): string {
   return [
     reportHeader('Commercial Hub Plan'),
     '## Current factual shape\n\n',
-    `- Homepage: ${audit.homepage.length} operator decision-support entries at \`/\` from \`src/routes/index.astro\`; verified editor scores are supporting attributes, not a top-four ranking.\n`,
+    `- Homepage: ${audit.homepage.length} ranked operator cards at \`/\` from \`index.html\`.\n`,
     `- Comparison: ${audit.comparison.length} operators to compare at \`/best/sweepstakes-casinos/\` from \`src/content/comparisons/sweepstakes-casinos.mdx\`.\n`,
     `- Relevant authored hubs: ${audit.hubs.length} operator facts across the new-casino, no-deposit, and state-legality routes.\n`,
     `- Affiliate authority: ${AFFILIATE_PARTNERS.length} partners in \`src/data/affiliates.ts\`; tracking and economics stay outside editorial facts.\n`,
     '- Geo authority: `src/data/geo.ts` remains the site-level CTA suppression layer.\n\n',
     '## Phase 2/3 plan\n\n',
-    '1. Keep `/` as the concise decision-support entry point with a 10–12 operator set selected by canonical decision-fact completeness.\n',
+    '1. Keep `/` as the original ranked arcade homepage with the 28-operator toplist.\n',
     '2. Keep `/reviews/` as the complete alphabetical directory without “best” ordering.\n',
     '3. Treat `/best/sweepstakes-casinos/` as deeper evidence-based comparison coverage without claiming an unsupported winner or rank order.\n',
     '4. Preserve affiliate tracking, per-partner availability, and site-level suppression as separate authorities.\n',

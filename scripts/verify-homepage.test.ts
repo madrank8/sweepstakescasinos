@@ -11,8 +11,8 @@ import { itemListParityErrors } from './lib/itemlist-parity';
 const root = resolve(import.meta.dirname, '..');
 
 assert.ok(
-  existsSync(resolve(root, 'src/routes/index.astro')),
-  'the authored homepage route must override the generated legacy wrapper',
+  !existsSync(resolve(root, 'src/routes/index.astro')),
+  'the original index.html homepage must not be overridden by an authored Astro route',
 );
 assert.ok(
   existsSync(resolve(root, 'src/routes/reviews/index.astro')),
@@ -225,69 +225,42 @@ for (const entry of comparison) {
 const texasAcebet = texasViews.find((entry) => entry.slug === 'acebet');
 assert.ok(texasAcebet?.logoSrc, 'comparison views must include logo paths for card chrome');
 
-const homeSource = readFileSync(resolve(root, 'src/routes/index.astro'), 'utf8');
+const homeSource = readFileSync(resolve(root, 'index.html'), 'utf8');
+assert.match(homeSource, /<header class="hero">/, 'original arcade hero must remain');
+assert.match(homeSource, /id="casino-grid"/, 'original ranked card grid must remain');
+assert.match(homeSource, /id="rankings"/, 'original rankings landmark must remain');
+assert.match(homeSource, /id="offers"/, 'original offers alias must remain');
+assert.match(homeSource, /class="btn-claim"/, 'original gold claim buttons must remain');
 assert.match(
   homeSource,
-  /a: 'Yes\. All 29 reviewed operators currently have an editor score\./,
-  'homepage FAQ must reflect that all reviewed operators have canonical editor scores',
+  /Best Sweepstakes Casinos 2026/,
+  'original ranked homepage title must remain',
 );
-assert.doesNotMatch(homeSource, /a: 'No\. We display an editor score only when/);
-const requiredHomeSections = [
-  'id="answer"',
-  'id="comparison"',
-  'id="score-context"',
-  'id="methodology"',
-  'id="legality"',
-  'id="buyer-guidance"',
-  'id="faq"',
-  'id="specialist-hubs"',
-];
-let previousSection = -1;
-for (const marker of requiredHomeSections) {
-  const position = homeSource.indexOf(marker);
-  assert.ok(position > previousSection, `${marker} must appear in the required homepage order`);
-  previousSection = position;
-}
-assert.match(homeSource, /<AffiliateLink\b/, 'homepage partner CTAs must use AffiliateLink');
-assert.match(homeSource, /variant="homepage"/, 'homepage must opt into the full-bleed visual layout');
-assert.match(homeSource, /slot="hero-extra"/, 'trust chrome must render inside the homepage hero');
-assert.match(homeSource, /class="trust-pills"/, 'homepage hero must restore trust pills');
-assert.match(homeSource, /class="crit-row"/, 'homepage must restore the criteria row');
-assert.match(homeSource, /class="btn-claim"/, 'partner CTAs must use the gold claim-button chrome');
-assert.match(homeSource, /home-op-logo|operatorLogoSrc/, 'comparison rows must render operator logos');
-assert.doesNotMatch(
-  homeSource,
-  /All Sweepstakes Sites Active|All Sites Active|Live & Verified|Top Payout|card-rank|data-f="top"/,
-  'visual restore must not bring back ranking badges or fabricated live-status copy',
-);
-assert.doesNotMatch(
-  homeSource,
-  /4\.5\s*\/\s*5|★★★★★|Best Sweepstakes Casinos 2026/,
-  'homepage must not restore the legacy /5 star ranking presentation',
-);
-assert.match(homeSource, /<table\b/, 'homepage comparison must use a semantic table');
-assert.match(homeSource, /<caption\b/, 'homepage comparison table must have a caption');
-assert.match(homeSource, /<th\s+scope="col"/, 'comparison headers must identify column scope');
-assert.match(homeSource, /overflow-x:\s*auto/, 'narrow viewports must contain table overflow');
-assert.match(homeSource, /data-comparison-list/, 'the primary visible set must be marked for parity');
-assert.match(homeSource, /itemListElement:\s*primary\.map/, 'schema must use the primary view model');
-assert.match(homeSource, /\{primary\.map/, 'visible markup must use the primary view model');
-assert.doesNotMatch(
-  homeSource,
-  /4 resolved editor picks|resolved-score|supported ranked set|top recommendations|heroTitle=\{'Best|Best by use case/i,
-  'homepage copy must not expose governance language or an accidental top-four ranking',
+assert.equal(
+  [...homeSource.matchAll(/<article\b[^>]*\bclass=["'][^"']*\bcard\b/g)].length,
+  28,
+  'the original homepage must keep its 28 ranked operator cards',
 );
 assert.match(
   homeSource,
-  /heroTitle=\{'Compare <span class="accent">Sweepstakes Casinos<\/span>'\}/,
-  'the homepage H1 must use evidence-based comparison language',
+  /id="casino-grid"[^>]*data-item-list="https:\/\/sweepstakeswiz\.com\/#toplist"/,
+  'visible card grid must opt into ItemList parity with the original #toplist schema',
 );
-assert.doesNotMatch(
+assert.match(
   homeSource,
-  /selectRankedRecommendations|buildRankedRecommendationViews/,
-  'the homepage must not use editor scores to select its primary set',
+  /data-item-list-order="https:\/\/schema\.org\/ItemListOrderDescending"/,
+  'visible card grid must declare the original descending rank order',
 );
-assert.doesNotMatch(homeSource, /index\.html\?raw|prepareSsrAffiliateHtml/);
+assert.match(
+  homeSource,
+  /data-item-position="1"[^>]*data-item-name="McLuck"[^>]*data-item-url="https:\/\/sweepstakeswiz\.com\/reviews\/mcluck\/"/,
+  'first ranked card must expose McLuck parity attributes',
+);
+assert.match(
+  homeSource,
+  /data-item-position="28"[^>]*data-item-name="Mega Bonanza"[^>]*data-item-url="https:\/\/sweepstakeswiz\.com\/reviews\/mega-bonanza\/"/,
+  'last ranked card must expose Mega Bonanza parity attributes',
+);
 
 const bestSource = readFileSync(resolve(root, 'src/routes/best/[slug].astro'), 'utf8');
 const bestContent = readFileSync(
@@ -428,8 +401,13 @@ assert.doesNotMatch(
 
 assert.match(
   generatorSource,
-  /if \(url === '\/'\) return \['src\/routes\/index\.astro'\]/,
-  'sitemap lastmod must recognize the authored homepage source',
+  /if \(url === '\/'\) return \['index.html'\]/,
+  'sitemap lastmod must use the original index.html homepage source',
+);
+assert.match(
+  generatorSource,
+  /prepareSsrAffiliateHtml\(rawHtml, Astro.locals.usState, '\$\{placement\}'\)/,
+  'the generator must keep geo CTA suppression on the restored homepage wrapper',
 );
 assert.match(generatorSource, /push\('\/reviews\/'\)/, 'reviews directory must enter XML sitemap');
 assert.match(
@@ -440,6 +418,11 @@ assert.match(
 
 const navSource = readFileSync(resolve(root, 'partials/nav.html'), 'utf8');
 assert.match(navSource, /href="\/reviews\/"/, 'global navigation must link the reviews directory');
+assert.match(
+  navSource,
+  /href="\/#rankings"/,
+  'shared Best Deals must land on the restored homepage rankings grid',
+);
 
 const sitemapSource = readFileSync(resolve(root, 'sitemap.html'), 'utf8');
 assert.match(sitemapSource, /href="\/reviews\/"/, 'HTML sitemap must link the reviews directory');
