@@ -170,7 +170,30 @@ for (const slug of ['hello-millions', 'spree']) {
     ),
     `${slug} resolved offer must cite its official URL and capture date`,
   );
+  assert.ok(
+    resolved.sources.some((source) => source.path === `reviews/${slug}.html`),
+    `${slug} resolved offer must retain the authored review value as conflict evidence`,
+  );
 }
+assert.ok(
+  welcomeOfferConflicts
+    .find((conflict) => conflict.slug === 'hello-millions')!
+    .sources.some(
+      (source) =>
+        source.path === 'reviews/hello-millions.html' &&
+        source.value === '15,000 GC + 2.5 Free Sweeps Coins on Signup',
+    ),
+  'hello-millions audit must document the authored review offer that disagrees with the official source',
+);
+assert.ok(
+  welcomeOfferConflicts
+    .find((conflict) => conflict.slug === 'hello-millions')!
+    .sources.some(
+      (source) =>
+        source.path === 'https://www.hellomillions.com/ (captured 2026-09-02)',
+    ),
+  'hello-millions audit must cite the official homepage',
+);
 for (const slug of ['crown-coins', 'spinblitz']) {
   const unresolved = welcomeOfferConflicts.find((conflict) => conflict.slug === slug)!;
   assert.ok(

@@ -47,7 +47,7 @@ export const ROUTE_LASTMOD: Readonly<Record<string, string>> = {
   "/tools/sweepstakes-odds-calculator/": "2026-08-31",
   "/news/": "2026-08-31",
   "/new/": "2026-08-31",
-  "/bonuses/no-deposit/": "2026-08-31",
+  "/bonuses/no-deposit/": "2026-09-02",
   "/state-legality/": "2026-08-31",
   "/sweepstakes-tracker/": "2026-08-31",
   "/sweepstakes-tracker/methodology/": "2026-08-31",

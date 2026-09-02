@@ -117,6 +117,7 @@ export interface ReviewInventory {
   visibleScore?: number;
   schemaScore?: number;
   operatorName?: string;
+  welcomeOffer?: string;
 }
 
 export interface HomepageOperator {
@@ -383,6 +384,11 @@ function reviewInventory(root: string): ReviewInventory[] {
       const title = plain(html.match(/<title\b[^>]*>([\s\S]*?)<\/title>/i)?.[1] ?? '');
       const h1 = plain(html.match(/<h1\b[^>]*>([\s\S]*?)<\/h1>/i)?.[1] ?? '');
       const score = visibleEditorialScore(html);
+      const welcomeOffer = plain(
+        html.match(
+          /<div\b[^>]*class=["'][^"']*\boc-headline\b[^"']*["'][^>]*>([\s\S]*?)<\/div>/i,
+        )?.[1] ?? '',
+      );
       return {
         slug: file.replace(/\.html$/, ''),
         path,
@@ -396,6 +402,7 @@ function reviewInventory(root: string): ReviewInventory[] {
           ? { schemaScore: Number(rating.ratingValue) }
           : {}),
         ...(typeof parent?.name === 'string' ? { operatorName: parent.name } : {}),
+        ...(welcomeOffer ? { welcomeOffer } : {}),
       };
     });
 }
@@ -608,6 +615,9 @@ export function inventoryOperatorFacts(root = process.cwd()): OperatorAudit {
           value: signupOffer.value,
         },
         ...officialSources,
+        ...(review.welcomeOffer
+          ? [{ path: review.path, value: review.welcomeOffer }]
+          : []),
         ...(compared?.offer
           ? [{ path: compared.path, value: compared.offer }]
           : []),

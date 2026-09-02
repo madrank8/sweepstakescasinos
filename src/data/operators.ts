@@ -205,13 +205,13 @@ const VERIFIED_OFFERS: Record<
 > = {
   'hello-millions': {
     value: 'GC 7,500 + FREE SC 2.5',
-    source: 'https://www.hellomillions.com/about',
+    source: 'https://www.hellomillions.com/',
     verifiedOn: '2026-09-02',
   },
   spree: {
     value: '25,000 Gold Coins and 2.5 Spree Coins',
     source:
-      'https://support.spree.com/api/v2/help_center/en-us/articles/37595439875730.json',
+      'https://support.spree.com/hc/en-us/articles/37595439875730-How-do-I-claim-the-Spree-Welcome-Offer',
     verifiedOn: '2026-09-02',
   },
 };
@@ -229,7 +229,7 @@ const OFFICIAL_OFFER_GAPS: Record<
   spinblitz: {
     note: 'Official page says promotions have individual reward details but does not state a signup-offer amount.',
     source:
-      'https://support.spinblitz.com/api/v2/help_center/en-us/articles/38181733505565.json',
+      'https://support.spinblitz.com/hc/en-us/articles/38181733505565-How-do-promotions-work',
     verifiedOn: '2026-09-02',
   },
 };

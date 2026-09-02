@@ -124,12 +124,12 @@ for (const [slug, value, source] of [
   [
     'hello-millions',
     'GC 7,500 + FREE SC 2.5',
-    'https://www.hellomillions.com/about',
+    'https://www.hellomillions.com/',
   ],
   [
     'spree',
     '25,000 Gold Coins and 2.5 Spree Coins',
-    'https://support.spree.com/api/v2/help_center/en-us/articles/37595439875730.json',
+    'https://support.spree.com/hc/en-us/articles/37595439875730-How-do-I-claim-the-Spree-Welcome-Offer',
   ],
 ] as const) {
   const offer = getOperator(slug)!.signupOffer;
@@ -148,7 +148,7 @@ for (const [slug, source] of [
   ],
   [
     'spinblitz',
-    'https://support.spinblitz.com/api/v2/help_center/en-us/articles/38181733505565.json',
+    'https://support.spinblitz.com/hc/en-us/articles/38181733505565-How-do-promotions-work',
   ],
 ] as const) {
   const offer = getOperator(slug)!.signupOffer;
