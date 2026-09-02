@@ -4,7 +4,7 @@
  * Written from the same authored-source git dates as sitemap.xml.
  */
 export const ROUTE_LASTMOD: Readonly<Record<string, string>> = {
-  "/": "2026-08-31",
+  "/": "2026-09-02",
   "/reviews/": "2026-08-31",
   "/reviews/acebet/": "2026-08-31",
   "/reviews/american-luck/": "2026-08-31",
