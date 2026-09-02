@@ -93,10 +93,14 @@ for (const operator of OPERATORS) {
   }
 }
 
+assert.equal(getOperator('mcluck')?.editorScore100.status, 'verified');
+assert.equal(verifiedValue(getOperator('mcluck')!.editorScore100), 88);
 assert.equal(getOperator('american-luck')?.editorScore100.status, 'verified');
 assert.equal(verifiedValue(getOperator('american-luck')!.editorScore100), 72);
-assert.equal(getOperator('mcluck')?.editorScore100.status, 'unresolved');
-assert.equal(verifiedValue(getOperator('mcluck')!.editorScore100), undefined);
+assert.ok(
+  OPERATORS.every((operator) => operator.editorScore100.status === 'verified'),
+  'all 29 editor scores must be verified after canonicalization',
+);
 assert.ok(
   OPERATORS.every((operator) => {
     const score = verifiedValue(operator.editorScore100);
@@ -149,21 +153,15 @@ for (const operator of OPERATORS) {
   }
 }
 
-const unresolvedFixture =
+const canonicalScoreFixture =
   '<main><div class="verdict-box"><span class="big">88</span>' +
   '<span class="denom">/100</span></div>' +
   '<!--sc-operator-facts data-operator="mcluck" ' +
   'data-fields="name,editorScore100"--></main>';
-const unresolvedRendered = injectOperatorFactsHtml(unresolvedFixture, 'mcluck');
-assert.doesNotMatch(unresolvedRendered, /data-canonical-field="editorScore100"/);
-assert.match(unresolvedRendered, /editorScore100:unresolved/);
-assert.doesNotMatch(unresolvedRendered, />\s*88\s*<\/span>\s*<span[^>]*>\s*\/100</);
-assert.match(unresolvedRendered, /data-editor-score-status="unresolved"/);
-assert.doesNotMatch(
-  unresolvedRendered.replace(/<[^>]+>/g, ' '),
-  /\b(?:editor score\s*:\s*)?unresolved\b/i,
-  'unresolved score state must not be reader-visible',
-);
+const canonicalScoreRendered = injectOperatorFactsHtml(canonicalScoreFixture, 'mcluck');
+assert.match(canonicalScoreRendered, /data-canonical-field="editorScore100"[^>]*>88\/100</);
+assert.match(canonicalScoreRendered, /editorScore100:verified/);
+assert.match(canonicalScoreRendered, /data-editor-score-status="verified"/);
 
 function reviewNode(html: string): Record<string, unknown> {
   const block = html.match(
@@ -178,21 +176,17 @@ function reviewNode(html: string): Record<string, unknown> {
 
 for (const [slug, expectedScore] of [
   ['american-luck', 72],
-  ['mcluck', undefined],
+  ['mcluck', 88],
 ] as const) {
   const source = readFileSync(resolve(root, `reviews/${slug}.html`), 'utf8');
   const rendered = consolidateJsonLd(injectOperatorFactsHtml(source, slug));
   const review = reviewNode(rendered);
-  if (expectedScore === undefined) {
-    assert.equal(review.reviewRating, undefined, `${slug} unresolved score must be omitted from schema`);
-  } else {
-    assert.deepEqual(review.reviewRating, {
-      '@type': 'Rating',
-      ratingValue: expectedScore,
-      bestRating: 100,
-      worstRating: 0,
-    });
-  }
+  assert.deepEqual(review.reviewRating, {
+    '@type': 'Rating',
+    ratingValue: expectedScore,
+    bestRating: 100,
+    worstRating: 0,
+  });
 }
 
 function visibleDocumentText(html: string): string {
@@ -396,23 +390,21 @@ assert.ok(
 );
 assert.equal(
   OPERATORS.filter((operator) => operator.editorScore100.status === 'unresolved').length,
-  25,
-  'integration must enforce score suppression on all 25 unresolved reviews',
+  0,
+  'integration must render no unresolved editor scores',
 );
 
-const unresolvedLeaks = OPERATORS.filter(
-  (operator) => operator.editorScore100.status === 'unresolved',
-).flatMap((operator) => {
+const canonicalScoreErrors = OPERATORS.flatMap((operator) => {
   const errors = validateRenderedEditorScoreContexts(
-    undefined,
+    verifiedValue(operator.editorScore100),
     renderedReviews.get(operator.slug)!,
   );
   return errors.length === 0 ? [] : [`${operator.slug}: ${errors.join(', ')}`];
 });
 assert.deepEqual(
-  unresolvedLeaks,
+  canonicalScoreErrors,
   [],
-  `fully rendered unresolved reviews leaked legacy editor scores:\n${unresolvedLeaks.join('\n')}`,
+  `fully rendered reviews disagree with canonical editor scores:\n${canonicalScoreErrors.join('\n')}`,
 );
 
 const staticAmericanLuck = getStaticReviewHtml(
@@ -508,7 +500,7 @@ assert.doesNotMatch(
   visibleDocumentText(ordinaryDecimalRendered),
   /\b(?:editor score\s*:\s*)?unresolved\b/i,
 );
-assert.doesNotMatch(ordinaryDecimalRendered, />88\/100</);
+assert.match(ordinaryDecimalRendered, /Editor score: 88\/100/);
 
 const ordinaryVerifiedRendered = injectOperatorFactsHtml(
   ordinaryDecimalFixture.replace(
@@ -587,7 +579,7 @@ for (const explicitWidget of [
 }
 assert.ok(
   validateRenderedEditorScoreContexts(undefined, semanticLeakRendered).length > 0,
-  'unresolved authored first-party aggregate prose must still fail independent detection',
+  'authored first-party aggregate prose must still fail independent detection',
 );
 assert.match(semanticLeakRendered, /Redemption speed<\/span><span>96\s*\/\s*100/);
 assert.match(semanticLeakRendered, /Game library<\/span><span>92\s*\/\s*100/);

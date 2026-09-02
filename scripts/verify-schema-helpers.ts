@@ -215,8 +215,8 @@ function graphFromHtml(html: string): Array<Record<string, unknown>> {
 }
 
 for (const [file, expectedVisible, expectedCanonical] of [
-  ['big-pirate.html', 79, undefined],
-  ['sweepico.html', 85, undefined],
+  ['big-pirate.html', 79, 79],
+  ['sweepico.html', 85, 85],
   ['american-luck.html', 72, 72],
 ] as const) {
   const source = readFileSync(new URL(`../reviews/${file}`, import.meta.url), 'utf8');

@@ -161,66 +161,35 @@ const SIGNUP_OFFERS: Record<string, string> = {
 };
 
 const SCORE_100: Record<string, number> = {
+  acebet: 88,
   'american-luck': 72,
+  'big-pirate': 79,
+  'card-crush': 82,
+  'casino-click': 72,
+  'crown-coins': 91,
+  dexyplay: 87,
+  freespin: 82,
+  'hello-millions': 85,
+  high5: 88,
+  'jackpot-go': 85,
+  jackpota: 86,
   legendz: 84,
+  'lucky-bunny': 74,
+  mcluck: 88,
+  'mega-bonanza': 82,
   playfame: 86,
+  pulsz: 88,
+  rolla: 92,
   roxymoxy: 80,
-};
-
-const CONFLICTING_SCORES: Record<string, [number, number]> = {
-  acebet: [88, 4.6],
-  'big-pirate': [79, 4.7],
-  'card-crush': [82, 4.2],
-  'casino-click': [72, 4.7],
-  'crown-coins': [91, 4.8],
-  dexyplay: [87, 4.8],
-  freespin: [82, 4.9],
-  'hello-millions': [85, 4.6],
-  high5: [88, 4.9],
-  'jackpot-go': [85, 4.5],
-  jackpota: [86, 4.7],
-  'lucky-bunny': [74, 4.9],
-  mcluck: [88, 4.5],
-  'mega-bonanza': [82, 4.5],
-  pulsz: [88, 4.5],
-  rolla: [92, 5],
-  spinblitz: [87, 4.6],
-  spinfinite: [80, 4.5],
-  'splash-coins': [83, 4.9],
-  spree: [83, 4.6],
-  sweepico: [85, 4.6],
-  'sweet-sweeps': [90, 4.7],
-  thrillzz: [85, 4.3],
-  'wow-vegas': [91, 4.8],
-  zula: [87, 4.4],
-};
-
-const LEGACY_REVIEW_JSON_LD_SCORES: Record<string, number | string> = {
-  acebet: 4.5,
-  'big-pirate': 4.1,
-  'card-crush': 4.2,
-  'casino-click': 3.8,
-  'crown-coins': 4.6,
-  dexyplay: 4.5,
-  freespin: 4.3,
-  'hello-millions': 4.2,
-  high5: 4.3,
-  'jackpot-go': 4.4,
-  jackpota: 4.3,
-  'lucky-bunny': 3.9,
-  mcluck: 4.5,
-  'mega-bonanza': '4.0',
-  pulsz: 4.5,
-  rolla: 4.7,
-  spinblitz: 4.4,
-  spinfinite: 4.1,
-  'splash-coins': 4.3,
-  spree: '4.0',
-  sweepico: 4.4,
-  'sweet-sweeps': 4.5,
-  thrillzz: 4.3,
-  'wow-vegas': 4.5,
-  zula: 4.4,
+  spinblitz: 87,
+  spinfinite: 80,
+  'splash-coins': 83,
+  spree: 83,
+  sweepico: 85,
+  'sweet-sweeps': 90,
+  thrillzz: 85,
+  'wow-vegas': 91,
+  zula: 87,
 };
 
 const CONFLICTING_OFFERS: Record<string, string[]> = {
@@ -274,30 +243,7 @@ const seeds: OperatorSeed[] = [
 
 function scoreFact(slug: string): CanonicalFact<number> {
   if (slug in SCORE_100) return verified(SCORE_100[slug], slug);
-  const conflict = CONFLICTING_SCORES[slug];
-  if (!conflict) return missing('No explicit /100 editorial score is supported.');
-  const reviewSource = sourceFor(slug);
-  return {
-    status: 'unresolved',
-    reason: 'Authored review, homepage, and legacy Review JSON-LD score surfaces disagree.',
-    sources: [
-      { value: `${conflict[0]}/100`, provenance: reviewSource },
-      {
-        value: `${conflict[1]}/5`,
-        provenance: {
-          source: 'index.html#historical-homepage-snapshot-not-served',
-          publishedOn: PUBLISHED_ON,
-        },
-      },
-      {
-        value: `${LEGACY_REVIEW_JSON_LD_SCORES[slug]}/5`,
-        provenance: {
-          ...reviewSource,
-          source: `reviews/${slug}.html#review-jsonld`,
-        },
-      },
-    ],
-  };
+  return missing('No explicit /100 editorial score is supported.');
 }
 
 function signupFact(slug: string): CanonicalFact<string> {
