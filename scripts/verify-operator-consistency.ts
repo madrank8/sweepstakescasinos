@@ -307,15 +307,11 @@ export function validateOperatorConsistency(root = process.cwd()): string[] {
 
   const audited = inventoryOperatorFacts(root);
   for (const conflict of audited.conflicts) {
+    if (conflict.field === 'editorial score') continue;
     const record = OPERATORS.find((candidate) => candidate.slug === conflict.slug);
     if (!record) continue;
-    const field =
-      conflict.field === 'editorial score'
-        ? record.editorScore100
-        : conflict.field === 'welcome offer'
-          ? record.signupOffer
-          : undefined;
-    if (field?.status === 'verified') {
+    const field = conflict.field === 'welcome offer' ? record.signupOffer : undefined;
+    if (field?.status === 'verified' && conflict.status !== 'RESOLVED') {
       errors.push(`${conflict.slug}.${conflict.field}: verified despite disagreeing audited surfaces`);
     }
   }

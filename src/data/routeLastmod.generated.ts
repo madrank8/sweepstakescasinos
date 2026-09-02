@@ -4,7 +4,7 @@
  * Written from the same authored-source git dates as sitemap.xml.
  */
 export const ROUTE_LASTMOD: Readonly<Record<string, string>> = {
-  "/": "2026-08-31",
+  "/": "2026-09-02",
   "/reviews/": "2026-08-31",
   "/reviews/acebet/": "2026-08-31",
   "/reviews/american-luck/": "2026-08-31",
@@ -47,7 +47,7 @@ export const ROUTE_LASTMOD: Readonly<Record<string, string>> = {
   "/tools/sweepstakes-odds-calculator/": "2026-08-31",
   "/news/": "2026-08-31",
   "/new/": "2026-08-31",
-  "/bonuses/no-deposit/": "2026-08-31",
+  "/bonuses/no-deposit/": "2026-09-02",
   "/state-legality/": "2026-08-31",
   "/sweepstakes-tracker/": "2026-08-31",
   "/sweepstakes-tracker/methodology/": "2026-08-31",

@@ -6,7 +6,9 @@ import {
   CANONICAL_OPERATOR_FIELDS,
   OPERATORS,
   getOperator,
+  makeRecord,
   verifiedValue,
+  type OfficialVerificationPass,
   type OperatorRecord,
 } from '../src/data/operators';
 import { injectOperatorFactsHtml } from '../src/lib/operatorFactsHtml';
@@ -28,6 +30,11 @@ const reviewSlugs = readdirSync(resolve(root, 'reviews'))
   .filter((file) => file.endsWith('.html'))
   .map((file) => file.replace(/\.html$/, ''))
   .sort();
+
+function isRealDate(value: string): boolean {
+  return /^\d{4}-\d{2}-\d{2}$/.test(value) &&
+    !Number.isNaN(Date.parse(`${value}T00:00:00Z`));
+}
 
 assert.equal(OPERATORS.length, 29);
 assert.deepEqual(
@@ -93,16 +100,174 @@ for (const operator of OPERATORS) {
   }
 }
 
+assert.equal(getOperator('mcluck')?.editorScore100.status, 'verified');
+assert.equal(verifiedValue(getOperator('mcluck')!.editorScore100), 88);
 assert.equal(getOperator('american-luck')?.editorScore100.status, 'verified');
 assert.equal(verifiedValue(getOperator('american-luck')!.editorScore100), 72);
-assert.equal(getOperator('mcluck')?.editorScore100.status, 'unresolved');
-assert.equal(verifiedValue(getOperator('mcluck')!.editorScore100), undefined);
+assert.ok(
+  OPERATORS.every((operator) => operator.editorScore100.status === 'verified'),
+  'all 29 editor scores must be verified after canonicalization',
+);
 assert.ok(
   OPERATORS.every((operator) => {
     const score = verifiedValue(operator.editorScore100);
     return score === undefined || (score >= 0 && score <= 100 && score > 5);
   }),
   'five-star values must never be mislabeled as editorScore100',
+);
+
+for (const slug of ['crown-coins', 'hello-millions', 'spinblitz', 'spree']) {
+  const offer = getOperator(slug)!.signupOffer;
+  if (offer.status === 'verified') {
+    const provenance = offer.provenance[0];
+    assert.ok(provenance.source.startsWith('http'), `${slug} verified offer provenance must be an official URL`);
+    assert.ok(provenance.verifiedOn, `${slug} verified offer must have a capture date`);
+  } else {
+    assert.equal(offer.status, 'unresolved', `${slug} offer must be verified or explicitly unresolved`);
+  }
+}
+
+for (const [slug, value, source] of [
+  [
+    'hello-millions',
+    'GC 7,500 + FREE SC 2.5',
+    'https://www.hellomillions.com/',
+  ],
+  [
+    'spree',
+    '25,000 Gold Coins and 2.5 Spree Coins',
+    'https://support.spree.com/hc/en-us/articles/37595439875730-How-do-I-claim-the-Spree-Welcome-Offer',
+  ],
+] as const) {
+  const offer = getOperator(slug)!.signupOffer;
+  assert.equal(offer.status, 'verified', `${slug} official offer must be canonical`);
+  assert.equal(verifiedValue(offer), value);
+  assert.deepEqual(offer.status === 'verified' ? offer.provenance[0] : undefined, {
+    source,
+    verifiedOn: '2026-09-02',
+  });
+}
+
+for (const [slug, source] of [
+  [
+    'crown-coins',
+    'https://help.crowncoinscasino.com/en/articles/12808804-how-to-get-free-bonus-coins',
+  ],
+  [
+    'spinblitz',
+    'https://support.spinblitz.com/hc/en-us/articles/38181733505565-How-do-promotions-work',
+  ],
+] as const) {
+  const offer = getOperator(slug)!.signupOffer;
+  assert.equal(offer.status, 'unresolved', `${slug} amount is absent from its official public page`);
+  assert.match(offer.status === 'unresolved' ? offer.reason : '', /official source.*does not state/i);
+  assert.ok(
+    offer.status === 'unresolved' &&
+      offer.sources.some(
+        (evidence) =>
+          evidence.provenance.source === source &&
+          evidence.provenance.verifiedOn === '2026-09-02',
+      ),
+    `${slug} unresolved offer must retain the dated official-source evidence gap`,
+  );
+}
+
+for (const operator of OPERATORS) {
+  const date = operator.lastVerifiedDate;
+  if (date.status === 'verified') {
+    const verifiedOn = date.provenance[0].verifiedOn;
+    assert.ok(verifiedOn && isRealDate(verifiedOn), `${operator.slug} verified date must be a real date`);
+    for (const field of CANONICAL_OPERATOR_FIELDS) {
+      if (field === 'lastVerifiedDate' || field === 'name' || field === 'operatorName') continue;
+      const fact = operator[field];
+      if (fact.status === 'unresolved') {
+        assert.fail(`${operator.slug}: lastVerifiedDate verified despite ${field} being unresolved`);
+      }
+    }
+  } else {
+    assert.equal(date.status, 'missing', `${operator.slug} verification date must be verified or explicitly missing`);
+    assert.match(
+      date.reason,
+      /official-source pass captured 2026-09-02.*(?:missing|unresolved)/i,
+      `${operator.slug} missing date must document the dated official-source evidence gap`,
+    );
+  }
+}
+
+const acebetVerificationDate = getOperator('acebet')!.lastVerifiedDate;
+assert.equal(acebetVerificationDate.status, 'missing');
+assert.match(acebetVerificationDate.reason, /https:\/\/acebet\.cc\//);
+assert.doesNotMatch(
+  acebetVerificationDate.reason,
+  /:\s*[^.]*\boperatorName\b/,
+  'Acebet operatorName must be verified by the reachable official source',
+);
+
+const syntheticSeed = {
+  slug: 'synthetic-complete',
+  name: 'Synthetic Casino',
+  operatorName: 'Synthetic Operator LLC',
+  launchDate: '2026-09-01',
+  signupOffer: '1 SC',
+  dailyOffer: '1 GC daily',
+  cashRedemptionMinimum: { amount: 50, currency: 'SC' as const },
+  giftCardRedemptionMinimum: { amount: 10, currency: 'SC' as const },
+  publishedRedemptionTiming: '1 business day',
+  paymentMethods: ['ACH'],
+  gameCount: 100,
+};
+const syntheticPass: OfficialVerificationPass = {
+  source: 'https://official.example/terms',
+  verifiedOn: '2026-09-02',
+  verifiedFields: [
+    'name',
+    'operatorName',
+    'launchDate',
+    'signupOffer',
+    'dailyOffer',
+    'cashRedemptionMinimum',
+    'giftCardRedemptionMinimum',
+    'publishedRedemptionTiming',
+    'paymentMethods',
+    'gameCount',
+  ],
+};
+const syntheticDate = { verifiedOn: '2026-09-02' };
+const fullyVerifiedSynthetic = makeRecord(
+  syntheticSeed,
+  syntheticPass,
+  syntheticDate,
+);
+assert.deepEqual(fullyVerifiedSynthetic.lastVerifiedDate, {
+  status: 'verified',
+  value: '2026-09-02',
+  provenance: [
+    {
+      source: 'https://official.example/terms',
+      verifiedOn: '2026-09-02',
+    },
+  ],
+});
+
+const unresolvedSynthetic = makeRecord(
+  {
+    ...syntheticSeed,
+    slug: 'crown-coins',
+    signupOffer: undefined,
+  },
+  syntheticPass,
+  syntheticDate,
+);
+assert.equal(unresolvedSynthetic.signupOffer.status, 'unresolved');
+assert.equal(
+  unresolvedSynthetic.lastVerifiedDate.status,
+  'missing',
+  'one unresolved decision-critical field must disqualify the verification stamp',
+);
+assert.match(
+  unresolvedSynthetic.lastVerifiedDate.reason,
+  /signupOffer/,
+  'the disqualifying unresolved field must be documented',
 );
 
 const fixture =
@@ -149,21 +314,15 @@ for (const operator of OPERATORS) {
   }
 }
 
-const unresolvedFixture =
+const canonicalScoreFixture =
   '<main><div class="verdict-box"><span class="big">88</span>' +
   '<span class="denom">/100</span></div>' +
   '<!--sc-operator-facts data-operator="mcluck" ' +
   'data-fields="name,editorScore100"--></main>';
-const unresolvedRendered = injectOperatorFactsHtml(unresolvedFixture, 'mcluck');
-assert.doesNotMatch(unresolvedRendered, /data-canonical-field="editorScore100"/);
-assert.match(unresolvedRendered, /editorScore100:unresolved/);
-assert.doesNotMatch(unresolvedRendered, />\s*88\s*<\/span>\s*<span[^>]*>\s*\/100</);
-assert.match(unresolvedRendered, /data-editor-score-status="unresolved"/);
-assert.doesNotMatch(
-  unresolvedRendered.replace(/<[^>]+>/g, ' '),
-  /\b(?:editor score\s*:\s*)?unresolved\b/i,
-  'unresolved score state must not be reader-visible',
-);
+const canonicalScoreRendered = injectOperatorFactsHtml(canonicalScoreFixture, 'mcluck');
+assert.match(canonicalScoreRendered, /data-canonical-field="editorScore100"[^>]*>88\/100</);
+assert.match(canonicalScoreRendered, /editorScore100:verified/);
+assert.match(canonicalScoreRendered, /data-editor-score-status="verified"/);
 
 function reviewNode(html: string): Record<string, unknown> {
   const block = html.match(
@@ -178,21 +337,17 @@ function reviewNode(html: string): Record<string, unknown> {
 
 for (const [slug, expectedScore] of [
   ['american-luck', 72],
-  ['mcluck', undefined],
+  ['mcluck', 88],
 ] as const) {
   const source = readFileSync(resolve(root, `reviews/${slug}.html`), 'utf8');
   const rendered = consolidateJsonLd(injectOperatorFactsHtml(source, slug));
   const review = reviewNode(rendered);
-  if (expectedScore === undefined) {
-    assert.equal(review.reviewRating, undefined, `${slug} unresolved score must be omitted from schema`);
-  } else {
-    assert.deepEqual(review.reviewRating, {
-      '@type': 'Rating',
-      ratingValue: expectedScore,
-      bestRating: 100,
-      worstRating: 0,
-    });
-  }
+  assert.deepEqual(review.reviewRating, {
+    '@type': 'Rating',
+    ratingValue: expectedScore,
+    bestRating: 100,
+    worstRating: 0,
+  });
 }
 
 function visibleDocumentText(html: string): string {
@@ -396,23 +551,21 @@ assert.ok(
 );
 assert.equal(
   OPERATORS.filter((operator) => operator.editorScore100.status === 'unresolved').length,
-  25,
-  'integration must enforce score suppression on all 25 unresolved reviews',
+  0,
+  'integration must render no unresolved editor scores',
 );
 
-const unresolvedLeaks = OPERATORS.filter(
-  (operator) => operator.editorScore100.status === 'unresolved',
-).flatMap((operator) => {
+const canonicalScoreErrors = OPERATORS.flatMap((operator) => {
   const errors = validateRenderedEditorScoreContexts(
-    undefined,
+    verifiedValue(operator.editorScore100),
     renderedReviews.get(operator.slug)!,
   );
   return errors.length === 0 ? [] : [`${operator.slug}: ${errors.join(', ')}`];
 });
 assert.deepEqual(
-  unresolvedLeaks,
+  canonicalScoreErrors,
   [],
-  `fully rendered unresolved reviews leaked legacy editor scores:\n${unresolvedLeaks.join('\n')}`,
+  `fully rendered reviews disagree with canonical editor scores:\n${canonicalScoreErrors.join('\n')}`,
 );
 
 const staticAmericanLuck = getStaticReviewHtml(
@@ -508,7 +661,7 @@ assert.doesNotMatch(
   visibleDocumentText(ordinaryDecimalRendered),
   /\b(?:editor score\s*:\s*)?unresolved\b/i,
 );
-assert.doesNotMatch(ordinaryDecimalRendered, />88\/100</);
+assert.match(ordinaryDecimalRendered, /Editor score: 88\/100/);
 
 const ordinaryVerifiedRendered = injectOperatorFactsHtml(
   ordinaryDecimalFixture.replace(
@@ -587,7 +740,7 @@ for (const explicitWidget of [
 }
 assert.ok(
   validateRenderedEditorScoreContexts(undefined, semanticLeakRendered).length > 0,
-  'unresolved authored first-party aggregate prose must still fail independent detection',
+  'authored first-party aggregate prose must still fail independent detection',
 );
 assert.match(semanticLeakRendered, /Redemption speed<\/span><span>96\s*\/\s*100/);
 assert.match(semanticLeakRendered, /Game library<\/span><span>92\s*\/\s*100/);

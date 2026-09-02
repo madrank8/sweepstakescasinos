@@ -20,12 +20,26 @@ import {
   evaluateCommercialHubCandidates,
   findAuditReportDrift,
   inventoryOperatorFacts,
+  legalBriefCoverage,
   renderAuditReports,
   scanTestingClaims,
 } from './audit-core';
 import { classifyTestingClaim, findUnsupportedTestingClaims } from './claim-policy';
 
 const root = resolve(import.meta.dirname, '../..');
+const conflicts = readFileSync(resolve(root, 'docs/seo/operator-data-conflicts.md'), 'utf8');
+const unresolvedScores = (
+  conflicts.match(/^\| [a-z0-9-]+ \| editorial score \|.*\| UNRESOLVED \|$/gm) ?? []
+).length;
+assert.equal(unresolvedScores, 0, 'no editorial score conflicts may remain unresolved');
+
+const hubPlan = readFileSync(resolve(root, 'docs/seo/commercial-hub-plan.md'), 'utf8');
+assert.match(
+  hubPlan,
+  /lastVerifiedDate.*\d+\/29/,
+  'hub plan must report the current verification-date count',
+);
+
 const generator = readFileSync(resolve(root, 'scripts/generate-astro-pages.mjs'), 'utf8');
 assert.doesNotMatch(generator, /independent US guide that tests and ranks/i);
 assert.doesNotMatch(generator, /Reviews are hands-on tested and dated/i);
@@ -62,12 +76,57 @@ assert.equal(
   new Set(operators.homepage.map((card) => card.slug)).size,
   operators.homepage.length,
 );
-for (const slug of ['jackpota', 'jackpot-go']) {
+const historicalScoreConflictSlugs = [
+  'acebet',
+  'big-pirate',
+  'card-crush',
+  'casino-click',
+  'crown-coins',
+  'dexyplay',
+  'freespin',
+  'hello-millions',
+  'high5',
+  'jackpot-go',
+  'jackpota',
+  'lucky-bunny',
+  'mcluck',
+  'mega-bonanza',
+  'pulsz',
+  'rolla',
+  'spinblitz',
+  'spinfinite',
+  'splash-coins',
+  'spree',
+  'sweepico',
+  'sweet-sweeps',
+  'thrillzz',
+  'wow-vegas',
+  'zula',
+];
+const historicalScoreConflicts = operators.conflicts.filter(
+  (conflict) => conflict.field === 'editorial score',
+);
+assert.deepEqual(
+  historicalScoreConflicts.map((conflict) => conflict.slug),
+  historicalScoreConflictSlugs,
+  'all 25 historical score disagreements must remain explicit audit evidence',
+);
+for (const conflict of historicalScoreConflicts) {
   assert.ok(
-    operators.conflicts.some(
-      (conflict) => conflict.slug === slug && conflict.field === 'editorial score',
+    conflict.sources.some(
+      (source) =>
+        source.path === 'index.html' &&
+        /^(?:[1-5](?:\.\d+)?)\/5$/.test(source.value),
     ),
-    `${slug} score conflict must remain explicit`,
+    `${conflict.slug} must retain its historical homepage /5 score`,
+  );
+  assert.ok(
+    conflict.sources.some(
+      (source) =>
+        source.path === `reviews/${conflict.slug}.html#review-jsonld` &&
+        /^(?:[1-5](?:\.\d+)?)\/5$/.test(source.value),
+    ),
+    `${conflict.slug} must retain its legacy Review JSON-LD /5 score`,
   );
 }
 const welcomeOfferConflicts = operators.conflicts.filter(
@@ -76,28 +135,83 @@ const welcomeOfferConflicts = operators.conflicts.filter(
 assert.deepEqual(
   welcomeOfferConflicts.map((conflict) => conflict.slug),
   ['crown-coins', 'hello-millions', 'spinblitz', 'spree'],
-  'all four unresolved welcome-offer conflicts must remain detected',
+  'all four historical welcome-offer conflicts must remain detected',
 );
 for (const conflict of welcomeOfferConflicts) {
   assert.ok(
     conflict.sources.some((source) =>
       source.path.startsWith(`src/data/operators.ts#${conflict.slug}.signupOffer`),
     ),
-    `${conflict.slug} must cite its canonical unresolved fact sources`,
+    `${conflict.slug} must cite its canonical fact sources`,
   );
-  assert.ok(
-    conflict.sources.some((source) =>
-      [
-        'reviews/',
-        'src/content/comparisons/sweepstakes-casinos.mdx',
-        'src/routes/bonuses/no-deposit/index.astro',
-      ].some((prefix) => source.path.startsWith(prefix)),
-    ),
-    `${conflict.slug} must cite a currently served review or hub/comparison surface`,
-  );
+  if (conflict.status === 'UNRESOLVED') {
+    assert.ok(
+      conflict.sources.some((source) =>
+        [
+          'reviews/',
+          'src/content/comparisons/sweepstakes-casinos.mdx',
+          'src/routes/bonuses/no-deposit/index.astro',
+        ].some((prefix) => source.path.startsWith(prefix)),
+      ),
+      `${conflict.slug} must cite a currently served review or hub/comparison surface`,
+    );
+  }
   assert.ok(
     conflict.sources.every((source) => source.path !== 'src/routes/index.astro'),
     `${conflict.slug} must not be attributed to the served homepage`,
+  );
+}
+assert.deepEqual(
+  welcomeOfferConflicts.map(({ slug, status }) => ({ slug, status })),
+  [
+    { slug: 'crown-coins', status: 'UNRESOLVED' },
+    { slug: 'hello-millions', status: 'RESOLVED' },
+    { slug: 'spinblitz', status: 'UNRESOLVED' },
+    { slug: 'spree', status: 'RESOLVED' },
+  ],
+);
+for (const slug of ['hello-millions', 'spree']) {
+  const resolved = welcomeOfferConflicts.find((conflict) => conflict.slug === slug)!;
+  assert.ok(
+    resolved.sources.some(
+      (source) => source.path.startsWith('https://') && source.path.includes('2026-09-02'),
+    ),
+    `${slug} resolved offer must cite its official URL and capture date`,
+  );
+  assert.ok(
+    resolved.sources.some((source) => source.path === `reviews/${slug}.html`),
+    `${slug} resolved offer must retain the authored review value as conflict evidence`,
+  );
+}
+assert.ok(
+  welcomeOfferConflicts
+    .find((conflict) => conflict.slug === 'hello-millions')!
+    .sources.some(
+      (source) =>
+        source.path === 'reviews/hello-millions.html' &&
+        source.value === '15,000 GC + 2.5 Free Sweeps Coins on Signup',
+    ),
+  'hello-millions audit must document the authored review offer that disagrees with the official source',
+);
+assert.ok(
+  welcomeOfferConflicts
+    .find((conflict) => conflict.slug === 'hello-millions')!
+    .sources.some(
+      (source) =>
+        source.path === 'https://www.hellomillions.com/ (captured 2026-09-02)',
+    ),
+  'hello-millions audit must cite the official homepage',
+);
+for (const slug of ['crown-coins', 'spinblitz']) {
+  const unresolved = welcomeOfferConflicts.find((conflict) => conflict.slug === slug)!;
+  assert.ok(
+    unresolved.sources.some(
+      (source) =>
+        source.path.startsWith(`src/data/operators.ts#${slug}.signupOffer`) &&
+        source.path.includes('https://') &&
+        source.path.includes('2026-09-02'),
+    ),
+    `${slug} unresolved offer must document its dated official-source evidence gap`,
   );
 }
 assert.equal(
@@ -451,6 +565,25 @@ const availability = reconcileAvailabilityAuthorities({
   trackerOperators: fallbackOperators,
   trackerAvailability: fallbackAvailability,
 });
+const briefs = readFileSync(resolve(root, 'docs/seo/legal-review-briefs.md'), 'utf8');
+const warnings = availability.warnings.filter((warning) =>
+  ['tracker-policy-difference', 'impossible-commercial-intersection'].includes(
+    warning.kind,
+  ),
+);
+for (const warning of warnings) {
+  const subject =
+    warning.kind === 'impossible-commercial-intersection'
+      ? 'Card Crush commercial/site policy intersection'
+      : warning.state ?? warning.kind;
+  assert.match(
+    briefs,
+    new RegExp(`## ${subject}`, 'i'),
+    `legal brief must cover ${subject}`,
+  );
+}
+assert.match(briefs, /## Card Crush commercial\/site policy intersection/i);
+assert.equal(legalBriefCoverage(root).requiredCount, 7);
 const availabilityReport = renderAvailabilityConflictReport(availability);
 assert.equal(
   reports.get('state-legality-conflicts.md'),

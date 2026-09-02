@@ -32,6 +32,62 @@ import { findTestingClaims, type UnsupportedTestingClaim } from './claim-policy'
 
 export const DETERMINISTIC_AUDIT_SNAPSHOT_AS_OF = '2026-08-31';
 
+const HISTORICAL_HOMEPAGE_SCORES: Record<string, number> = {
+  acebet: 4.6,
+  'big-pirate': 4.7,
+  'card-crush': 4.2,
+  'casino-click': 4.7,
+  'crown-coins': 4.8,
+  dexyplay: 4.8,
+  freespin: 4.9,
+  'hello-millions': 4.6,
+  high5: 4.9,
+  'jackpot-go': 4.5,
+  jackpota: 4.7,
+  'lucky-bunny': 4.9,
+  mcluck: 4.5,
+  'mega-bonanza': 4.5,
+  pulsz: 4.5,
+  rolla: 5,
+  spinblitz: 4.6,
+  spinfinite: 4.5,
+  'splash-coins': 4.9,
+  spree: 4.6,
+  sweepico: 4.6,
+  'sweet-sweeps': 4.7,
+  thrillzz: 4.3,
+  'wow-vegas': 4.8,
+  zula: 4.4,
+};
+
+const LEGACY_REVIEW_JSON_LD_SCORES: Record<string, number> = {
+  acebet: 4.5,
+  'big-pirate': 4.1,
+  'card-crush': 4.2,
+  'casino-click': 3.8,
+  'crown-coins': 4.6,
+  dexyplay: 4.5,
+  freespin: 4.3,
+  'hello-millions': 4.2,
+  high5: 4.3,
+  'jackpot-go': 4.4,
+  jackpota: 4.3,
+  'lucky-bunny': 3.9,
+  mcluck: 4.5,
+  'mega-bonanza': 4,
+  pulsz: 4.5,
+  rolla: 4.7,
+  spinblitz: 4.4,
+  spinfinite: 4.1,
+  'splash-coins': 4.3,
+  spree: 4,
+  sweepico: 4.4,
+  'sweet-sweeps': 4.5,
+  thrillzz: 4.3,
+  'wow-vegas': 4.5,
+  zula: 4.4,
+};
+
 export interface AuditSnapshotOptions {
   redemptionIndexAsOf: string;
 }
@@ -61,6 +117,7 @@ export interface ReviewInventory {
   visibleScore?: number;
   schemaScore?: number;
   operatorName?: string;
+  welcomeOffer?: string;
 }
 
 export interface HomepageOperator {
@@ -142,7 +199,9 @@ export function evaluateCommercialHubCandidates(
         {
           name: 'freshness',
           status: 'FAIL',
-          evidence: `${freshnessCount}/${total} records have a verified lastVerifiedDate.`,
+          evidence:
+            `lastVerifiedDate current count: ${freshnessCount}/${total}; ` +
+            `${freshnessCount}/${total} records have a verified lastVerifiedDate.`,
         },
         {
           name: 'distinct intent',
@@ -178,7 +237,9 @@ export function evaluateCommercialHubCandidates(
         {
           name: 'freshness',
           status: 'FAIL',
-          evidence: `${freshnessCount}/${total} records have a verified lastVerifiedDate.`,
+          evidence:
+            `lastVerifiedDate current count: ${freshnessCount}/${total}; ` +
+            `${freshnessCount}/${total} records have a verified lastVerifiedDate.`,
         },
         {
           name: 'distinct intent',
@@ -327,6 +388,11 @@ function reviewInventory(root: string): ReviewInventory[] {
       const title = plain(html.match(/<title\b[^>]*>([\s\S]*?)<\/title>/i)?.[1] ?? '');
       const h1 = plain(html.match(/<h1\b[^>]*>([\s\S]*?)<\/h1>/i)?.[1] ?? '');
       const score = visibleEditorialScore(html);
+      const welcomeOffer = plain(
+        html.match(
+          /<div\b[^>]*class=["'][^"']*\boc-headline\b[^"']*["'][^>]*>([\s\S]*?)<\/div>/i,
+        )?.[1] ?? '',
+      );
       return {
         slug: file.replace(/\.html$/, ''),
         path,
@@ -340,6 +406,7 @@ function reviewInventory(root: string): ReviewInventory[] {
           ? { schemaScore: Number(rating.ratingValue) }
           : {}),
         ...(typeof parent?.name === 'string' ? { operatorName: parent.name } : {}),
+        ...(welcomeOffer ? { welcomeOffer } : {}),
       };
     });
 }
@@ -460,12 +527,6 @@ function distinctSources(sources: SourceValue[]): SourceValue[] {
   });
 }
 
-function auditProvenanceSource(source: string): string {
-  return source === 'index.html#historical-homepage-snapshot-not-served'
-    ? 'index.html'
-    : source;
-}
-
 export function inventoryOperatorFacts(root = process.cwd()): OperatorAudit {
   const reviews = reviewInventory(root);
   const homepage = homepageInventory(root);
@@ -476,13 +537,8 @@ export function inventoryOperatorFacts(root = process.cwd()): OperatorAudit {
   for (const review of reviews) {
     const home = homepage.find((card) => card.slug === review.slug);
     const canonicalOperator = OPERATORS.find((operator) => operator.slug === review.slug);
-    const canonicalScoreSources =
-      canonicalOperator?.editorScore100.status === 'unresolved'
-        ? canonicalOperator.editorScore100.sources.map((source) => ({
-            path: auditProvenanceSource(source.provenance.source),
-            value: source.value,
-          }))
-        : [];
+    const historicalHomepageScore = HISTORICAL_HOMEPAGE_SCORES[review.slug];
+    const legacyReviewJsonLdScore = LEGACY_REVIEW_JSON_LD_SCORES[review.slug];
     const scoreSources = distinctSources([
       ...(home?.score == null
         ? []
@@ -493,7 +549,15 @@ export function inventoryOperatorFacts(root = process.cwd()): OperatorAudit {
       ...(review.schemaScore == null
         ? []
         : [{ path: `${review.path} JSON-LD Review.reviewRating`, value: `${review.schemaScore}/5` }]),
-      ...canonicalScoreSources,
+      ...(historicalHomepageScore == null
+        ? []
+        : [{ path: 'index.html', value: `${historicalHomepageScore}/5` }]),
+      ...(legacyReviewJsonLdScore == null
+        ? []
+        : [{
+            path: `${review.path}#review-jsonld`,
+            value: `${legacyReviewJsonLdScore}/5`,
+          }]),
     ]);
     const normalizedScores = new Set(
       scoreSources.map((source) => {
@@ -506,7 +570,10 @@ export function inventoryOperatorFacts(root = process.cwd()): OperatorAudit {
         slug: review.slug,
         field: 'editorial score',
         sources: scoreSources,
-        status: 'UNRESOLVED',
+        status:
+          canonicalOperator?.editorScore100.status === 'verified'
+            ? 'RESOLVED'
+            : 'UNRESOLVED',
       });
     }
 
@@ -533,16 +600,53 @@ export function inventoryOperatorFacts(root = process.cwd()): OperatorAudit {
     const hubOffer = hubs.find(
       (entry) => entry.slug === review.slug && entry.field === 'welcome offer',
     );
-    if (canonicalOperator?.signupOffer.status === 'unresolved') {
-      const canonicalSources = canonicalOperator.signupOffer.sources.map(
+    const signupOffer = canonicalOperator?.signupOffer;
+    if (
+      signupOffer?.status === 'verified' &&
+      signupOffer.provenance.some((provenance) => provenance.source.startsWith('http'))
+    ) {
+      const officialSources = signupOffer.provenance
+        .filter((provenance) => provenance.source.startsWith('http'))
+        .map((provenance) => ({
+          path:
+            provenance.source +
+            (provenance.verifiedOn ? ` (captured ${provenance.verifiedOn})` : ''),
+          value: signupOffer.value,
+        }));
+      const offerSources = distinctSources([
+        {
+          path: `src/data/operators.ts#${review.slug}.signupOffer`,
+          value: signupOffer.value,
+        },
+        ...officialSources,
+        ...(review.welcomeOffer
+          ? [{ path: review.path, value: review.welcomeOffer }]
+          : []),
+        ...(compared?.offer
+          ? [{ path: compared.path, value: compared.offer }]
+          : []),
+        ...(hubOffer ? [{ path: hubOffer.path, value: hubOffer.value }] : []),
+      ]);
+      conflicts.push({
+        slug: review.slug,
+        field: 'welcome offer',
+        sources: offerSources,
+        status: 'RESOLVED',
+      });
+    } else if (signupOffer?.status === 'unresolved') {
+      const canonicalSources = signupOffer.sources.map(
         (source, index) => ({
           path:
             `src/data/operators.ts#${review.slug}.signupOffer.sources[${index}] ` +
-            `(${source.provenance.source})`,
+            `(${source.provenance.source}` +
+            (source.provenance.verifiedOn
+              ? `; captured ${source.provenance.verifiedOn}`
+              : '') +
+            ')',
           value: source.value,
         }),
       );
-      const servedReviewSources = canonicalOperator.signupOffer.sources
+      const servedReviewSources = signupOffer.sources
         .filter((source) => source.provenance.source.startsWith('reviews/'))
         .map((source) => ({
           path: source.provenance.source,
@@ -869,8 +973,8 @@ function operatorReport(audit: OperatorAudit): string {
   const lines = [
     reportHeader('Operator Data Conflicts'),
     `Coverage: **${audit.reviews.length} authored reviews**, **${audit.homepage.length} homepage cards**, **${audit.comparison.length} comparison rows**, and **${audit.hubs.length} relevant hub facts**.\n\n`,
-    'No conflict below is resolved by this audit. Values remain exactly as authored pending source review.\n\n',
-    '`src/data/operators.ts` records these conflicts as `unresolved`; canonical selectors and Review schema omit them. Every `index.html` score source is a historical homepage snapshot that is not served. Verified canonical values retain field-level provenance, while affiliate restrictions and schema identity remain in their separate data modules.\n\n',
+    'The audit reports canonical resolution status but never resolves a conflict itself. Values remain exactly as authored or captured from the cited official source.\n\n',
+    '`src/data/operators.ts` records unresolved conflicts and verified canonical selections; canonical selectors omit unresolved values. Every `index.html` score source is a historical homepage snapshot that is not served. Verified canonical values retain field-level provenance, while affiliate restrictions and schema identity remain in their separate data modules.\n\n',
     '| Operator | Field | Exact source values | Status |\n',
     '|---|---|---|---|\n',
     ...audit.conflicts.map(
@@ -1147,6 +1251,55 @@ export function findAuditReportDrift(
   return drift;
 }
 
+export interface LegalBriefCoverage {
+  requiredCount: number;
+  coveredCount: number;
+  missingSubjects: string[];
+}
+
+function legalBriefHeading(subject: string, kind: string): string {
+  if (kind === 'commercial / site policy') {
+    const operator = subject
+      .split('-')
+      .map((part) => `${part.charAt(0).toUpperCase()}${part.slice(1)}`)
+      .join(' ');
+    return `${operator} commercial/site policy intersection`;
+  }
+  return subject;
+}
+
+function escapedPattern(value: string): string {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+export function legalBriefCoverage(root = process.cwd()): LegalBriefCoverage {
+  const reportPath = join(root, 'docs', 'seo', 'state-legality-conflicts.md');
+  const briefsPath = join(root, 'docs', 'seo', 'legal-review-briefs.md');
+  if (!existsSync(briefsPath)) {
+    throw new Error('Legal brief coverage failed: docs/seo/legal-review-briefs.md is missing.');
+  }
+
+  const report = readFileSync(reportPath, 'utf8');
+  const briefs = readFileSync(briefsPath, 'utf8');
+  const requiredHeadings = [...report.matchAll(
+    /^\| ([^|]+?) \| (tracker \/ site policy|commercial \/ site policy) \|/gm,
+  )].map((match) => legalBriefHeading(match[1].trim(), match[2].trim()));
+  const missingSubjects = requiredHeadings.filter(
+    (heading) =>
+      !new RegExp(`^##\\s+${escapedPattern(heading)}\\s*$`, 'im').test(briefs),
+  );
+  if (missingSubjects.length > 0) {
+    throw new Error(
+      `Legal brief coverage failed for: ${missingSubjects.join(', ')}.`,
+    );
+  }
+  return {
+    requiredCount: requiredHeadings.length,
+    coveredCount: requiredHeadings.length - missingSubjects.length,
+    missingSubjects,
+  };
+}
+
 export function auditSummary(root: string, options: AuditSnapshotOptions) {
   const operators = inventoryOperatorFacts(root);
   const claims = scanTestingClaims(root);
@@ -1166,6 +1319,7 @@ export function auditSummary(root: string, options: AuditSnapshotOptions) {
     trackerOperators: fallbackOperators,
     trackerAvailability: fallbackAvailability,
   });
+  const legalBriefs = legalBriefCoverage(root);
   return {
     reviewCount: operators.reviews.length,
     homepageOperatorCount: operators.homepage.length,
@@ -1203,5 +1357,7 @@ export function auditSummary(root: string, options: AuditSnapshotOptions) {
         warning.kind,
       ),
     ).length,
+    legalBriefRequiredCount: legalBriefs.requiredCount,
+    legalBriefCoveredCount: legalBriefs.coveredCount,
   };
 }

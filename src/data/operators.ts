@@ -72,7 +72,23 @@ export interface OperatorRecord {
   lastVerifiedDate: CanonicalFact<string>;
 }
 
-interface OperatorSeed {
+export const DECISION_CRITICAL_OPERATOR_FIELDS = [
+  'name',
+  'operatorName',
+  'launchDate',
+  'signupOffer',
+  'dailyOffer',
+  'cashRedemptionMinimum',
+  'giftCardRedemptionMinimum',
+  'publishedRedemptionTiming',
+  'paymentMethods',
+  'gameCount',
+] as const satisfies readonly (keyof OperatorRecord)[];
+
+export type DecisionCriticalOperatorField =
+  (typeof DECISION_CRITICAL_OPERATOR_FIELDS)[number];
+
+export interface OperatorSeed {
   slug: string;
   name: string;
   operatorName: string;
@@ -161,66 +177,35 @@ const SIGNUP_OFFERS: Record<string, string> = {
 };
 
 const SCORE_100: Record<string, number> = {
+  acebet: 88,
   'american-luck': 72,
+  'big-pirate': 79,
+  'card-crush': 82,
+  'casino-click': 72,
+  'crown-coins': 91,
+  dexyplay: 87,
+  freespin: 82,
+  'hello-millions': 85,
+  high5: 88,
+  'jackpot-go': 85,
+  jackpota: 86,
   legendz: 84,
+  'lucky-bunny': 74,
+  mcluck: 88,
+  'mega-bonanza': 82,
   playfame: 86,
+  pulsz: 88,
+  rolla: 92,
   roxymoxy: 80,
-};
-
-const CONFLICTING_SCORES: Record<string, [number, number]> = {
-  acebet: [88, 4.6],
-  'big-pirate': [79, 4.7],
-  'card-crush': [82, 4.2],
-  'casino-click': [72, 4.7],
-  'crown-coins': [91, 4.8],
-  dexyplay: [87, 4.8],
-  freespin: [82, 4.9],
-  'hello-millions': [85, 4.6],
-  high5: [88, 4.9],
-  'jackpot-go': [85, 4.5],
-  jackpota: [86, 4.7],
-  'lucky-bunny': [74, 4.9],
-  mcluck: [88, 4.5],
-  'mega-bonanza': [82, 4.5],
-  pulsz: [88, 4.5],
-  rolla: [92, 5],
-  spinblitz: [87, 4.6],
-  spinfinite: [80, 4.5],
-  'splash-coins': [83, 4.9],
-  spree: [83, 4.6],
-  sweepico: [85, 4.6],
-  'sweet-sweeps': [90, 4.7],
-  thrillzz: [85, 4.3],
-  'wow-vegas': [91, 4.8],
-  zula: [87, 4.4],
-};
-
-const LEGACY_REVIEW_JSON_LD_SCORES: Record<string, number | string> = {
-  acebet: 4.5,
-  'big-pirate': 4.1,
-  'card-crush': 4.2,
-  'casino-click': 3.8,
-  'crown-coins': 4.6,
-  dexyplay: 4.5,
-  freespin: 4.3,
-  'hello-millions': 4.2,
-  high5: 4.3,
-  'jackpot-go': 4.4,
-  jackpota: 4.3,
-  'lucky-bunny': 3.9,
-  mcluck: 4.5,
-  'mega-bonanza': '4.0',
-  pulsz: 4.5,
-  rolla: 4.7,
-  spinblitz: 4.4,
-  spinfinite: 4.1,
-  'splash-coins': 4.3,
-  spree: '4.0',
-  sweepico: 4.4,
-  'sweet-sweeps': 4.5,
-  thrillzz: 4.3,
-  'wow-vegas': 4.5,
-  zula: 4.4,
+  spinblitz: 87,
+  spinfinite: 80,
+  'splash-coins': 83,
+  spree: 83,
+  sweepico: 85,
+  'sweet-sweeps': 90,
+  thrillzz: 85,
+  'wow-vegas': 91,
+  zula: 87,
 };
 
 const CONFLICTING_OFFERS: Record<string, string[]> = {
@@ -229,6 +214,87 @@ const CONFLICTING_OFFERS: Record<string, string[]> = {
   spinblitz: ['7,500 GC + 2.5 SC Promo Code', '7,500 GC + 2.5 SC'],
   spree: ['25,000 GC + 2.5 SC Instant Reg', '25,000 GC + 2.5 SC'],
 };
+
+const VERIFIED_OFFERS: Record<
+  string,
+  { value: string; source: string; verifiedOn: string }
+> = {
+  'hello-millions': {
+    value: 'GC 7,500 + FREE SC 2.5',
+    source: 'https://www.hellomillions.com/',
+    verifiedOn: '2026-09-02',
+  },
+  spree: {
+    value: '25,000 Gold Coins and 2.5 Spree Coins',
+    source:
+      'https://support.spree.com/hc/en-us/articles/37595439875730-How-do-I-claim-the-Spree-Welcome-Offer',
+    verifiedOn: '2026-09-02',
+  },
+};
+
+const OFFICIAL_OFFER_GAPS: Record<
+  string,
+  { note: string; source: string; verifiedOn: string }
+> = {
+  'crown-coins': {
+    note: 'Official page describes bonus routes but does not state a signup-offer amount.',
+    source:
+      'https://help.crowncoinscasino.com/en/articles/12808804-how-to-get-free-bonus-coins',
+    verifiedOn: '2026-09-02',
+  },
+  spinblitz: {
+    note: 'Official page says promotions have individual reward details but does not state a signup-offer amount.',
+    source:
+      'https://support.spinblitz.com/hc/en-us/articles/38181733505565-How-do-promotions-work',
+    verifiedOn: '2026-09-02',
+  },
+};
+
+export interface OfficialVerificationPass {
+  source: string;
+  verifiedOn: string;
+  verifiedFields: readonly DecisionCriticalOperatorField[];
+}
+
+/**
+ * Official-site pass captured with WebFetch on 2026-09-02. A field appears in
+ * `verifiedFields` only when the fetched official page supported the canonical
+ * value exactly enough to make a decision. The omitted fields were checked but
+ * were absent, ambiguous, blocked, or disagreed with the canonical value.
+ */
+const OFFICIAL_VERIFICATION_PASSES: Record<string, OfficialVerificationPass> = {
+  acebet: { source: 'https://acebet.cc/', verifiedOn: '2026-09-02', verifiedFields: ['operatorName'] },
+  'american-luck': { source: 'https://americanluck.com/', verifiedOn: '2026-09-02', verifiedFields: ['name', 'gameCount'] },
+  'big-pirate': { source: 'https://www.bigpirate.com/', verifiedOn: '2026-09-02', verifiedFields: [] },
+  'card-crush': { source: 'https://www.cardcrush.com/', verifiedOn: '2026-09-02', verifiedFields: ['name'] },
+  'casino-click': { source: 'https://www.casino.click/', verifiedOn: '2026-09-02', verifiedFields: [] },
+  'crown-coins': { source: 'https://www.crowncoins.com/', verifiedOn: '2026-09-02', verifiedFields: [] },
+  dexyplay: { source: 'https://www.dexyplay.com/', verifiedOn: '2026-09-02', verifiedFields: ['operatorName'] },
+  freespin: { source: 'https://www.freespin.com/', verifiedOn: '2026-09-02', verifiedFields: [] },
+  'hello-millions': { source: 'https://www.hellomillions.com/', verifiedOn: '2026-09-02', verifiedFields: ['operatorName', 'signupOffer', 'dailyOffer'] },
+  high5: { source: 'https://high5casino.com/', verifiedOn: '2026-09-02', verifiedFields: [] },
+  'jackpot-go': { source: 'https://www.jackpotgo.com/', verifiedOn: '2026-09-02', verifiedFields: ['operatorName'] },
+  jackpota: { source: 'https://www.jackpota.com/', verifiedOn: '2026-09-02', verifiedFields: [] },
+  legendz: { source: 'https://www.legendz.com/', verifiedOn: '2026-09-02', verifiedFields: [] },
+  'lucky-bunny': { source: 'https://www.luckybunny.fun/', verifiedOn: '2026-09-02', verifiedFields: [] },
+  mcluck: { source: 'https://www.mcluck.com/', verifiedOn: '2026-09-02', verifiedFields: ['operatorName', 'dailyOffer'] },
+  'mega-bonanza': { source: 'https://www.megabonanza.com/', verifiedOn: '2026-09-02', verifiedFields: [] },
+  playfame: { source: 'https://www.playfame.com/', verifiedOn: '2026-09-02', verifiedFields: [] },
+  pulsz: { source: 'https://www.pulsz.com/', verifiedOn: '2026-09-02', verifiedFields: ['dailyOffer'] },
+  rolla: { source: 'https://www.rolla.com/', verifiedOn: '2026-09-02', verifiedFields: [] },
+  roxymoxy: { source: 'https://www.roxymoxy.com/', verifiedOn: '2026-09-02', verifiedFields: [] },
+  spinblitz: { source: 'https://www.spinblitz.com/', verifiedOn: '2026-09-02', verifiedFields: ['dailyOffer'] },
+  spinfinite: { source: 'https://www.spinfinite.com/', verifiedOn: '2026-09-02', verifiedFields: [] },
+  'splash-coins': { source: 'https://www.splashcoins.com/', verifiedOn: '2026-09-02', verifiedFields: [] },
+  spree: { source: 'https://www.spree.com/', verifiedOn: '2026-09-02', verifiedFields: ['signupOffer'] },
+  sweepico: { source: 'https://www.sweepico.com/', verifiedOn: '2026-09-02', verifiedFields: ['gameCount'] },
+  'sweet-sweeps': { source: 'https://www.sweetsweeps.com/', verifiedOn: '2026-09-02', verifiedFields: ['operatorName'] },
+  thrillzz: { source: 'https://thrillzz.com/', verifiedOn: '2026-09-02', verifiedFields: ['name', 'operatorName', 'dailyOffer'] },
+  'wow-vegas': { source: 'https://www.wowvegas.com/', verifiedOn: '2026-09-02', verifiedFields: [] },
+  zula: { source: 'https://www.zulacasino.com/', verifiedOn: '2026-09-02', verifiedFields: [] },
+};
+
+const VERIFIED_DATES: Record<string, { verifiedOn: string }> = {};
 
 const seeds: OperatorSeed[] = [
   {
@@ -274,39 +340,32 @@ const seeds: OperatorSeed[] = [
 
 function scoreFact(slug: string): CanonicalFact<number> {
   if (slug in SCORE_100) return verified(SCORE_100[slug], slug);
-  const conflict = CONFLICTING_SCORES[slug];
-  if (!conflict) return missing('No explicit /100 editorial score is supported.');
-  const reviewSource = sourceFor(slug);
-  return {
-    status: 'unresolved',
-    reason: 'Authored review, homepage, and legacy Review JSON-LD score surfaces disagree.',
-    sources: [
-      { value: `${conflict[0]}/100`, provenance: reviewSource },
-      {
-        value: `${conflict[1]}/5`,
-        provenance: {
-          source: 'index.html#historical-homepage-snapshot-not-served',
-          publishedOn: PUBLISHED_ON,
-        },
-      },
-      {
-        value: `${LEGACY_REVIEW_JSON_LD_SCORES[slug]}/5`,
-        provenance: {
-          ...reviewSource,
-          source: `reviews/${slug}.html#review-jsonld`,
-        },
-      },
-    ],
-  };
+  return missing('No explicit /100 editorial score is supported.');
 }
 
 function signupFact(slug: string): CanonicalFact<string> {
+  const official = VERIFIED_OFFERS[slug];
+  if (official) {
+    return {
+      status: 'verified',
+      value: official.value,
+      provenance: [
+        {
+          source: official.source,
+          verifiedOn: official.verifiedOn,
+        },
+      ],
+    };
+  }
   const conflict = CONFLICTING_OFFERS[slug];
   if (conflict) {
     const reviewSource = sourceFor(slug);
+    const officialGap = OFFICIAL_OFFER_GAPS[slug];
     return {
       status: 'unresolved',
-      reason: 'Published offer surfaces use different wording or amounts.',
+      reason: officialGap
+        ? `Published offer surfaces use different wording or amounts; official source checked ${officialGap.verifiedOn} does not state an unambiguous signup-offer amount.`
+        : 'Published offer surfaces use different wording or amounts; no official source has resolved the conflict.',
       sources: [
         {
           value: conflict[0],
@@ -322,6 +381,17 @@ function signupFact(slug: string): CanonicalFact<string> {
             source: `reviews/${slug}.html`,
           },
         },
+        ...(officialGap
+          ? [
+              {
+                value: officialGap.note,
+                provenance: {
+                  source: officialGap.source,
+                  verifiedOn: officialGap.verifiedOn,
+                },
+              },
+            ]
+          : []),
       ],
     };
   }
@@ -339,7 +409,11 @@ function signupFact(slug: string): CanonicalFact<string> {
     : missing('No non-conflicting signup offer has been selected.');
 }
 
-function makeRecord(seed: OperatorSeed): OperatorRecord {
+export function makeRecord(
+  seed: OperatorSeed,
+  pass = OFFICIAL_VERIFICATION_PASSES[seed.slug],
+  verifiedDate = VERIFIED_DATES[seed.slug],
+): OperatorRecord {
   const fact = <K extends keyof OperatorSeed>(
     key: K,
     reason: string,
@@ -347,12 +421,15 @@ function makeRecord(seed: OperatorSeed): OperatorRecord {
     seed[key] === undefined
       ? missing(reason)
       : verified(seed[key] as NonNullable<OperatorSeed[K]>, seed.slug);
-  return {
+  const record = {
     slug: seed.slug,
     name: verified(seed.name, seed.slug),
     operatorName: verified(seed.operatorName, seed.slug),
     launchDate: fact('launchDate', 'No non-conflicting launch date is canonical.'),
-    signupOffer: signupFact(seed.slug),
+    signupOffer:
+      seed.signupOffer === undefined
+        ? signupFact(seed.slug)
+        : fact('signupOffer', 'No non-conflicting signup offer is canonical.'),
     dailyOffer: fact('dailyOffer', 'No non-conflicting daily offer is canonical.'),
     cashRedemptionMinimum: fact('cashRedemptionMinimum', 'No non-conflicting cash minimum is canonical.'),
     giftCardRedemptionMinimum: fact('giftCardRedemptionMinimum', 'No non-conflicting gift-card minimum is canonical.'),
@@ -361,11 +438,38 @@ function makeRecord(seed: OperatorSeed): OperatorRecord {
     gameCount: fact('gameCount', 'No non-conflicting game count is canonical.'),
     externalRatings: fact('externalRatings', 'No complete external rating with source, scale, URL, and date is canonical.'),
     editorScore100: scoreFact(seed.slug),
-    lastVerifiedDate: missing('A review publication date is not treated as a fact-verification date.'),
+  };
+  const incompleteFields = DECISION_CRITICAL_OPERATOR_FIELDS.filter(
+    (field) =>
+      record[field].status !== 'verified' ||
+      !pass?.verifiedFields.includes(field),
+  );
+  const qualifies =
+    verifiedDate !== undefined &&
+    pass !== undefined &&
+    incompleteFields.length === 0;
+  return {
+    ...record,
+    lastVerifiedDate: qualifies
+      ? {
+          status: 'verified',
+          value: verifiedDate.verifiedOn,
+          provenance: [
+            {
+              source: pass.source,
+              verifiedOn: verifiedDate.verifiedOn,
+            },
+          ],
+        }
+      : missing(
+          `Official-source pass captured ${pass?.verifiedOn ?? 'without a date'} at ${pass?.source ?? 'no official URL'}; ` +
+            `lastVerifiedDate remains missing because decision-critical fields are missing, unresolved, or lack official-source verification: ` +
+            incompleteFields.join(', '),
+        ),
   };
 }
 
-export const OPERATORS: OperatorRecord[] = seeds.map(makeRecord);
+export const OPERATORS: OperatorRecord[] = seeds.map((seed) => makeRecord(seed));
 
 const OPERATORS_BY_SLUG = new Map(OPERATORS.map((operator) => [operator.slug, operator]));
 

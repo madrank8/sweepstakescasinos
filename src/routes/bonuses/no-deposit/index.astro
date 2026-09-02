@@ -58,9 +58,8 @@ const breadcrumbs = [
 ];
 
 /**
- * Static offer facts as published on each operator at our last review update —
- * the redeemable SC figure is what matters. GC/SC bonus amounts are not part of
- * the structured affiliate/brand data, so they live here; the `slug` keeps the
+ * Offer facts come through the canonical operator record. Verified official
+ * signup offers render; unresolved amounts stay omitted. The `slug` keeps the
  * review link, brand @id and geo-gated CTA in sync. (Card Crush excluded — see
  * header note.)
  */
@@ -210,9 +209,10 @@ const jsonLd = [itemListLd, faqLd];
     Every bonus below is a genuine <strong>no-purchase offer</strong> — free Gold Coins and Sweeps
     Coins issued for signing up, logging in daily, or mailing a free entry. <strong>None of them
     require a promo code</strong>: they're credited automatically after registration and verification.
-    Offer facts come from each operator&rsquo;s published terms. We show a verification date only
-    when the canonical operator record has one; otherwise the table says it is unavailable rather
-    than substituting this page&rsquo;s publication date. Where an offer is not commercially
+    Verified signup offers come from the official operator pages cited in the canonical record;
+    unresolved amounts remain unavailable. We show an operator verification date only when the
+    canonical operator record has one; otherwise the table says it is unavailable rather than
+    substituting this page&rsquo;s publication date. Where an offer is not commercially
     available or site CTA policy suppresses it, we show that instead of a dead button — see our <a href="/state-legality/">state legality rules</a>
     and <a href="/legal/affiliate-disclosure/">Affiliate Disclosure</a>.
   </p>

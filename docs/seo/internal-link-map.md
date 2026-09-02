@@ -6,7 +6,7 @@ Inventory: **103 authored routes**, **1443 internal link occurrences**, **0 miss
 
 ## Target graph
 
-- Review rendering creates **29 review contextual blocks** with **169 deterministic destinations** before nearby-link de-duplication.
+- Review rendering creates **29 review contextual blocks** with **173 deterministic destinations** before nearby-link de-duplication.
 - Homepage → commercial hubs → reviews: the homepage links the review directory, detailed comparison, new-casino research, and no-purchase offer hub; each commercial hub links to reviews.
 - Review → hubs + related reviews + visitor context: canonical operator facts select hubs and similar/related alternatives. Unknown region points to `/state-legality/`; known region points to its `/states/<slug>/` page.
 - State → reviews + commercial hubs: every state template links `/reviews/`, `/best/sweepstakes-casinos/`, and alphabetically ordered eligible review destinations when available.
