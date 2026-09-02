@@ -197,7 +197,12 @@ const faqLd = faqPageNode(canonical, faq);
                     showUnavailableNote
                   />
                 ) : null}
-                <a class="btn-review" href={`/reviews/${operator.slug}/`}>Read review</a>
+                <a
+                  class={operator.hasPartner ? 'btn-review' : 'btn-claim'}
+                  href={`/reviews/${operator.slug}/`}
+                >
+                  Read review
+                </a>
               </td>
             </tr>
           ))}
@@ -357,11 +362,25 @@ const faqLd = faqPageNode(canonical, faq);
       margin:0;
       border:0;
       overflow:visible;
+      background:transparent;
     }
-    :global(.layout-home .home-card table.home-compare thead),
     :global(.layout-home .home-card table.home-compare tbody),
     :global(.layout-home .home-card table.home-compare caption){
-      display:block;width:100%;
+      display:block;width:100%;background:transparent;
+    }
+    :global(.layout-home .home-card table.home-compare thead),
+    :global(.layout-home .home-card table.home-compare thead tr){
+      position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;
+      clip:rect(0,0,0,0);clip-path:inset(50%);white-space:nowrap;border:0;
+    }
+    :global(.layout-home .home-card tbody tr.home-op),
+    :global(.layout-home .home-card tbody tr.home-op:nth-child(even)),
+    :global(.layout-home .home-card tbody tr.home-op:nth-child(odd)){
+      background:linear-gradient(165deg,#12233f,#0a1628 55%,#07101f) !important;
+    }
+    :global(.layout-home .home-card .home-op th),
+    :global(.layout-home .home-card .home-op td){
+      color:inherit;border:0;background:transparent;
     }
     .hero-kicker{
       display:inline-flex;align-items:center;gap:8px;
@@ -403,12 +422,12 @@ const faqLd = faqPageNode(canonical, faq);
     }
     .home-compare thead{
       position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;
-      clip:rect(0,0,0,0);white-space:nowrap;border:0;
+      clip:rect(0,0,0,0);clip-path:inset(50%);white-space:nowrap;border:0;
     }
     .home-compare tbody{display:flex;flex-direction:column;gap:16px;padding-top:14px;}
     .home-op{
       display:grid;grid-template-columns:180px minmax(0,1fr) 200px;
-      background:linear-gradient(165deg,#12233f,#0a1628 55%,#07101f);
+      background:linear-gradient(165deg,#12233f,#0a1628 55%,#07101f) !important;
       border:1px solid rgba(251,191,36,.22);border-radius:18px;
       overflow:hidden;color:#fff;box-shadow:0 12px 32px rgba(7,16,32,.28);
       position:relative;
@@ -462,15 +481,17 @@ const faqLd = faqPageNode(canonical, faq);
       padding:1.2rem 1rem;
     }
     .home-op :global(.btn-claim),
-    .home-op :global(.affiliate-cta){
+    .home-op :global(.affiliate-cta),
+    .home-op a.btn-claim{
       display:flex;align-items:center;justify-content:center;
       padding:.85rem .7rem;border-radius:12px;
       background:linear-gradient(135deg,#fbbf24,#f59e0b);
       color:#0a1628;font-weight:900;text-decoration:none;text-transform:uppercase;
-      letter-spacing:.03em;box-shadow:0 4px 16px rgba(251,191,36,.32);
+      letter-spacing:.03em;box-shadow:0 4px 16px rgba(251,191,36,.32);border:0;
     }
     .home-op :global(.btn-claim:hover),
-    .home-op :global(.affiliate-cta:hover){transform:translateY(-1px);box-shadow:0 8px 24px rgba(251,191,36,.45);}
+    .home-op :global(.affiliate-cta:hover),
+    .home-op a.btn-claim:hover{transform:translateY(-1px);box-shadow:0 8px 24px rgba(251,191,36,.45);}
     .home-op :global(.affiliate-unavailable){font-size:.75rem;color:#fecaca;margin:0;}
     .btn-review{
       display:block;text-align:center;font-size:.76rem;font-weight:700;
