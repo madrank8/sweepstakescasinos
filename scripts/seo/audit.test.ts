@@ -33,6 +33,13 @@ const unresolvedScores = (
 ).length;
 assert.equal(unresolvedScores, 0, 'no editorial score conflicts may remain unresolved');
 
+const hubPlan = readFileSync(resolve(root, 'docs/seo/commercial-hub-plan.md'), 'utf8');
+assert.match(
+  hubPlan,
+  /lastVerifiedDate.*\d+\/29/,
+  'hub plan must report the current verification-date count',
+);
+
 const generator = readFileSync(resolve(root, 'scripts/generate-astro-pages.mjs'), 'utf8');
 assert.doesNotMatch(generator, /independent US guide that tests and ranks/i);
 assert.doesNotMatch(generator, /Reviews are hands-on tested and dated/i);

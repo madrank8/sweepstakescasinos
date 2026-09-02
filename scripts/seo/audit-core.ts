@@ -199,7 +199,9 @@ export function evaluateCommercialHubCandidates(
         {
           name: 'freshness',
           status: 'FAIL',
-          evidence: `${freshnessCount}/${total} records have a verified lastVerifiedDate.`,
+          evidence:
+            `lastVerifiedDate current count: ${freshnessCount}/${total}; ` +
+            `${freshnessCount}/${total} records have a verified lastVerifiedDate.`,
         },
         {
           name: 'distinct intent',
@@ -235,7 +237,9 @@ export function evaluateCommercialHubCandidates(
         {
           name: 'freshness',
           status: 'FAIL',
-          evidence: `${freshnessCount}/${total} records have a verified lastVerifiedDate.`,
+          evidence:
+            `lastVerifiedDate current count: ${freshnessCount}/${total}; ` +
+            `${freshnessCount}/${total} records have a verified lastVerifiedDate.`,
         },
         {
           name: 'distinct intent',
