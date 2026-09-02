@@ -1,4 +1,5 @@
 import { getPartner } from '../data/affiliates';
+import { operatorLogoSrc } from '../data/operatorLogos';
 import {
   type CanonicalFact,
   type OperatorRecord,
@@ -7,6 +8,8 @@ import {
 } from '../data/operators';
 import type { UsStateCode } from '../data/usStates';
 import { bestPartnerAvailabilityView } from './availabilityViews';
+
+export { operatorLogoSrc };
 
 export const COMPARISON_SIZE = 12;
 export const MINIMUM_DECISION_FACTS = 3;
@@ -167,6 +170,7 @@ export interface ComparisonOperatorView extends ComparisonOperator {
   hasPartner: boolean;
   canCta: boolean;
   availabilityLabel: string;
+  logoSrc?: string;
 }
 
 export function buildComparisonOperatorViews(
@@ -175,10 +179,12 @@ export function buildComparisonOperatorViews(
   limit = COMPARISON_SIZE,
 ): ComparisonOperatorView[] {
   return selectComparisonOperators(operators, limit).map((operator) => {
+    const logoSrc = operatorLogoSrc(operator.slug);
     const partner = getPartner(operator.slug);
     if (!partner) {
       return {
         ...operator,
+        logoSrc,
         hasPartner: false,
         canCta: false,
         availabilityLabel: 'Editorial review only',
@@ -187,6 +193,7 @@ export function buildComparisonOperatorViews(
     const availability = bestPartnerAvailabilityView(partner, state);
     return {
       ...operator,
+      logoSrc,
       hasPartner: true,
       canCta: availability.canCta,
       availabilityLabel: availability.label,

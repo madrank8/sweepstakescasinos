@@ -46,6 +46,8 @@ interface Props {
   primaryImageId?: string;
   /** Content-layer JSON-LD nodes, merged into the consolidated @graph. */
   jsonLd?: Record<string, unknown> | Array<Record<string, unknown>>;
+  /** Homepage uses a wider, full-bleed hero and comparison layout. */
+  variant?: 'default' | 'homepage';
 }
 
 const {
@@ -64,7 +66,9 @@ const {
   authorId,
   primaryImageId,
   jsonLd,
+  variant = 'default',
 } = Astro.props;
+const isHomepage = variant === 'homepage';
 
 const canonical = `${ORIGIN}${canonicalPath}`;
 const ogImageUrl = ogImage ? `${ORIGIN}${ogImage}` : undefined;
@@ -98,7 +102,7 @@ const serializedPageGraph = serializeJsonLd(pageGraph);
     <link rel="canonical" href={canonical} />
     <Fragment set:html={faviconMarkup()} />
     <Fragment set:html={googleAnalytics} />
-    <meta property="og:type" content="article" />
+    <meta property="og:type" content={isHomepage ? 'website' : 'article'} />
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
     <meta property="og:url" content={canonical} />
@@ -115,11 +119,11 @@ const serializedPageGraph = serializeJsonLd(pageGraph);
     <link rel="stylesheet" href="/partials/trust.css" />
     <script type="application/ld+json" set:html={serializedPageGraph} />
   </head>
-  <body>
+  <body class:list={[{ 'layout-home': isHomepage }]}>
     <Fragment set:html={ribbon} />
     <div data-include="/partials/nav.html"></div>
 
-    <header class="page-hero">
+    <header class:list={['page-hero', { 'home-hero': isHomepage }]}>
       <div class="page-hero-inner">
         {breadcrumbs.length > 0 && (
           <nav class="breadcrumb" aria-label="Breadcrumb">
@@ -137,11 +141,12 @@ const serializedPageGraph = serializeJsonLd(pageGraph);
         )}
         <h1 set:html={heroTitle ?? title}></h1>
         {heroSubtitle && <p class="page-hero-sub">{heroSubtitle}</p>}
+        <slot name="hero-extra" />
       </div>
     </header>
 
-    <main class="content-section">
-      <div class="content-card">
+    <main class:list={['content-section', { 'home-main': isHomepage }]}>
+      <div class:list={['content-card', { 'home-card': isHomepage }]}>
         <slot />
       </div>
     </main>
