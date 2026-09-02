@@ -49,6 +49,11 @@ assert.equal(
   'function',
   'availability-aware primary comparison view builder must be exported',
 );
+assert.equal(
+  typeof homepage.operatorLogoSrc,
+  'function',
+  'homepage cards must resolve presentation logos without inventing facts',
+);
 
 const verifiedScores = homepage.selectVerifiedEditorScores(OPERATORS);
 assert.equal(verifiedScores.length, OPERATORS.length);
@@ -210,6 +215,16 @@ assert.doesNotMatch(
 );
 assert.equal(comparison.find((entry) => entry.slug === 'acebet')?.editorScore, '88/100');
 
+for (const entry of comparison) {
+  const logoSrc = homepage.operatorLogoSrc(entry.slug);
+  assert.ok(logoSrc, `${entry.slug} must have a presentation logo for homepage cards`);
+  assert.match(logoSrc, /^\/sweepstakeslogo\/.+\.(?:webp|png)$/);
+  const logoFile = resolve(root, logoSrc.slice(1));
+  assert.ok(existsSync(logoFile), `${logoFile} must exist on disk`);
+}
+const texasAcebet = texasViews.find((entry) => entry.slug === 'acebet');
+assert.ok(texasAcebet?.logoSrc, 'comparison views must include logo paths for card chrome');
+
 const homeSource = readFileSync(resolve(root, 'src/routes/index.astro'), 'utf8');
 assert.match(
   homeSource,
@@ -234,6 +249,22 @@ for (const marker of requiredHomeSections) {
   previousSection = position;
 }
 assert.match(homeSource, /<AffiliateLink\b/, 'homepage partner CTAs must use AffiliateLink');
+assert.match(homeSource, /variant="homepage"/, 'homepage must opt into the full-bleed visual layout');
+assert.match(homeSource, /slot="hero-extra"/, 'trust chrome must render inside the homepage hero');
+assert.match(homeSource, /class="trust-pills"/, 'homepage hero must restore trust pills');
+assert.match(homeSource, /class="crit-row"/, 'homepage must restore the criteria row');
+assert.match(homeSource, /class="btn-claim"/, 'partner CTAs must use the gold claim-button chrome');
+assert.match(homeSource, /home-op-logo|operatorLogoSrc/, 'comparison rows must render operator logos');
+assert.doesNotMatch(
+  homeSource,
+  /All Sweepstakes Sites Active|All Sites Active|Live & Verified|Top Payout|card-rank|data-f="top"/,
+  'visual restore must not bring back ranking badges or fabricated live-status copy',
+);
+assert.doesNotMatch(
+  homeSource,
+  /4\.5\s*\/\s*5|★★★★★|Best Sweepstakes Casinos 2026/,
+  'homepage must not restore the legacy /5 star ranking presentation',
+);
 assert.match(homeSource, /<table\b/, 'homepage comparison must use a semantic table');
 assert.match(homeSource, /<caption\b/, 'homepage comparison table must have a caption');
 assert.match(homeSource, /<th\s+scope="col"/, 'comparison headers must identify column scope');
