@@ -51,16 +51,22 @@ assert.equal(
 );
 
 const verifiedScores = homepage.selectVerifiedEditorScores(OPERATORS);
+assert.equal(verifiedScores.length, OPERATORS.length);
 assert.deepEqual(
-  verifiedScores.map((entry) => [entry.slug, entry.score]),
-  [
-    ['american-luck', 72],
-    ['legendz', 84],
-    ['playfame', 86],
-    ['roxymoxy', 80],
-  ],
+  verifiedScores.map((entry) => entry.slug),
+  OPERATORS.map((operator) => ({
+    slug: operator.slug,
+    name: operator.name.status === 'verified' ? operator.name.value : '',
+  }))
+    .sort((a, b) => a.name.localeCompare(b.name) || a.slug.localeCompare(b.slug))
+    .map((operator) => operator.slug),
   'resolved scores are supporting attributes in alphabetical, non-ranking order',
 );
+for (const entry of verifiedScores) {
+  const score = OPERATORS.find((operator) => operator.slug === entry.slug)!.editorScore100;
+  assert.equal(score.status, 'verified');
+  assert.equal(entry.score, score.status === 'verified' ? score.value : undefined);
+}
 
 const comparison = homepage.selectComparisonOperators(OPERATORS);
 assert.equal(comparison.length, 12, 'decision-support comparison should contain 12 operators');
@@ -202,9 +208,15 @@ assert.doesNotMatch(
   /\bcpa\b|trackingLink|revshare/i,
   'editorial selectors must not use affiliate economics or tracking links',
 );
-assert.equal(comparison.find((entry) => entry.slug === 'acebet')?.editorScore, undefined);
+assert.equal(comparison.find((entry) => entry.slug === 'acebet')?.editorScore, '88/100');
 
 const homeSource = readFileSync(resolve(root, 'src/routes/index.astro'), 'utf8');
+assert.match(
+  homeSource,
+  /a: 'Yes\. All 29 reviewed operators currently have an editor score\./,
+  'homepage FAQ must reflect that all reviewed operators have canonical editor scores',
+);
+assert.doesNotMatch(homeSource, /a: 'No\. We display an editor score only when/);
 const requiredHomeSections = [
   'id="answer"',
   'id="comparison"',
