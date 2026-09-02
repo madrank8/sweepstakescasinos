@@ -127,28 +127,60 @@ const welcomeOfferConflicts = operators.conflicts.filter(
 assert.deepEqual(
   welcomeOfferConflicts.map((conflict) => conflict.slug),
   ['crown-coins', 'hello-millions', 'spinblitz', 'spree'],
-  'all four unresolved welcome-offer conflicts must remain detected',
+  'all four historical welcome-offer conflicts must remain detected',
 );
 for (const conflict of welcomeOfferConflicts) {
   assert.ok(
     conflict.sources.some((source) =>
       source.path.startsWith(`src/data/operators.ts#${conflict.slug}.signupOffer`),
     ),
-    `${conflict.slug} must cite its canonical unresolved fact sources`,
+    `${conflict.slug} must cite its canonical fact sources`,
   );
-  assert.ok(
-    conflict.sources.some((source) =>
-      [
-        'reviews/',
-        'src/content/comparisons/sweepstakes-casinos.mdx',
-        'src/routes/bonuses/no-deposit/index.astro',
-      ].some((prefix) => source.path.startsWith(prefix)),
-    ),
-    `${conflict.slug} must cite a currently served review or hub/comparison surface`,
-  );
+  if (conflict.status === 'UNRESOLVED') {
+    assert.ok(
+      conflict.sources.some((source) =>
+        [
+          'reviews/',
+          'src/content/comparisons/sweepstakes-casinos.mdx',
+          'src/routes/bonuses/no-deposit/index.astro',
+        ].some((prefix) => source.path.startsWith(prefix)),
+      ),
+      `${conflict.slug} must cite a currently served review or hub/comparison surface`,
+    );
+  }
   assert.ok(
     conflict.sources.every((source) => source.path !== 'src/routes/index.astro'),
     `${conflict.slug} must not be attributed to the served homepage`,
+  );
+}
+assert.deepEqual(
+  welcomeOfferConflicts.map(({ slug, status }) => ({ slug, status })),
+  [
+    { slug: 'crown-coins', status: 'UNRESOLVED' },
+    { slug: 'hello-millions', status: 'RESOLVED' },
+    { slug: 'spinblitz', status: 'UNRESOLVED' },
+    { slug: 'spree', status: 'RESOLVED' },
+  ],
+);
+for (const slug of ['hello-millions', 'spree']) {
+  const resolved = welcomeOfferConflicts.find((conflict) => conflict.slug === slug)!;
+  assert.ok(
+    resolved.sources.some(
+      (source) => source.path.startsWith('https://') && source.path.includes('2026-09-02'),
+    ),
+    `${slug} resolved offer must cite its official URL and capture date`,
+  );
+}
+for (const slug of ['crown-coins', 'spinblitz']) {
+  const unresolved = welcomeOfferConflicts.find((conflict) => conflict.slug === slug)!;
+  assert.ok(
+    unresolved.sources.some(
+      (source) =>
+        source.path.startsWith(`src/data/operators.ts#${slug}.signupOffer`) &&
+        source.path.includes('https://') &&
+        source.path.includes('2026-09-02'),
+    ),
+    `${slug} unresolved offer must document its dated official-source evidence gap`,
   );
 }
 assert.equal(

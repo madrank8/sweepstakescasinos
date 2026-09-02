@@ -589,16 +589,50 @@ export function inventoryOperatorFacts(root = process.cwd()): OperatorAudit {
     const hubOffer = hubs.find(
       (entry) => entry.slug === review.slug && entry.field === 'welcome offer',
     );
-    if (canonicalOperator?.signupOffer.status === 'unresolved') {
-      const canonicalSources = canonicalOperator.signupOffer.sources.map(
+    const signupOffer = canonicalOperator?.signupOffer;
+    if (
+      signupOffer?.status === 'verified' &&
+      signupOffer.provenance.some((provenance) => provenance.source.startsWith('http'))
+    ) {
+      const officialSources = signupOffer.provenance
+        .filter((provenance) => provenance.source.startsWith('http'))
+        .map((provenance) => ({
+          path:
+            provenance.source +
+            (provenance.verifiedOn ? ` (captured ${provenance.verifiedOn})` : ''),
+          value: signupOffer.value,
+        }));
+      const offerSources = distinctSources([
+        {
+          path: `src/data/operators.ts#${review.slug}.signupOffer`,
+          value: signupOffer.value,
+        },
+        ...officialSources,
+        ...(compared?.offer
+          ? [{ path: compared.path, value: compared.offer }]
+          : []),
+        ...(hubOffer ? [{ path: hubOffer.path, value: hubOffer.value }] : []),
+      ]);
+      conflicts.push({
+        slug: review.slug,
+        field: 'welcome offer',
+        sources: offerSources,
+        status: 'RESOLVED',
+      });
+    } else if (signupOffer?.status === 'unresolved') {
+      const canonicalSources = signupOffer.sources.map(
         (source, index) => ({
           path:
             `src/data/operators.ts#${review.slug}.signupOffer.sources[${index}] ` +
-            `(${source.provenance.source})`,
+            `(${source.provenance.source}` +
+            (source.provenance.verifiedOn
+              ? `; captured ${source.provenance.verifiedOn}`
+              : '') +
+            ')',
           value: source.value,
         }),
       );
-      const servedReviewSources = canonicalOperator.signupOffer.sources
+      const servedReviewSources = signupOffer.sources
         .filter((source) => source.provenance.source.startsWith('reviews/'))
         .map((source) => ({
           path: source.provenance.source,
@@ -925,8 +959,8 @@ function operatorReport(audit: OperatorAudit): string {
   const lines = [
     reportHeader('Operator Data Conflicts'),
     `Coverage: **${audit.reviews.length} authored reviews**, **${audit.homepage.length} homepage cards**, **${audit.comparison.length} comparison rows**, and **${audit.hubs.length} relevant hub facts**.\n\n`,
-    'No conflict below is resolved by this audit. Values remain exactly as authored pending source review.\n\n',
-    '`src/data/operators.ts` records these conflicts as `unresolved`; canonical selectors and Review schema omit them. Every `index.html` score source is a historical homepage snapshot that is not served. Verified canonical values retain field-level provenance, while affiliate restrictions and schema identity remain in their separate data modules.\n\n',
+    'The audit reports canonical resolution status but never resolves a conflict itself. Values remain exactly as authored or captured from the cited official source.\n\n',
+    '`src/data/operators.ts` records unresolved conflicts and verified canonical selections; canonical selectors omit unresolved values. Every `index.html` score source is a historical homepage snapshot that is not served. Verified canonical values retain field-level provenance, while affiliate restrictions and schema identity remain in their separate data modules.\n\n',
     '| Operator | Field | Exact source values | Status |\n',
     '|---|---|---|---|\n',
     ...audit.conflicts.map(

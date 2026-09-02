@@ -311,7 +311,7 @@ export function validateOperatorConsistency(root = process.cwd()): string[] {
     const record = OPERATORS.find((candidate) => candidate.slug === conflict.slug);
     if (!record) continue;
     const field = conflict.field === 'welcome offer' ? record.signupOffer : undefined;
-    if (field?.status === 'verified') {
+    if (field?.status === 'verified' && conflict.status !== 'RESOLVED') {
       errors.push(`${conflict.slug}.${conflict.field}: verified despite disagreeing audited surfaces`);
     }
   }

@@ -199,6 +199,41 @@ const CONFLICTING_OFFERS: Record<string, string[]> = {
   spree: ['25,000 GC + 2.5 SC Instant Reg', '25,000 GC + 2.5 SC'],
 };
 
+const VERIFIED_OFFERS: Record<
+  string,
+  { value: string; source: string; verifiedOn: string }
+> = {
+  'hello-millions': {
+    value: 'GC 7,500 + FREE SC 2.5',
+    source: 'https://www.hellomillions.com/about',
+    verifiedOn: '2026-09-02',
+  },
+  spree: {
+    value: '25,000 Gold Coins and 2.5 Spree Coins',
+    source:
+      'https://support.spree.com/api/v2/help_center/en-us/articles/37595439875730.json',
+    verifiedOn: '2026-09-02',
+  },
+};
+
+const OFFICIAL_OFFER_GAPS: Record<
+  string,
+  { note: string; source: string; verifiedOn: string }
+> = {
+  'crown-coins': {
+    note: 'Official page describes bonus routes but does not state a signup-offer amount.',
+    source:
+      'https://help.crowncoinscasino.com/en/articles/12808804-how-to-get-free-bonus-coins',
+    verifiedOn: '2026-09-02',
+  },
+  spinblitz: {
+    note: 'Official page says promotions have individual reward details but does not state a signup-offer amount.',
+    source:
+      'https://support.spinblitz.com/api/v2/help_center/en-us/articles/38181733505565.json',
+    verifiedOn: '2026-09-02',
+  },
+};
+
 const seeds: OperatorSeed[] = [
   {
     slug: 'acebet',
@@ -247,12 +282,28 @@ function scoreFact(slug: string): CanonicalFact<number> {
 }
 
 function signupFact(slug: string): CanonicalFact<string> {
+  const official = VERIFIED_OFFERS[slug];
+  if (official) {
+    return {
+      status: 'verified',
+      value: official.value,
+      provenance: [
+        {
+          source: official.source,
+          verifiedOn: official.verifiedOn,
+        },
+      ],
+    };
+  }
   const conflict = CONFLICTING_OFFERS[slug];
   if (conflict) {
     const reviewSource = sourceFor(slug);
+    const officialGap = OFFICIAL_OFFER_GAPS[slug];
     return {
       status: 'unresolved',
-      reason: 'Published offer surfaces use different wording or amounts.',
+      reason: officialGap
+        ? `Published offer surfaces use different wording or amounts; official source checked ${officialGap.verifiedOn} does not state an unambiguous signup-offer amount.`
+        : 'Published offer surfaces use different wording or amounts; no official source has resolved the conflict.',
       sources: [
         {
           value: conflict[0],
@@ -268,6 +319,17 @@ function signupFact(slug: string): CanonicalFact<string> {
             source: `reviews/${slug}.html`,
           },
         },
+        ...(officialGap
+          ? [
+              {
+                value: officialGap.note,
+                provenance: {
+                  source: officialGap.source,
+                  verifiedOn: officialGap.verifiedOn,
+                },
+              },
+            ]
+          : []),
       ],
     };
   }

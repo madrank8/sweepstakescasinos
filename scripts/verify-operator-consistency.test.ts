@@ -109,6 +109,62 @@ assert.ok(
   'five-star values must never be mislabeled as editorScore100',
 );
 
+for (const slug of ['crown-coins', 'hello-millions', 'spinblitz', 'spree']) {
+  const offer = getOperator(slug)!.signupOffer;
+  if (offer.status === 'verified') {
+    const provenance = offer.provenance[0];
+    assert.ok(provenance.source.startsWith('http'), `${slug} verified offer provenance must be an official URL`);
+    assert.ok(provenance.verifiedOn, `${slug} verified offer must have a capture date`);
+  } else {
+    assert.equal(offer.status, 'unresolved', `${slug} offer must be verified or explicitly unresolved`);
+  }
+}
+
+for (const [slug, value, source] of [
+  [
+    'hello-millions',
+    'GC 7,500 + FREE SC 2.5',
+    'https://www.hellomillions.com/about',
+  ],
+  [
+    'spree',
+    '25,000 Gold Coins and 2.5 Spree Coins',
+    'https://support.spree.com/api/v2/help_center/en-us/articles/37595439875730.json',
+  ],
+] as const) {
+  const offer = getOperator(slug)!.signupOffer;
+  assert.equal(offer.status, 'verified', `${slug} official offer must be canonical`);
+  assert.equal(verifiedValue(offer), value);
+  assert.deepEqual(offer.status === 'verified' ? offer.provenance[0] : undefined, {
+    source,
+    verifiedOn: '2026-09-02',
+  });
+}
+
+for (const [slug, source] of [
+  [
+    'crown-coins',
+    'https://help.crowncoinscasino.com/en/articles/12808804-how-to-get-free-bonus-coins',
+  ],
+  [
+    'spinblitz',
+    'https://support.spinblitz.com/api/v2/help_center/en-us/articles/38181733505565.json',
+  ],
+] as const) {
+  const offer = getOperator(slug)!.signupOffer;
+  assert.equal(offer.status, 'unresolved', `${slug} amount is absent from its official public page`);
+  assert.match(offer.status === 'unresolved' ? offer.reason : '', /official source.*does not state/i);
+  assert.ok(
+    offer.status === 'unresolved' &&
+      offer.sources.some(
+        (evidence) =>
+          evidence.provenance.source === source &&
+          evidence.provenance.verifiedOn === '2026-09-02',
+      ),
+    `${slug} unresolved offer must retain the dated official-source evidence gap`,
+  );
+}
+
 const fixture =
   '<main><!--sc-operator-facts data-operator="american-luck" ' +
   'data-fields="name,operatorName,editorScore100,lastVerifiedDate"--></main>';

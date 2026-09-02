@@ -30,7 +30,7 @@ A candidate is created only when every gate passes. Current freshness-dependent 
 | Fastest payout sweepstakes casinos | competing URLs | PASS | No existing route ranks operators by a comparable payout-duration metric. |
 | Fastest payout sweepstakes casinos | internal-link sources | PASS | Reviews, the redemption guide, and the main comparison could supply contextual links. |
 | Fastest payout sweepstakes casinos | conversion action | PASS | The supported action would be reading operator reviews after comparing published terms. |
-| Most free Sweeps Coins | canonical field coverage | FAIL | 24/29 records have a verified signup offer. |
+| Most free Sweeps Coins | canonical field coverage | FAIL | 26/29 records have a verified signup offer. |
 | Most free Sweeps Coins | freshness | FAIL | 0/29 records have a verified lastVerifiedDate. |
 | Most free Sweeps Coins | distinct intent | FAIL | The intent is already served by /bonuses/no-deposit/. |
 | Most free Sweeps Coins | competing URLs | FAIL | /bonuses/no-deposit/ is the existing canonical no-purchase offer destination. |
@@ -40,6 +40,6 @@ A candidate is created only when every gate passes. Current freshness-dependent 
 ## Decisions
 
 - **DEFER: Fastest payout sweepstakes casinos.** Unmet gates: canonical field coverage: 17/29 records have verified published timing text, but 0 have a normalized comparable payout-duration metric; freshness: 0/29 records have a verified lastVerifiedDate.
-- **DEFER: Most free Sweeps Coins.** Unmet gates: canonical field coverage: 24/29 records have a verified signup offer; freshness: 0/29 records have a verified lastVerifiedDate; distinct intent: The intent is already served by /bonuses/no-deposit/; competing URLs: /bonuses/no-deposit/ is the existing canonical no-purchase offer destination.
+- **DEFER: Most free Sweeps Coins.** Unmet gates: canonical field coverage: 26/29 records have a verified signup offer; freshness: 0/29 records have a verified lastVerifiedDate; distinct intent: The intent is already served by /bonuses/no-deposit/; competing URLs: /bonuses/no-deposit/ is the existing canonical no-purchase offer destination.
 
 No ranking, offer, legal status, redirect, or canonical winner is asserted here.
