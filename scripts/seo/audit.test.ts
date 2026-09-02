@@ -20,6 +20,7 @@ import {
   evaluateCommercialHubCandidates,
   findAuditReportDrift,
   inventoryOperatorFacts,
+  legalBriefCoverage,
   renderAuditReports,
   scanTestingClaims,
 } from './audit-core';
@@ -557,6 +558,25 @@ const availability = reconcileAvailabilityAuthorities({
   trackerOperators: fallbackOperators,
   trackerAvailability: fallbackAvailability,
 });
+const briefs = readFileSync(resolve(root, 'docs/seo/legal-review-briefs.md'), 'utf8');
+const warnings = availability.warnings.filter((warning) =>
+  ['tracker-policy-difference', 'impossible-commercial-intersection'].includes(
+    warning.kind,
+  ),
+);
+for (const warning of warnings) {
+  const subject =
+    warning.kind === 'impossible-commercial-intersection'
+      ? 'Card Crush commercial/site policy intersection'
+      : warning.state ?? warning.kind;
+  assert.match(
+    briefs,
+    new RegExp(`## ${subject}`, 'i'),
+    `legal brief must cover ${subject}`,
+  );
+}
+assert.match(briefs, /## Card Crush commercial\/site policy intersection/i);
+assert.equal(legalBriefCoverage(root).requiredCount, 7);
 const availabilityReport = renderAvailabilityConflictReport(availability);
 assert.equal(
   reports.get('state-legality-conflicts.md'),

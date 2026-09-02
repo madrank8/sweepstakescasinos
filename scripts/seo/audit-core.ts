@@ -1247,6 +1247,55 @@ export function findAuditReportDrift(
   return drift;
 }
 
+export interface LegalBriefCoverage {
+  requiredCount: number;
+  coveredCount: number;
+  missingSubjects: string[];
+}
+
+function legalBriefHeading(subject: string, kind: string): string {
+  if (kind === 'commercial / site policy') {
+    const operator = subject
+      .split('-')
+      .map((part) => `${part.charAt(0).toUpperCase()}${part.slice(1)}`)
+      .join(' ');
+    return `${operator} commercial/site policy intersection`;
+  }
+  return subject;
+}
+
+function escapedPattern(value: string): string {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+export function legalBriefCoverage(root = process.cwd()): LegalBriefCoverage {
+  const reportPath = join(root, 'docs', 'seo', 'state-legality-conflicts.md');
+  const briefsPath = join(root, 'docs', 'seo', 'legal-review-briefs.md');
+  if (!existsSync(briefsPath)) {
+    throw new Error('Legal brief coverage failed: docs/seo/legal-review-briefs.md is missing.');
+  }
+
+  const report = readFileSync(reportPath, 'utf8');
+  const briefs = readFileSync(briefsPath, 'utf8');
+  const requiredHeadings = [...report.matchAll(
+    /^\| ([^|]+?) \| (tracker \/ site policy|commercial \/ site policy) \|/gm,
+  )].map((match) => legalBriefHeading(match[1].trim(), match[2].trim()));
+  const missingSubjects = requiredHeadings.filter(
+    (heading) =>
+      !new RegExp(`^##\\s+${escapedPattern(heading)}\\s*$`, 'im').test(briefs),
+  );
+  if (missingSubjects.length > 0) {
+    throw new Error(
+      `Legal brief coverage failed for: ${missingSubjects.join(', ')}.`,
+    );
+  }
+  return {
+    requiredCount: requiredHeadings.length,
+    coveredCount: requiredHeadings.length - missingSubjects.length,
+    missingSubjects,
+  };
+}
+
 export function auditSummary(root: string, options: AuditSnapshotOptions) {
   const operators = inventoryOperatorFacts(root);
   const claims = scanTestingClaims(root);
@@ -1266,6 +1315,7 @@ export function auditSummary(root: string, options: AuditSnapshotOptions) {
     trackerOperators: fallbackOperators,
     trackerAvailability: fallbackAvailability,
   });
+  const legalBriefs = legalBriefCoverage(root);
   return {
     reviewCount: operators.reviews.length,
     homepageOperatorCount: operators.homepage.length,
@@ -1303,5 +1353,7 @@ export function auditSummary(root: string, options: AuditSnapshotOptions) {
         warning.kind,
       ),
     ).length,
+    legalBriefRequiredCount: legalBriefs.requiredCount,
+    legalBriefCoveredCount: legalBriefs.coveredCount,
   };
 }
