@@ -6,6 +6,7 @@ import {
   formatPartialIsoDate,
   operatorFactNote,
 } from '../src/lib/operatorPresentation';
+import { decorateChrome } from '../src/lib/pageChrome';
 import { itemListParityErrors } from './lib/itemlist-parity';
 
 const root = resolve(import.meta.dirname, '..');
@@ -260,6 +261,21 @@ assert.match(
   homeSource,
   /data-item-position="28"[^>]*data-item-name="Mega Bonanza"[^>]*data-item-url="https:\/\/sweepstakeswiz\.com\/reviews\/mega-bonanza\/"/,
   'last ranked card must expose Mega Bonanza parity attributes',
+);
+assert.doesNotThrow(
+  () => decorateChrome(homeSource),
+  'original homepage FAQ markup must survive schema chrome without a 500',
+);
+const decoratedHome = decorateChrome(homeSource);
+assert.match(
+  decoratedHome,
+  /"@type":"FAQPage"/,
+  'restored homepage must emit FAQPage schema from visible Q&A',
+);
+assert.match(
+  decoratedHome,
+  /"@type":"ItemList"/,
+  'restored homepage must keep the original ranked ItemList schema',
 );
 
 const bestSource = readFileSync(resolve(root, 'src/routes/best/[slug].astro'), 'utf8');
