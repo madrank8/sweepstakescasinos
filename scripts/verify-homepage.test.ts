@@ -237,6 +237,26 @@ assert.match(
   /Best Sweepstakes Casinos 2026/,
   'original ranked homepage title must remain',
 );
+assert.match(
+  homeSource,
+  /<div class="hero-live"><span class="hero-live-dot"><\/span> Checked Against Official Operator Sites<\/div>/,
+  'hero live pill must keep chrome and the GLM source-check sentence',
+);
+assert.doesNotMatch(
+  homeSource,
+  /All Sweepstakes Sites Active/,
+  'hero must not claim all sites are active',
+);
+assert.doesNotMatch(
+  homeSource,
+  /Verified July 2026/,
+  'hero must not stamp an unverifiable July 2026 verification date',
+);
+assert.match(homeSource, /Legal in USA/, 'Legal in USA trust pill must remain');
+assert.match(homeSource, /No Purchase Needed/, 'No Purchase Needed trust pill must remain');
+assert.match(homeSource, /Fast Redemptions Only/, 'Fast Redemptions Only trust pill must remain');
+assert.match(homeSource, /Expert Verified 2026/, 'Expert Verified 2026 trust pill must remain');
+assert.match(homeSource, /20\+ Sweeps Sites/, '20+ Sweeps Sites trust pill must remain');
 assert.equal(
   [...homeSource.matchAll(/<article\b[^>]*\bclass=["'][^"']*\bcard\b/g)].length,
   28,
