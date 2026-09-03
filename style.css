@@ -437,6 +437,22 @@ footer{background:var(--bg3);border-top:1px solid var(--border);padding:46px 20p
 .fade-up.visible{opacity:1;transform:none;}
 
 /* ══════════════════════
+   HOMEPAGE FOLD
+══════════════════════ */
+.js-fold #casino-grid.fold-collapsed .fold-extra{display:none;}
+.fold-more-wrap{display:none;margin:8px auto 32px;text-align:center;max-width:480px;padding:0 16px;}
+.js-fold .fold-more-wrap{display:block;}
+.fold-more-wrap .btn-claim{width:100%;}
+.fold-count{margin-top:10px;font-size:.8rem;color:rgba(255,255,255,.48);}
+.btn-claim.fold-fewer{
+  background:transparent;
+  color:var(--neon);
+  border:1px solid rgba(249,224,0,.35);
+  box-shadow:none;
+}
+.btn-claim.fold-fewer::after{display:none;}
+
+/* ══════════════════════
    RESPONSIVE
 ══════════════════════ */
 @media(max-width:920px){

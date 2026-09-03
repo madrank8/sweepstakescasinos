@@ -25,3 +25,7 @@ evidence/*
 *.db
 .beads-credential-key
 .gstack/
+
+# Local visual-companion mockups
+.superpowers/brainstorm/
+.playwright-mcp/
