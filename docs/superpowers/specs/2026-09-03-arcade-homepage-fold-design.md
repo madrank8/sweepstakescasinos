@@ -1,7 +1,7 @@
 # Arcade Homepage 10-Card Fold Design
 
 **Date:** 2026-09-03
-**Status:** Awaiting spec review
+**Status:** Approved
 **Approved mockup:** original arcade cards with gold **Show all 28 casinos** / **Show fewer** (visual companion `fold-10-cards-original.html`)
 **Base:** `main`
 
