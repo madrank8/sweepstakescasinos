@@ -1,7 +1,7 @@
 # Arcade Homepage Hero Live-Pill Design
 
 **Date:** 2026-09-03
-**Status:** Awaiting spec review
+**Status:** Approved
 **Approved mockup:** option 2 on `hero-pill-glm-copy.html` (original arcade hero, chrome unchanged)
 **Approved copy:** GLM 5.2 line `Checked Against Official Operator Sites`
 **Base:** `main`
