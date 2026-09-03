@@ -2,7 +2,7 @@
 
 Source snapshot: repository authored sources. Generated deterministically without a runtime date.
 
-Inventory: **103 authored routes**, **1443 internal link occurrences**, **0 missing-target occurrences**, and **0 orphan candidates**.
+Inventory: **103 authored routes**, **1431 internal link occurrences**, **0 missing-target occurrences**, and **0 orphan candidates**.
 
 ## Target graph
 
@@ -25,7 +25,7 @@ None detected.
 
 | URL | Authored source | Robots | Canonical | Sitemap |
 |---|---|---|---|---|
-| `/` | `src/routes/index.astro` | `layout default: index, follow` | `https://sweepstakeswiz.com/` | yes |
+| `/` | `index.html` | `index, follow, max-image-preview:large` | `https://sweepstakeswiz.com/` | yes |
 | `/about/` | `about.html` | `index, follow` | `https://sweepstakeswiz.com/about/` | yes |
 | `/author/ilija-milosevic/` | `author/ilija-milosevic.html` | `index, follow` | `https://sweepstakeswiz.com/author/ilija-milosevic/` | yes |
 | `/best/` | `src/routes/best/index.astro` | `layout default: index, follow` | `computed by route/layout` | no |

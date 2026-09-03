@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import {
   expectedReviewCtaEligibility,
+  expectedRouteCtaEligibility,
   geoDependentPaths,
   geoRequestHeaders,
   parseSitemapPaths,
@@ -204,6 +205,9 @@ assert.equal(expectedReviewCtaEligibility('rolla', 'TX'), true);
 assert.equal(expectedReviewCtaEligibility('rolla', 'CA'), false);
 assert.equal(expectedReviewCtaEligibility('rolla', 'unknown'), false);
 assert.equal(expectedReviewCtaEligibility('american-luck', 'TX'), false);
+assert.equal(expectedRouteCtaEligibility('/', 'TX'), true);
+assert.equal(expectedRouteCtaEligibility('/', 'CA'), false);
+assert.equal(expectedRouteCtaEligibility('/', 'unknown'), false);
 assert.equal(
   geoDependentPaths().filter((path) => /^\/reviews\/[^/]+\/$/.test(path)).length,
   29,

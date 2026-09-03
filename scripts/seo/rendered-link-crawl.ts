@@ -288,7 +288,7 @@ export function expectedReviewCtaEligibility(
   return reviewOutboundAvailabilityView(slug, stateForMode(mode)).canCta;
 }
 
-function expectedRouteCtaEligibility(path: string, mode: GeoMode): boolean {
+export function expectedRouteCtaEligibility(path: string, mode: GeoMode): boolean {
   const review = path.match(/^\/reviews\/([^/]+)\/$/);
   if (review) return expectedReviewCtaEligibility(review[1], mode);
   const state = stateForMode(mode);
@@ -297,9 +297,13 @@ function expectedRouteCtaEligibility(path: string, mode: GeoMode): boolean {
       (partner) => availabilityForPartner(partner, state).cta.eligible,
     );
   }
-  if (path === '/' || /^\/best\/[^/]+\/$/.test(path)) {
-    const limit = path === '/' ? undefined : 10;
-    return buildComparisonOperatorViews(OPERATORS, state, limit).some(
+  if (path === '/') {
+    return AFFILIATE_PARTNERS.some(
+      (partner) => availabilityForPartner(partner, state).cta.eligible,
+    );
+  }
+  if (/^\/best\/[^/]+\/$/.test(path)) {
+    return buildComparisonOperatorViews(OPERATORS, state, 10).some(
       (operator) => operator.hasPartner && operator.canCta,
     );
   }

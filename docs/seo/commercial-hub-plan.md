@@ -4,7 +4,7 @@ Source snapshot: repository authored sources. Generated deterministically withou
 
 ## Current factual shape
 
-- Homepage: 12 operator decision-support entries at `/` from `src/routes/index.astro`; verified editor scores are supporting attributes, not a top-four ranking.
+- Homepage: 28 ranked operator cards at `/` from `index.html`.
 - Comparison: 10 operators to compare at `/best/sweepstakes-casinos/` from `src/content/comparisons/sweepstakes-casinos.mdx`.
 - Relevant authored hubs: 46 operator facts across the new-casino, no-deposit, and state-legality routes.
 - Affiliate authority: 13 partners in `src/data/affiliates.ts`; tracking and economics stay outside editorial facts.
@@ -12,7 +12,7 @@ Source snapshot: repository authored sources. Generated deterministically withou
 
 ## Phase 2/3 plan
 
-1. Keep `/` as the concise decision-support entry point with a 10–12 operator set selected by canonical decision-fact completeness.
+1. Keep `/` as the original ranked arcade homepage with the 28-operator toplist.
 2. Keep `/reviews/` as the complete alphabetical directory without “best” ordering.
 3. Treat `/best/sweepstakes-casinos/` as deeper evidence-based comparison coverage without claiming an unsupported winner or rank order.
 4. Preserve affiliate tracking, per-partner availability, and site-level suppression as separate authorities.

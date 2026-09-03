@@ -261,7 +261,7 @@ function writeSitemapAndRobots() {
    * Prefer content files over shared route shells when both exist.
    */
   function sourcePathsForUrl(url) {
-    if (url === '/') return ['src/routes/index.astro'];
+    if (url === '/') return ['index.html'];
     const review = url.match(/^\/reviews\/([^/]+)\/$/);
     if (review) return [`reviews/${review[1]}.html`];
     const author = url.match(/^\/author\/([^/]+)\/$/);

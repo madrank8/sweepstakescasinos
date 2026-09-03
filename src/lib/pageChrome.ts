@@ -190,14 +190,14 @@ function visibleFaqItems(html: string): Array<{ q: string; a: string }> {
   ].map((match) =>
     plainVisibleText(
       match[2].replace(
-        /<span\b[^>]*class=["'][^"']*\bfaq-(?:arrow|arr)\b[^"']*["'][^>]*>[\s\S]*?<\/span>/gi,
+        /<span\b[^>]*class=["'][^"']*\bfaq-(?:arrow|arr|ico)\b[^"']*["'][^>]*>[\s\S]*?<\/span>/gi,
         '',
       ),
     ),
   );
   const answers = [
     ...html.matchAll(
-      /<div\b[^>]*class=["'][^"']*\bfaq-(?:answer-)?inner\b[^"']*["'][^>]*>([\s\S]*?)<\/div>/gi,
+      /<div\b[^>]*class=["'][^"']*\bfaq-(?:(?:a|answer)-)?inner\b[^"']*["'][^>]*>([\s\S]*?)<\/div>/gi,
     ),
   ].map((match) => plainVisibleText(match[1]));
   if (questions.length !== answers.length) {
