@@ -9,7 +9,10 @@
  * 3. DexyPlay appears in the /new/ hub roster (src/routes/new/index.astro);
  *    dateModified is updated to 2026-09-08 while datePublished keeps its
  *    historical value; all visible freshness tokens/captions read September 2026.
- * 4. The homepage (index.html) contains a contextual link to /bonuses/no-deposit/.
+ * 4. The homepage (index.html) contains a contextual link to /bonuses/no-deposit/
+ *    and the editorial hub anchor survives the SSR affiliate CTA transform in
+ *    null/unknown, CA-banned and TX-allowed states while real operator CTAs stay
+ *    suppressed in banned states.
  * 5. Existing trackerReconcile behavior maps the new operator slugs to Wiz
  *    review paths (editorial cross-links only; no affiliate behavior).
  * 6. The four new slugs are explicitly absent from the affiliate partner list.
@@ -18,6 +21,8 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { BRAND_ENTITIES, getBrandEntity, brandEntityId } from '../src/data/brandEntities';
 import { AFFILIATE_PARTNERS } from '../src/data/affiliates';
+import type { UsStateCode } from '../src/data/usStates';
+import { suppressAffiliateCtas } from '../src/lib/affiliateHtml';
 import { wizReviewPathForOperator } from '../src/data/trackerReconcile';
 
 const REPO_ROOT = new URL('..', import.meta.url).pathname;
@@ -141,7 +146,27 @@ for (const id of ['new-vet-cap', 'new-geo-cap']) {
 
 // ── 3. Homepage contextual link to no-deposit hub ──
 const homepage = readFileSync(`${REPO_ROOT}index.html`, 'utf8');
-assert.match(homepage, /href="\/bonuses\/no-deposit\//, 'Homepage must link to /bonuses/no-deposit/');
+assert.match(homepage, /href="\/bonuses\/no-deposit\//, 'Homepage source must link to /bonuses/no-deposit/');
+
+// The no-deposit hub is an editorial route, not an operator CTA; it must survive
+// the homepage SSR affiliate transform in every geo state.
+for (const state of [null, 'CA', 'TX'] as Array<UsStateCode | null>) {
+  const transformed = suppressAffiliateCtas(homepage, state);
+  assert.match(
+    transformed,
+    /href="\/bonuses\/no-deposit\//,
+    `Homepage no-deposit hub must survive suppressAffiliateCtas in state ${String(state)}`,
+  );
+}
+
+// Sanity check: a real operator CTA must still be suppressed in CA so the fix
+// cannot bypass legal gating.
+const caHomepage = suppressAffiliateCtas(homepage, 'CA');
+assert.doesNotMatch(
+  caHomepage,
+  /href="\/bonuses\/mcluck\//,
+  'Operator CTA (/bonuses/mcluck/) must still be suppressed in CA',
+);
 
 // ── 4. Tracker reconciliation behavior (editorial review paths only) ──
 for (const slug of requiredSlugs) {
