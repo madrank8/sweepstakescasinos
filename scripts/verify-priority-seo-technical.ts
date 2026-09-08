@@ -22,7 +22,7 @@ import { readFileSync } from 'node:fs';
 import { BRAND_ENTITIES, getBrandEntity, brandEntityId } from '../src/data/brandEntities';
 import { AFFILIATE_PARTNERS } from '../src/data/affiliates';
 import type { UsStateCode } from '../src/data/usStates';
-import { suppressAffiliateCtas } from '../src/lib/affiliateHtml';
+import { prepareSsrAffiliateHtml } from '../src/lib/affiliateHtml';
 import { wizReviewPathForOperator } from '../src/data/trackerReconcile';
 
 const REPO_ROOT = new URL('..', import.meta.url).pathname;
@@ -149,23 +149,39 @@ const homepage = readFileSync(`${REPO_ROOT}index.html`, 'utf8');
 assert.match(homepage, /href="\/bonuses\/no-deposit\//, 'Homepage source must link to /bonuses/no-deposit/');
 
 // The no-deposit hub is an editorial route, not an operator CTA; it must survive
-// the homepage SSR affiliate transform in every geo state.
+// the real homepage SSR affiliate transform in every geo state without gaining
+// a clickId stamp.
+const PLACEMENT = 'homepage';
 for (const state of [null, 'CA', 'TX'] as Array<UsStateCode | null>) {
-  const transformed = suppressAffiliateCtas(homepage, state);
+  const transformed = prepareSsrAffiliateHtml(homepage, state, PLACEMENT);
   assert.match(
     transformed,
     /href="\/bonuses\/no-deposit\//,
-    `Homepage no-deposit hub must survive suppressAffiliateCtas in state ${String(state)}`,
+    `Homepage no-deposit hub must survive prepareSsrAffiliateHtml in state ${String(state)}`,
+  );
+  const noDepositAnchor = transformed.match(/<a\b[^>]*?href="\/bonuses\/no-deposit\/"[^>]*>.*?<\/a>/i);
+  assert.ok(noDepositAnchor, `No-deposit anchor must be extractable in state ${String(state)}`);
+  assert.doesNotMatch(
+    noDepositAnchor[0],
+    /\?clickId=/,
+    `No-deposit hub must not be clickId-stamped in state ${String(state)}`,
   );
 }
 
 // Sanity check: a real operator CTA must still be suppressed in CA so the fix
-// cannot bypass legal gating.
-const caHomepage = suppressAffiliateCtas(homepage, 'CA');
+// cannot bypass legal gating, and must be stamped in TX where it is allowed.
+const caHomepage = prepareSsrAffiliateHtml(homepage, 'CA', PLACEMENT);
 assert.doesNotMatch(
   caHomepage,
   /href="\/bonuses\/mcluck\//,
   'Operator CTA (/bonuses/mcluck/) must still be suppressed in CA',
+);
+
+const txHomepage = prepareSsrAffiliateHtml(homepage, 'TX', PLACEMENT);
+assert.match(
+  txHomepage,
+  /href="\/bonuses\/mcluck\/\?clickId=homepage"/,
+  'Allowed operator CTA (/bonuses/mcluck/) must be clickId-stamped in TX',
 );
 
 // ── 4. Tracker reconciliation behavior (editorial review paths only) ──

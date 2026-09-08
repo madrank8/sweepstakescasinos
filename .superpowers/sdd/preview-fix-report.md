@@ -61,6 +61,36 @@ $ git diff --check
 - `src/lib/affiliateHtml.ts` — classify `/bonuses/no-deposit/` as an editorial hub route so it bypasses operator CTA suppression/stamping.
 - `scripts/verify-priority-seo-technical.ts` — assert the hub anchor survives the SSR transform and that operator CTAs remain suppressed in banned states.
 
+## Review-approved test correction
+An Important review finding requested that the verifier exercise the real production SSR call shape, not the internal helper directly. Updated `scripts/verify-priority-seo-technical.ts` to use `prepareSsrAffiliateHtml(homepage, state, 'homepage')` and added explicit assertions that the preserved `/bonuses/no-deposit/` anchor never gains `?clickId=`. The operator suppression assertion was kept, and a partner stamping check was added to confirm allowed CTAs still receive `?clickId=homepage` in `TX`.
+
+### Exact evidence after test correction
+```
+$ npx tsx scripts/verify-priority-seo-technical.ts
+verify-priority-seo-technical: OK
+
+$ npm run verify:availability
+✅ ALL CHECKS PASSED
+
+$ npm run tracker:lint
+[tracker:lint] OK — tracker hub is affiliate-free.
+
+$ npm run build
+... build complete
+
+$ npm run schema:check
+[schema:check] OK — 89 built pages validated.
+
+$ git diff --check
+(no output)
+```
+
+### Verifier diff for the correction
+- Replaced `suppressAffiliateCtas(homepage, state)` with `prepareSsrAffiliateHtml(homepage, state, 'homepage')` for null/unknown, CA and TX.
+- Extracted the surviving `/bonuses/no-deposit/` anchor and asserted `doesNotMatch(/\?clickId=/)` for each state.
+- Kept `CA` suppression assertion: `href="/bonuses/mcluck/"` must not exist after `prepareSsrAffiliateHtml(..., 'CA', 'homepage')`.
+- Added `TX` stamping assertion: `href="/bonuses/mcluck/?clickId=homepage"` must exist after `prepareSsrAffiliateHtml(..., 'TX', 'homepage')`.
+
 ## Protected/unrelated files
 No protected dirty files were touched. No generated crawl files were edited by hand. No design suppressions were modified.
 
