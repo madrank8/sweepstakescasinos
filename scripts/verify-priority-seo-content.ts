@@ -149,6 +149,29 @@ for (const s of metaSurfaces(bigPirate)) {
   assert.ok(!v.toLowerCase().includes('everything verified'), 'Big Pirate ' + s.name + ' must not say "everything verified"');
 }
 
+const bigPirateTitle = titleTag(bigPirate);
+assert.ok(bigPirateTitle, 'Big Pirate <title> must be present');
+assert.ok(
+  containsCi(bigPirateTitle, 'Big Pirate Casino Review'),
+  'Big Pirate <title> must retain the "Big Pirate Casino Review" query',
+);
+assert.ok(containsCi(bigPirateTitle, 'Bonus'), 'Big Pirate <title> must retain Bonus intent');
+assert.ok(
+  containsCi(bigPirateTitle, 'Payout Speed'),
+  'Big Pirate <title> must retain Payout Speed discovery intent',
+);
+
+const bigPirateH1 = firstH1(bigPirate);
+assert.ok(bigPirateH1, 'Big Pirate <h1> must be present');
+assert.ok(containsCi(bigPirateH1, 'Payout Speed'), 'Big Pirate <h1> must retain Payout Speed');
+assert.ok(containsCi(bigPirateH1, 'Claw Machine'), 'Big Pirate <h1> must retain Claw Machine');
+
+for (const key of ['og:title', 'og:description', 'twitter:title', 'twitter:description']) {
+  const value = metaContent(bigPirate, key);
+  assert.ok(value, `Big Pirate ${key} must be present`);
+  assert.ok(containsCi(value, 'Claw Machine'), `Big Pirate ${key} must retain Claw Machine`);
+}
+
 // 12. Big Pirate metadata uses &amp; consistently (no bare & entities)
 for (const s of metaSurfaces(bigPirate)) {
   if (!s.value) continue;
@@ -210,7 +233,7 @@ assert.ok(!containsCi(sweepico, 'five sources'), 'reviews/sweepico.html must not
 assert.ok(!containsCi(sweepico, 'all five'), 'reviews/sweepico.html must not say "all five"');
 assert.ok(!containsCi(sweepico, 'all 5'), 'reviews/sweepico.html must not say "all 5"');
 // Broad stale-count phrasing: (five|5) + optional adjective + (sources|reviews|review sources)
-const staleCountRe = /(five|5)\s+(\w+\s+)?(sources|reviews|review sources)/i;
+const staleCountRe = /\b(five|5)\b\s+(\w+\s+)?(sources|reviews|review sources)\b/i;
 const staleCountMatch = sweepico.match(staleCountRe);
 assert.equal(
   staleCountMatch,
@@ -238,6 +261,17 @@ for (const rel of REVIEW_FILES) {
   assert.ok(containsCi(html, 'Offer details checked May 2026'), rel + ' must carry an "Offer details checked May 2026" label');
   assert.ok(containsCi(html, 'Updated September 8, 2026'), rel + ' must carry an explicit "Updated September 8, 2026" page-update date');
 }
+
+const dexyByline = dexyHeroByline(read('reviews/dexyplay.html'));
+assert.ok(dexyByline, 'reviews/dexyplay.html must have a hero author/byline element');
+assert.ok(
+  containsCi(dexyByline, 'Updated September 8, 2026'),
+  'reviews/dexyplay.html hero author/byline must explicitly say "Updated September 8, 2026"',
+);
+assert.ok(
+  !containsCi(dexyByline, 'May 20, 2026'),
+  'reviews/dexyplay.html hero author/byline must not leave a bare May 20, 2026 date',
+);
 
 // 13. Big Pirate promo FAQ (visible + JSON-LD) does not claim "no codes exist now"
 const bpFaqVisible = bigPirateFaqVisible(bigPirate);
@@ -286,6 +320,11 @@ function bigPirateFaqVisible(html: string): string {
   const bodyStart = html.indexOf('faq-inner', idx);
   const bodyEnd = html.indexOf('</div>', bodyStart);
   return bodyStart >= 0 && bodyEnd > bodyStart ? html.slice(bodyStart, bodyEnd) : '';
+}
+
+function dexyHeroByline(html: string): string {
+  const match = html.match(/<div class="hero-meta">([\s\S]*?)<\/div>/i);
+  return match ? match[1].replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim() : '';
 }
 
 function collectFaqText(parsed: unknown[], question: string): string | null {

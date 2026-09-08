@@ -4,8 +4,8 @@
  * Checks:
  * 1. Four canonical brand entities exist in src/data/brandEntities.ts:
  *    dexyplay, sweepico, wow-vegas, big-pirate.
- * 2. Each entity carries the required official identity (operator, address
- *    where provided, official URL).
+ * 2. Each entity matches the canonical #brand node on its review page,
+ *    including operator identity and only source-published address detail.
  * 3. DexyPlay appears in the /new/ hub roster (src/routes/new/index.astro);
  *    dateModified is updated to 2026-09-08 while datePublished keeps its
  *    historical value; all visible freshness tokens/captions read September 2026.
@@ -28,54 +28,51 @@ for (const slug of requiredSlugs) {
   assert.ok(slug in BRAND_ENTITIES, `BRAND_ENTITIES must include ${slug}`);
 }
 
-// DexyPlay
-const dexy = getBrandEntity('dexyplay')!;
-assert.equal(dexy.name, 'DexyPlay');
-assert.equal(dexy.officialUrl, 'https://www.dexyplay.com/');
-assert.equal(dexy.operatorName, 'UTech Solutions LLC');
-assert.deepEqual(dexy.operatorAddress, {
-  streetAddress: '571 S Washington',
-  addressLocality: 'Afton',
-  addressRegion: 'WY',
-  postalCode: '83110',
-  addressCountry: 'US',
-});
-
-// Sweepico
-const sweepico = getBrandEntity('sweepico')!;
-assert.equal(sweepico.name, 'Sweepico');
-assert.equal(sweepico.officialUrl, 'https://www.sweepico.com/');
-assert.equal(sweepico.operatorName, 'UTech Solutions LLC');
-assert.deepEqual(sweepico.operatorAddress, {
-  streetAddress: '571 S Washington',
-  addressLocality: 'Afton',
-  addressRegion: 'WY',
-  postalCode: '83110',
-  addressCountry: 'US',
-});
-
-// WOW Vegas
-const wow = getBrandEntity('wow-vegas')!;
-assert.equal(wow.name, 'WOW Vegas');
-assert.equal(wow.officialUrl, 'https://www.wowvegas.com/');
-assert.equal(wow.operatorName, 'MW Services Limited');
-assert.deepEqual(wow.operatorAddress, {
-  streetAddress: '5–9 Main Street',
-  addressLocality: 'Gibraltar',
-  postalCode: 'GX11 1AA',
-  addressCountry: 'GI',
-});
-
-// Big Pirate — transcribed exactly from the inline #brand JSON-LD in reviews/big-pirate.html
-const bigPirate = getBrandEntity('big-pirate')!;
-assert.equal(bigPirate.name, 'Big Pirate Sweepstakes Casino');
-assert.equal(bigPirate.officialUrl, 'https://www.bigpirate.com/');
-assert.equal(bigPirate.operatorName, 'Rafflefy Limited');
-assert.equal(bigPirate.operatorAddress, undefined, 'Big Pirate JSON-LD does not publish an operator address');
-
 // Stable @id must match the canonical pattern
 for (const slug of requiredSlugs) {
   assert.equal(brandEntityId(slug), `https://sweepstakeswiz.com/reviews/${slug}/#brand`);
+}
+
+type JsonObject = Record<string, unknown>;
+
+function canonicalReviewBrand(slug: (typeof requiredSlugs)[number]): JsonObject {
+  const html = readFileSync(`${REPO_ROOT}reviews/${slug}.html`, 'utf8');
+  const nodes: unknown[] = [];
+  for (const match of html.matchAll(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/g)) {
+    const parsed = JSON.parse(match[1]) as JsonObject;
+    const graph = parsed['@graph'];
+    nodes.push(...(Array.isArray(graph) ? graph : [parsed]));
+  }
+  const expectedId = brandEntityId(slug);
+  const brand = nodes.find(
+    (node): node is JsonObject =>
+      node !== null && typeof node === 'object' && (node as JsonObject)['@id'] === expectedId,
+  );
+  assert.ok(brand, `reviews/${slug}.html must publish canonical ${expectedId}`);
+  return brand;
+}
+
+for (const slug of requiredSlugs) {
+  const entity = getBrandEntity(slug)!;
+  const sourceBrand = canonicalReviewBrand(slug);
+  const sourceOperator = sourceBrand.parentOrganization as JsonObject | undefined;
+  const sourceAddress = sourceOperator?.address as JsonObject | undefined;
+  const normalizedSourceAddress = sourceAddress
+    ? Object.fromEntries(Object.entries(sourceAddress).filter(([key]) => key !== '@type'))
+    : undefined;
+
+  assert.equal(entity.name, sourceBrand.name, `${slug} entity name must match its review #brand`);
+  assert.equal(entity.officialUrl, sourceBrand.url, `${slug} official URL must match its review #brand`);
+  assert.equal(
+    entity.operatorName,
+    sourceOperator?.name,
+    `${slug} operator name must match its review #brand`,
+  );
+  assert.deepEqual(
+    entity.operatorAddress,
+    normalizedSourceAddress,
+    `${slug} operator address must contain only detail published by its review #brand`,
+  );
 }
 
 // ── 2. /new/ hub roster and freshness ──
@@ -85,10 +82,62 @@ assert.match(newHub, /const UPDATED_LABEL = 'September 2026';/, 'UPDATED_LABEL m
 assert.match(newHub, /const DATE_PUBLISHED = '2026-07-08';/, 'DATE_PUBLISHED keeps historical 2026-07-08');
 assert.match(newHub, /const DATE_MODIFIED = '2026-09-08';/, 'DATE_MODIFIED must be 2026-09-08');
 assert.match(newHub, /<strong>Updated \{UPDATED_LABEL\}\.<\/strong>/, 'Visible updated line must use UPDATED_LABEL');
-// Every September 2026 freshness token/caption: UPDATED_LABEL, American Luck added line, 2 JSON-LD captions, 2 figcaptions.
-const septemberMatches = newHub.match(/September 2026/g);
-assert.ok(septemberMatches, 'September 2026 freshness tokens must be present');
-assert.equal(septemberMatches.length, 6, 'All six intended September 2026 freshness tokens/captions must be present');
+
+function operatorEntry(slug: string): string {
+  const start = newHub.indexOf(`slug: '${slug}'`);
+  assert.ok(start >= 0, `/new/ hub must include ${slug}`);
+  const end = newHub.indexOf('\n  },', start);
+  assert.ok(end > start, `/new/ hub must have a complete ${slug} roster entry`);
+  return newHub.slice(start, end);
+}
+
+assert.match(
+  operatorEntry('american-luck'),
+  /tier:\s*'recent'[\s\S]*added:\s*'Added July 2026'/,
+  'American Luck must retain its July 2026 added date without remaining the newest addition',
+);
+assert.match(
+  operatorEntry('dexyplay'),
+  /tier:\s*'newest'[\s\S]*added:\s*'Added September 2026'/,
+  'DexyPlay must be identified as the September 2026 addition',
+);
+
+const titleMatch = newHub.match(/const title = '([^']+)';/);
+assert.ok(titleMatch, '/new/ hub must define a page title');
+assert.match(titleMatch[1], /\bSeptember 2026\b/, '/new/ title must carry September 2026 freshness');
+
+const descriptionMatch = newHub.match(/const description =([\s\S]*?);\n\nconst breadcrumbs/);
+assert.ok(descriptionMatch, '/new/ hub must define a page description');
+assert.match(
+  descriptionMatch[1],
+  /UPDATED_LABEL/,
+  '/new/ description must resolve through the September 2026 updated label',
+);
+
+const heroTitleMatch = newHub.match(/heroTitle=\{'([^']+)'\}/);
+assert.ok(heroTitleMatch, '/new/ hub must define a hero H1');
+assert.match(heroTitleMatch[1], /\bSeptember 2026\b/, '/new/ H1 must carry September 2026 freshness');
+
+for (const id of ['#vet-checklist', '#eligibility-flow']) {
+  const start = newHub.indexOf(`\`\${canonical}${id}\``);
+  const end = newHub.indexOf('creator:', start);
+  assert.ok(start >= 0 && end > start, `/new/ JSON-LD must define ${id}`);
+  assert.match(
+    newHub.slice(start, end),
+    /\bSeptember 2026\b/,
+    `/new/ JSON-LD ${id} caption must carry September 2026 freshness`,
+  );
+}
+
+for (const id of ['new-vet-cap', 'new-geo-cap']) {
+  const caption = newHub.match(new RegExp(`<figcaption id="${id}">([\\s\\S]*?)<\\/figcaption>`));
+  assert.ok(caption, `/new/ hub must define ${id}`);
+  assert.match(
+    caption[1],
+    /\bSeptember 2026\b/,
+    `/new/ ${id} must carry September 2026 freshness`,
+  );
+}
 
 // ── 3. Homepage contextual link to no-deposit hub ──
 const homepage = readFileSync(`${REPO_ROOT}index.html`, 'utf8');
