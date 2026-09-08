@@ -154,6 +154,50 @@ export const BRAND_ENTITIES: Record<string, BrandEntity> = {
       addressCountry: 'IM',
     },
   },
+  dexyplay: {
+    slug: 'dexyplay',
+    name: 'DexyPlay',
+    officialUrl: 'https://www.dexyplay.com/',
+    operatorName: 'UTech Solutions LLC',
+    operatorAddress: {
+      streetAddress: '571 S Washington',
+      addressLocality: 'Afton',
+      addressRegion: 'WY',
+      postalCode: '83110',
+      addressCountry: 'US',
+    },
+  },
+  sweepico: {
+    slug: 'sweepico',
+    name: 'Sweepico',
+    officialUrl: 'https://www.sweepico.com/',
+    operatorName: 'UTech Solutions LLC',
+    operatorAddress: {
+      streetAddress: '571 S Washington',
+      addressLocality: 'Afton',
+      addressRegion: 'WY',
+      postalCode: '83110',
+      addressCountry: 'US',
+    },
+  },
+  'wow-vegas': {
+    slug: 'wow-vegas',
+    name: 'WOW Vegas',
+    officialUrl: 'https://www.wowvegas.com/',
+    operatorName: 'MW Services Limited',
+    operatorAddress: {
+      streetAddress: '5–9 Main Street',
+      addressLocality: 'Gibraltar',
+      postalCode: 'GX11 1AA',
+      addressCountry: 'GI',
+    },
+  },
+  'big-pirate': {
+    slug: 'big-pirate',
+    name: 'Big Pirate Sweepstakes Casino',
+    officialUrl: 'https://www.bigpirate.com/',
+    operatorName: 'Rafflefy Limited',
+  },
 };
 
 /** Stable @id for a brand entity — canonical home is its review page. */
