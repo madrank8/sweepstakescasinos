@@ -209,6 +209,14 @@ assert.ok(!containsCi(sweepico, '5 sources'), 'reviews/sweepico.html must not sa
 assert.ok(!containsCi(sweepico, 'five sources'), 'reviews/sweepico.html must not say "five sources"');
 assert.ok(!containsCi(sweepico, 'all five'), 'reviews/sweepico.html must not say "all five"');
 assert.ok(!containsCi(sweepico, 'all 5'), 'reviews/sweepico.html must not say "all 5"');
+// Broad stale-count phrasing: (five|5) + optional adjective + (sources|reviews|review sources)
+const staleCountRe = /(five|5)\s+(\w+\s+)?(sources|reviews|review sources)/i;
+const staleCountMatch = sweepico.match(staleCountRe);
+assert.equal(
+  staleCountMatch,
+  null,
+  'reviews/sweepico.html must not contain stale five/5 source-count phrasing (found "' + (staleCountMatch ? staleCountMatch[0] : '') + '")',
+);
 // Source table has exactly four data rows (count <span class="sn"> within src-table region)
 const srcTableStart = sweepico.indexOf('<table class="src-table"');
 assert.ok(srcTableStart >= 0, 'reviews/sweepico.html must have a src-table');
