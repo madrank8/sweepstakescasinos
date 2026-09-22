@@ -114,7 +114,7 @@ const REVIEW_SOURCE_DATES: Record<
   'card-crush': { publishedOn: '2026-05-20', modifiedOn: '2026-07-14' },
   'casino-click': { publishedOn: '2026-05-20', modifiedOn: '2026-07-14' },
   'crown-coins': { publishedOn: '2026-05-20', modifiedOn: '2026-06-30' },
-  dexyplay: { publishedOn: '2026-05-20', modifiedOn: '2026-07-14' },
+  dexyplay: { publishedOn: '2026-05-20', modifiedOn: '2026-09-22' },
   freespin: { publishedOn: '2026-05-20', modifiedOn: '2026-06-24' },
   'hello-millions': { publishedOn: '2026-05-20', modifiedOn: '2026-07-14' },
   high5: { publishedOn: '2026-05-20', modifiedOn: '2026-06-24' },
