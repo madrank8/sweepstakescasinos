@@ -91,7 +91,7 @@ export const TESTING_BRANDS: TestingBrand[] = [
     isPartner: false,
     overclaimFlag: true,
     claimsToVerify:
-      'We tested the platform hands-on; all five sources we verified; 3-currency system; Claw Machine; 1,500+ games; payout speed.',
+      'Editorial-only page (no firsthand evidence yet): keep soft language; verify 3-currency system, Claw Machine, 1,500+ games, and published payout timing if testing capacity opens.',
     reviewPath: 'reviews/big-pirate.html',
   },
   {

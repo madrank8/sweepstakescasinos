@@ -8,7 +8,7 @@ export const ROUTE_LASTMOD: Readonly<Record<string, string>> = {
   "/reviews/": "2026-08-31",
   "/reviews/acebet/": "2026-08-31",
   "/reviews/american-luck/": "2026-08-31",
-  "/reviews/big-pirate/": "2026-08-31",
+  "/reviews/big-pirate/": "2026-09-22",
   "/reviews/card-crush/": "2026-08-31",
   "/reviews/casino-click/": "2026-08-31",
   "/reviews/crown-coins/": "2026-08-31",
