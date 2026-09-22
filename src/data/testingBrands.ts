@@ -101,7 +101,7 @@ export const TESTING_BRANDS: TestingBrand[] = [
     isPartner: false,
     overclaimFlag: true,
     claimsToVerify:
-      'We tested DexyPlay; PayPal / ACH / push-to-card all process in 3–4 business days; min $100 (100 SC); purchase required before first redemption; 24-level VIP.',
+      'Editorial analysis only until firsthand evidence exists. Published terms to re-check: PayPal / ACH / push-to-card timing (3–4 business days), $100 (100 SC) minimum, purchase required before first redemption, 24-level VIP.',
     reviewPath: 'reviews/dexyplay.html',
   },
   {

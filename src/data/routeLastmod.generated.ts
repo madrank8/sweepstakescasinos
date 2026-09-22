@@ -12,7 +12,7 @@ export const ROUTE_LASTMOD: Readonly<Record<string, string>> = {
   "/reviews/card-crush/": "2026-08-31",
   "/reviews/casino-click/": "2026-08-31",
   "/reviews/crown-coins/": "2026-08-31",
-  "/reviews/dexyplay/": "2026-08-31",
+  "/reviews/dexyplay/": "2026-09-22",
   "/reviews/freespin/": "2026-08-31",
   "/reviews/hello-millions/": "2026-08-31",
   "/reviews/high5/": "2026-08-31",
