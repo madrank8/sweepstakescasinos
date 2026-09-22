@@ -127,7 +127,7 @@ const REVIEW_SOURCE_DATES: Record<
   playfame: { publishedOn: '2026-05-20', modifiedOn: '2026-07-14' },
   pulsz: { publishedOn: '2026-05-20', modifiedOn: '2026-06-24' },
   rolla: { publishedOn: '2026-05-20', modifiedOn: '2026-05-20' },
-  roxymoxy: { publishedOn: '2026-05-20', modifiedOn: '2026-07-14' },
+  roxymoxy: { publishedOn: '2026-05-20', modifiedOn: '2026-09-22' },
   spinblitz: { publishedOn: '2026-05-20', modifiedOn: '2026-06-24' },
   spinfinite: { publishedOn: '2026-05-20', modifiedOn: '2026-06-24' },
   'splash-coins': { publishedOn: '2026-05-20', modifiedOn: '2026-06-24' },
