@@ -129,9 +129,9 @@ export const TESTING_BRANDS: TestingBrand[] = [
     name: 'Acebet',
     batch: 2,
     isPartner: false,
-    overclaimFlag: true,
+    overclaimFlag: false,
     claimsToVerify:
-      'Hands-on Acebet.cc review tested and verified; crypto payouts in 24–48hrs; 7.5 SC mail-in; promo code ACEBET.',
+      'Editorial Acebet.cc review; published crypto payouts 24–48hrs; 7.5 SC mail-in; promo code ACEBET.',
     reviewPath: 'reviews/acebet.html',
   },
   {
