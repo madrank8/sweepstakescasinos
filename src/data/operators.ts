@@ -108,7 +108,7 @@ const REVIEW_SOURCE_DATES: Record<
   string,
   { publishedOn: string; modifiedOn: string }
 > = {
-  acebet: { publishedOn: '2026-05-20', modifiedOn: '2026-06-24' },
+  acebet: { publishedOn: '2026-05-20', modifiedOn: '2026-09-22' },
   'american-luck': { publishedOn: '2026-07-08', modifiedOn: '2026-07-08' },
   'big-pirate': { publishedOn: '2026-05-20', modifiedOn: '2026-09-22' },
   'card-crush': { publishedOn: '2026-05-20', modifiedOn: '2026-07-14' },
