@@ -110,7 +110,7 @@ const REVIEW_SOURCE_DATES: Record<
 > = {
   acebet: { publishedOn: '2026-05-20', modifiedOn: '2026-06-24' },
   'american-luck': { publishedOn: '2026-07-08', modifiedOn: '2026-07-08' },
-  'big-pirate': { publishedOn: '2026-05-20', modifiedOn: '2026-07-14' },
+  'big-pirate': { publishedOn: '2026-05-20', modifiedOn: '2026-09-22' },
   'card-crush': { publishedOn: '2026-05-20', modifiedOn: '2026-07-14' },
   'casino-click': { publishedOn: '2026-05-20', modifiedOn: '2026-07-14' },
   'crown-coins': { publishedOn: '2026-05-20', modifiedOn: '2026-06-30' },
