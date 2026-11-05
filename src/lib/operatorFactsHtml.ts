@@ -1,5 +1,6 @@
 import {
   CANONICAL_OPERATOR_FIELDS,
+  OPERATORS,
   getOperator,
   verifiedValue,
   type CanonicalFact,
@@ -96,10 +97,13 @@ function formatMinimum(value: RedemptionMinimum): string {
 
 function formatRatings(ratings: ExternalRating[]): string {
   return ratings
-    .map(
-      (rating) =>
-        `${rating.sourceName}: ${rating.value}/${rating.scale} (as of ${rating.asOf})`,
-    )
+    .map((rating) => {
+      const count =
+        typeof rating.ratingCount === 'number'
+          ? ` from ${rating.ratingCount.toLocaleString('en-US')}+ reviews`
+          : '';
+      return `${rating.sourceName}: ${rating.value}/${rating.scale}${count} (as of ${rating.asOf})`;
+    })
     .join('; ');
 }
 
@@ -353,6 +357,91 @@ function scoreStateHtml(score: number | undefined): string {
       ? '<!-- editor score unresolved; no reader-visible value -->'
       : `Editor score: ${score}/100`;
   return `<span class="sc-editor-score-state" data-editor-score-status="${status}">${content}</span>`;
+}
+
+function comparisonScoreHtml(score: number | undefined, slug: string): string {
+  const status = score === undefined ? 'unresolved' : 'verified';
+  const content =
+    score === undefined
+      ? '<!-- editor score unresolved; no reader-visible value -->'
+      : `${score}/100`;
+  return `<span class="sc-editor-score-state" data-editor-score-status="${status}" data-comparison-operator="${slug}">${content}</span>`;
+}
+
+function operatorSlugFromLabel(label: string): string | undefined {
+  const normalized = plainText(label).trim().toLowerCase();
+  if (!normalized) return undefined;
+  const asSlug = normalized.replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+  if (getOperator(asSlug)) return asSlug;
+  for (const operator of OPERATORS) {
+    const name = verifiedValue(operator.name)?.toLowerCase();
+    if (!name) continue;
+    if (name === normalized) return operator.slug;
+    if (name.startsWith(`${normalized} `)) return operator.slug;
+    const head = name.split(/\s+/)[0];
+    if (head && head === normalized) return operator.slug;
+  }
+  return undefined;
+}
+
+function comparisonColumnSlug(
+  html: string,
+  elements: HtmlElementRange[],
+  position: number,
+): string | undefined | null {
+  const ancestors = containingElements(elements, position);
+  const table = ancestors.find((element) => element.tag === 'table');
+  const td = ancestors.find((element) => element.tag === 'td');
+  const tr = ancestors.find((element) => element.tag === 'tr');
+  if (!table || !td || !tr) return undefined;
+  const headerRow = elements.find(
+    (element) =>
+      element.tag === 'tr' &&
+      element.start >= table.start &&
+      element.end <= table.end &&
+      /<th\b/i.test(html.slice(element.openEnd, element.closeStart)),
+  );
+  if (!headerRow) return undefined;
+  const headers = elements
+    .filter(
+      (element) =>
+        element.tag === 'th' &&
+        element.start >= headerRow.start &&
+        element.end <= headerRow.end,
+    )
+    .sort((left, right) => left.start - right.start)
+    .map((element) => elementText(html, element));
+  const mapped = headers.map(operatorSlugFromLabel).filter(Boolean);
+  if (mapped.length < 2) return undefined;
+  const cells = elements
+    .filter(
+      (element) =>
+        element.tag === 'td' &&
+        element.start >= tr.start &&
+        element.end <= tr.end,
+    )
+    .sort((left, right) => left.start - right.start);
+  const index = cells.findIndex(
+    (cell) => cell.start === td.start && cell.end === td.end,
+  );
+  if (index < 0 || index >= headers.length) return null;
+  return operatorSlugFromLabel(headers[index]) ?? null;
+}
+
+function scoreMarkupForPosition(
+  html: string,
+  elements: HtmlElementRange[],
+  position: number,
+  pageScore: number | undefined,
+): string | undefined {
+  const column = comparisonColumnSlug(html, elements, position);
+  if (column === undefined) return scoreStateHtml(pageScore);
+  if (column === null) return undefined;
+  const operator = getOperator(column);
+  return comparisonScoreHtml(
+    operator ? verifiedValue(operator.editorScore100) : undefined,
+    column,
+  );
 }
 
 function replaceElementContents(
@@ -619,9 +708,11 @@ function normalizeSplitScoreElements(
     .sort((left, right) => right.start - left.start);
   let result = html;
   for (const element of candidates) {
+    const markup = scoreMarkupForPosition(html, elements, element.start, score);
+    if (markup === undefined) continue;
     result =
       result.slice(0, element.start) +
-      replaceElementContents(element, scoreStateHtml(score), score) +
+      replaceElementContents(element, markup, score) +
       result.slice(element.end);
   }
   return result;
@@ -638,10 +729,12 @@ function normalizeDirectScoreText(
     for (const match of segment.text.matchAll(SCORE_RATIO)) {
       const start = segment.start + match.index;
       if (shouldNormalizeScore(html, start, elements, 'ratio', match[0].length)) {
+        const markup = scoreMarkupForPosition(html, elements, start, score);
+        if (markup === undefined) continue;
         replacements.push({
           start,
           end: start + match[0].length,
-          value: scoreStateHtml(score),
+          value: markup,
         });
       }
     }
@@ -656,10 +749,12 @@ function normalizeDirectScoreText(
           .some((element) => FIRST_PARTY_CUE.test(elementText(html, element))) &&
         shouldNormalizeScore(html, start, elements, 'bare', match[0].length)
       ) {
+        const markup = scoreMarkupForPosition(html, elements, start, score);
+        if (markup === undefined) continue;
         replacements.push({
           start,
           end: start + match[0].length,
-          value: scoreStateHtml(score),
+          value: markup,
         });
       }
     }

@@ -6,7 +6,6 @@ import assert from 'node:assert/strict';
 import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { pathToFileURL } from 'node:url';
-import { READER_REPORT_AGGREGATES } from '../src/data/readerReports.generated';
 import { SITE } from '../src/data/site';
 import { getOperator, verifiedValue } from '../src/data/operators';
 import {
@@ -14,7 +13,7 @@ import {
   ORG_ID,
   WEBSITE_ID,
 } from '../src/lib/schema';
-import { BRAND_AGGREGATE_RATING_MIN_REPORTS } from '../src/lib/brandAggregateRating';
+import { brandAggregateRating } from '../src/lib/brandAggregateRating';
 import { itemListParityErrors } from './lib/itemlist-parity';
 import { findRenderedEditorScoreContexts } from './lib/rendered-editor-score-detector';
 
@@ -213,12 +212,12 @@ function verifyPage(url: string, html: string): void {
       fail(url, `verified editor score ${expectedScore}/100 is not visibly rendered`);
     }
     for (const context of renderedScoreContexts) {
-      if (context.scale !== 100 || context.value !== expectedScore) {
-        fail(
-          url,
-          `rendered ${context.kind} score ${context.value}/${context.scale} does not match ${expectedScore}/100`,
-        );
-      }
+      if (context.scale === 100 && context.value === expectedScore) continue;
+      if (context.kind === 'comparison-column' && context.scale === 100) continue;
+      fail(
+        url,
+        `rendered ${context.kind} score ${context.value}/${context.scale} does not match ${expectedScore}/100`,
+      );
     }
   }
   for (const review of reviews) {
@@ -240,18 +239,14 @@ function verifyPage(url: string, html: string): void {
       typeof owner['@id'] === 'string'
         ? owner['@id'].match(/^https:\/\/sweepstakeswiz\.com\/reviews\/([a-z0-9-]+)\/#brand$/)
         : null;
-    const data = match ? READER_REPORT_AGGREGATES[match[1]] : undefined;
-    if (
-      !data ||
-      data.count < BRAND_AGGREGATE_RATING_MIN_REPORTS ||
-      data.avgRating == null
-    ) {
-      fail(url, 'AggregateRating emitted without 10 approved reader reports');
+    const expected = match ? brandAggregateRating(match[1]) : undefined;
+    if (!expected) {
+      fail(url, 'AggregateRating emitted without Trustpilot count or 10 approved reader reports');
     } else if (
-      aggregate.ratingCount !== data.count ||
-      aggregate.ratingValue !== data.avgRating
+      aggregate.ratingCount !== expected.ratingCount ||
+      aggregate.ratingValue !== expected.ratingValue
     ) {
-      fail(url, 'AggregateRating does not match approved reader-report aggregate');
+      fail(url, 'AggregateRating does not match canonical Trustpilot or reader-report aggregate');
     }
   }
 

@@ -35,6 +35,8 @@ export interface ExternalRating {
   scale: number;
   sourceUrl: string;
   asOf: string;
+  /** Absolute review count when the source publishes one (e.g. Trustpilot). */
+  ratingCount?: number;
 }
 
 export const CANONICAL_OPERATOR_FIELDS = [
@@ -125,7 +127,7 @@ const REVIEW_SOURCE_DATES: Record<
   mcluck: { publishedOn: '2026-05-20', modifiedOn: '2026-06-24' },
   'mega-bonanza': { publishedOn: '2026-05-20', modifiedOn: '2026-06-24' },
   playfame: { publishedOn: '2026-05-20', modifiedOn: '2026-07-14' },
-  pulsz: { publishedOn: '2026-05-20', modifiedOn: '2026-06-24' },
+  pulsz: { publishedOn: '2026-05-20', modifiedOn: '2026-11-05' },
   rolla: { publishedOn: '2026-05-20', modifiedOn: '2026-05-20' },
   roxymoxy: { publishedOn: '2026-05-20', modifiedOn: '2026-09-22' },
   spinblitz: { publishedOn: '2026-05-20', modifiedOn: '2026-06-24' },
@@ -324,7 +326,7 @@ const seeds: OperatorSeed[] = [
   { slug: 'mcluck', name: 'McLuck Sweepstakes Casino', operatorName: 'B-Two Operations Limited', dailyOffer: 'Daily login rewards', giftCardRedemptionMinimum: { amount: 10, currency: 'SC' } },
   { slug: 'mega-bonanza', name: 'Mega Bonanza Sweepstakes Casino', operatorName: 'B2 Services OU / LuminaryPlay Operations', launchDate: '2024', cashRedemptionMinimum: { amount: 75, currency: 'SC' }, giftCardRedemptionMinimum: { amount: 10, currency: 'SC' }, publishedRedemptionTiming: 'Gift cards: instant; bank transfer: 3–5 business days', paymentMethods: ['Prizeout gift card', 'bank transfer'], gameCount: 1200 },
   { slug: 'playfame', name: 'PlayFame Sweepstakes Casino', operatorName: 'PlayFame Operations Limited', dailyOffer: 'Daily login rewards + daily jackpots', giftCardRedemptionMinimum: { amount: 10, currency: 'SC' }, paymentMethods: ['gift card', 'bank transfer'] },
-  { slug: 'pulsz', name: 'Pulsz Sweepstakes Casino', operatorName: 'Yellow Social Interactive Limited', dailyOffer: 'Daily login rewards', giftCardRedemptionMinimum: { amount: 10, currency: 'SC' } },
+  { slug: 'pulsz', name: 'Pulsz Sweepstakes Casino', operatorName: 'Yellow Social Interactive Limited', dailyOffer: 'Daily login rewards', giftCardRedemptionMinimum: { amount: 10, currency: 'SC' }, externalRatings: [{ sourceName: 'Trustpilot', value: 4.4, scale: 5, sourceUrl: 'https://www.trustpilot.com/review/pulsz.com', asOf: '2026-11-05', ratingCount: 22000 }] },
   { slug: 'rolla', name: 'Rolla Sweepstakes Casino', operatorName: 'MW Services Limited', launchDate: '2025-04', cashRedemptionMinimum: { amount: 100, currency: 'SC' }, giftCardRedemptionMinimum: { amount: 50, currency: 'SC' }, publishedRedemptionTiming: 'Repeat redemptions: 1–3 business days', paymentMethods: ['Trustly', 'Skrill', 'Prizeout gift card'], gameCount: 2000 },
   { slug: 'roxymoxy', name: 'RoxyMoxy Sweepstakes Casino', operatorName: 'Rainforest LTD', dailyOffer: 'Daily login bonus', cashRedemptionMinimum: { amount: 100, currency: 'SC' }, paymentMethods: ['bank transfer'], gameCount: 40 },
   { slug: 'spinblitz', name: 'SpinBlitz Sweepstakes Casino', operatorName: 'B-Two Operations Limited', dailyOffer: 'Daily login SC' },
@@ -475,6 +477,13 @@ const OPERATORS_BY_SLUG = new Map(OPERATORS.map((operator) => [operator.slug, op
 
 export function getOperator(slug: string): OperatorRecord | undefined {
   return OPERATORS_BY_SLUG.get(slug);
+}
+
+/** Authored review published/modified dates — the single freshness source. */
+export function reviewSourceDates(
+  slug: string,
+): { publishedOn: string; modifiedOn: string } | undefined {
+  return REVIEW_SOURCE_DATES[slug];
 }
 
 export function verifiedValue<T>(fact: CanonicalFact<T>): T | undefined {

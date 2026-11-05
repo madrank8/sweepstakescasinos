@@ -611,8 +611,18 @@ assert.match(
 const ssrPipelineSource = readFileSync(resolve(root, 'src/lib/affiliateHtml.ts'), 'utf8');
 assert.match(
   ssrPipelineSource,
-  /prepareSsrAffiliateHtml\(\s*injectOperatorFactsHtml\(rawHtml, slug, \{ state, trackerState \}\)/,
+  /injectOperatorFactsHtml\(rawHtml, slug, \{ state, trackerState \}\)[\s\S]*decorateChrome\(/,
   'SSR review facts must be injected before JSON-LD consolidation',
+);
+assert.match(
+  ssrPipelineSource,
+  /stampReviewFreshness\(facts, slug\)/,
+  'SSR reviews must stamp freshness from the operator modifiedOn date',
+);
+assert.match(
+  ssrPipelineSource,
+  /crawlableDefault:\s*true/,
+  'SSR reviews must emit crawlable sponsored CTAs before geo resolution',
 );
 const generatorSource = readFileSync(resolve(root, 'scripts/generate-astro-pages.mjs'), 'utf8');
 assert.match(generatorSource, /getTrackerData/);

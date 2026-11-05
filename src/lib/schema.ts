@@ -125,8 +125,10 @@ export function authorPersonNode(): Node {
 }
 
 /**
- * Canonical brand Organization node (identity facts only — never ratings or
- * offers). Same node, same @id on every page that mentions the brand.
+ * Canonical brand Organization node (identity facts only — no editorial
+ * scores or offers). Trustpilot aggregateRating is attached when the operator
+ * record has a verified ratingCount. Same node, same @id on every page that
+ * mentions the brand.
  */
 export function brandOrganizationNode(slug: string): Node | undefined {
   const brand = getBrandEntity(slug);

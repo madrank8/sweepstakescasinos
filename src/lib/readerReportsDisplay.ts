@@ -25,6 +25,7 @@ export function renderReaderReportBlock(slug: string): string {
   const brand = TESTING_BRAND_BY_SLUG.get(slug);
   const name = brand?.name ?? slug;
   const agg = READER_REPORT_AGGREGATES[slug];
+  if (!agg || agg.count < 1) return '';
 
   let stats: string;
   if (agg && agg.count > 0) {
@@ -67,6 +68,7 @@ export function renderReaderReportBlock(slug: string): string {
 export function injectReaderReports(html: string, slug: string): string {
   if (/<section\b[^>]*\bid=["']reader-reports["']/i.test(html)) return html;
   const block = renderReaderReportBlock(slug);
+  if (!block) return html;
   const i = html.lastIndexOf('</main>');
   if (i !== -1) return html.slice(0, i) + block + html.slice(i);
   const b = html.lastIndexOf('</body>');
