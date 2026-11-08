@@ -1,9 +1,21 @@
+import { OPERATORS, verifiedValue } from '../../src/data/operators';
+
 export interface RenderedEditorScoreContext {
-  kind: 'first-party-language' | 'aggregate-total' | 'unattributed-rating';
+  kind:
+    | 'first-party-language'
+    | 'aggregate-total'
+    | 'unattributed-rating'
+    | 'comparison-column';
   value: number;
   scale: 5 | 100;
   excerpt: string;
 }
+
+const CANONICAL_EDITOR_SCORES = new Set(
+  OPERATORS.map((operator) => verifiedValue(operator.editorScore100)).filter(
+    (score): score is number => score !== undefined,
+  ),
+);
 
 const SCORE = /(\d{1,3}(?:\.\d+)?)\s*\/\s*(5|100)\b/g;
 const BARE_FIVE_SCORE = /\b([0-5]\.\d+)\b/g;
@@ -141,6 +153,21 @@ function visibleLines(html: string): string[] {
   return lines;
 }
 
+function isComparisonScoreLine(lines: string[], index: number): boolean {
+  let cursor = index;
+  while (cursor > 0 && /^\d{1,3}(?:\.\d+)?\s*\/\s*(?:5|100)$/.test(lines[cursor - 1] ?? '')) {
+    cursor -= 1;
+  }
+  const label = lines[cursor - 1] ?? '';
+  if (!/\beditor(?:ial)? (?:score|rating)\b/i.test(label)) return false;
+  let run = 0;
+  for (let i = cursor; i < lines.length; i += 1) {
+    if (!/^\d{1,3}(?:\.\d+)?\s*\/\s*(?:5|100)$/.test(lines[i] ?? '')) break;
+    run += 1;
+  }
+  return run >= 2;
+}
+
 function previousLineIsDescriptive(lines: string[], index: number): boolean {
   const previous = lines[index - 1] ?? '';
   return (
@@ -191,12 +218,18 @@ export function findRenderedEditorScoreContexts(
       ) {
         continue;
       }
+      const comparisonColumn =
+        scale === 100 &&
+        scoreOnly &&
+        isComparisonScoreLine(lines, lineIndex);
       contexts.push({
-        kind: firstParty
-          ? 'first-party-language'
-          : scale === 100
-            ? 'aggregate-total'
-            : 'unattributed-rating',
+        kind: comparisonColumn
+          ? 'comparison-column'
+          : firstParty
+            ? 'first-party-language'
+            : scale === 100
+              ? 'aggregate-total'
+              : 'unattributed-rating',
         value,
         scale,
         excerpt: line.slice(0, 180),
@@ -257,12 +290,18 @@ export function validateRenderedEditorScoreContexts(
   if (contexts.length === 0) {
     return [`verified editor score ${expectedScore100}/100 is not visibly rendered`];
   }
-  return contexts.flatMap((context) =>
-    context.scale === 100 && context.value === expectedScore100
-      ? []
-      : [
-          `rendered ${context.kind} score ${context.value}/${context.scale} ` +
-            `does not match ${expectedScore100}/100`,
-        ],
-  );
+  return contexts.flatMap((context) => {
+    if (context.scale === 100 && context.value === expectedScore100) return [];
+    if (
+      context.kind === 'comparison-column' &&
+      context.scale === 100 &&
+      CANONICAL_EDITOR_SCORES.has(context.value)
+    ) {
+      return [];
+    }
+    return [
+      `rendered ${context.kind} score ${context.value}/${context.scale} ` +
+        `does not match ${expectedScore100}/100`,
+    ];
+  });
 }

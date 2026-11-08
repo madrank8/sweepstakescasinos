@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
-import { stampUpdatedDate } from './htmlStamp.ts';
+import { stampReviewFreshness, stampUpdatedDate } from './htmlStamp.ts';
+import { reviewSourceDates } from '../data/operators.ts';
 import { injectLegalStatusBadge } from './legalStatusBadge.ts';
 import { decorateChrome } from './pageChrome.ts';
 import { injectReaderReports } from './readerReportsDisplay.ts';
@@ -29,8 +30,14 @@ export function getStaticHtml(relativePath) {
  */
 export function getStaticReviewHtml(relativePath, slug) {
   const source = readFileSync(resolve(projectRoot, relativePath), 'utf8');
-  const canonicalFacts = injectOperatorFactsHtml(source, slug);
-  const decorated = stampUpdatedDate(decorateChrome(canonicalFacts));
+  const canonicalFacts = stampReviewFreshness(
+    injectOperatorFactsHtml(source, slug),
+    slug,
+  );
+  const dates = reviewSourceDates(slug);
+  const decorated = dates
+    ? stampUpdatedDate(decorateChrome(canonicalFacts), new Date(`${dates.modifiedOn}T00:00:00Z`))
+    : stampUpdatedDate(decorateChrome(canonicalFacts));
   const withContext = injectReviewContextualLinks(
     injectLegalStatusBadge(decorated, { partner: getPartner(slug) }),
     { reviewSlug: slug },

@@ -25,7 +25,7 @@
     "testing:status": "tsx scripts/verify-testing-evidence.ts --status-only",
     "testing:apply": "tsx scripts/apply-testing-results.ts",
     "testing:anchors": "tsx scripts/add-testing-anchors.ts",
-    "operator:test": "tsx scripts/verify-operator-consistency.test.ts",
+    "operator:test": "tsx scripts/verify-operator-consistency.test.ts && tsx scripts/verify-pulsz-review-fixes.test.ts",
     "operator:verify": "tsx scripts/verify-operator-consistency.ts",
     "verify:brand": "tsx scripts/verify-brand-footer.test.ts",
     "verify:reviews": "tsx scripts/verify-reviews.test.ts && tsx scripts/verify-reviews.ts",

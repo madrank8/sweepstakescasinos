@@ -351,7 +351,9 @@ export function runReviewQa(root = process.cwd()): ReviewQaResult {
       if (
         contexts.length === 0 ||
         contexts.some(
-          (context) => context.value !== score || context.scale !== 100,
+          (context) =>
+            (context.value !== score || context.scale !== 100) &&
+            !(context.kind === 'comparison-column' && context.scale === 100),
         )
       ) {
         errors.push(`${slug}: visible canonical score parity failed`);
@@ -432,8 +434,21 @@ export function runReviewQa(root = process.cwd()): ReviewQaResult {
         `<a\\b[^>]*href=["']/bonuses/${slug}/?(?:\\?[^"']*)?["']`,
         'i',
       ).test(geoRendered);
-      if (hasCta !== expected.canCta) {
-        errors.push(`${slug}/${state ?? 'unknown'}: CTA presence disagrees with eligibility`);
+      const hasNoDepositFallback = /<a\b[^>]*href=["']\/bonuses\/no-deposit\/["']/i.test(
+        geoRendered,
+      );
+      if (expected.canCta) {
+        if (!hasCta) {
+          errors.push(`${slug}/${state ?? 'unknown'}: CTA presence disagrees with eligibility`);
+        }
+      } else if (state == null) {
+        if (!hasCta && /href=["']\/bonuses\//i.test(source)) {
+          errors.push(`${slug}/unknown: crawlable default affiliate CTA is missing`);
+        }
+      } else if (hasCta) {
+        errors.push(`${slug}/${state}: restricted render still exposes operator CTA`);
+      } else if (!hasNoDepositFallback && /href=["']\/bonuses\//i.test(source)) {
+        errors.push(`${slug}/${state}: restricted render lacks no-deposit fallback link`);
       }
       outboundEligibilityAssertionCount += 1;
     }

@@ -1,3 +1,4 @@
+import { getOperator, verifiedValue } from '../data/operators';
 import {
   READER_REPORT_AGGREGATES,
   type ReaderReportAggregate,
@@ -37,6 +38,31 @@ export function buildBrandAggregateRating(
   };
 }
 
+/** Trustpilot aggregate from the operator canonical record, when count is known. */
+export function trustpilotAggregateRating(slug: string): AggregateRatingNode | undefined {
+  const operator = getOperator(slug);
+  if (!operator) return undefined;
+  const ratings = verifiedValue(operator.externalRatings);
+  const trustpilot = ratings?.find(
+    (rating) =>
+      rating.sourceName === 'Trustpilot' &&
+      rating.scale === 5 &&
+      typeof rating.ratingCount === 'number' &&
+      rating.ratingCount > 0,
+  );
+  if (!trustpilot?.ratingCount) return undefined;
+  return {
+    '@type': 'AggregateRating',
+    ratingValue: trustpilot.value,
+    ratingCount: trustpilot.ratingCount,
+    bestRating: 5,
+    worstRating: 1,
+  };
+}
+
 export function brandAggregateRating(slug: string): AggregateRatingNode | undefined {
-  return buildBrandAggregateRating(READER_REPORT_AGGREGATES[slug]);
+  return (
+    trustpilotAggregateRating(slug) ??
+    buildBrandAggregateRating(READER_REPORT_AGGREGATES[slug])
+  );
 }

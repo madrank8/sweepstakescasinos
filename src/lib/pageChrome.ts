@@ -47,7 +47,7 @@ export function injectComplianceRibbon(html: string): string {
 }
 
 import { SITE } from '../data/site';
-import { getOperator, verifiedValue } from '../data/operators';
+import { getOperator, reviewSourceDates, verifiedValue } from '../data/operators';
 import {
   AUTHOR_ID,
   ORG_ID,
@@ -260,6 +260,7 @@ function contentNodes(
   score: number | undefined,
   legacyPage: JsonLdNode | undefined,
   faqs: Array<{ q: string; a: string }>,
+  dateModified?: string,
 ) {
   const foundationIds = new Set([
     ORG_ID,
@@ -294,6 +295,7 @@ function contentNodes(
           worstRating: 0,
         };
       }
+      if (dateModified) node.dateModified = dateModified;
     }
     if (node['@type'] === 'FAQPage') {
       if (faqs.length === 0) continue;
@@ -354,6 +356,9 @@ export function consolidateJsonLd(html: string): string {
       ? verifiedValue(getOperator(reviewSlug)!.editorScore100)
       : undefined
     : visibleEditorialScore(html);
+  const dates = reviewSlug ? reviewSourceDates(reviewSlug) : undefined;
+  const datePublished = dates ? `${dates.publishedOn}T00:00:00Z` : undefined;
+  const dateModified = dates ? `${dates.modifiedOn}T00:00:00Z` : undefined;
   const faqs = visibleFaqItems(html);
   const graph = buildPageGraph({
     url: canonical,
@@ -362,7 +367,9 @@ export function consolidateJsonLd(html: string): string {
     description,
     breadcrumbs: breadcrumbCrumbs(legacyNodes, canonical, title),
     mainEntityId,
-    nodes: contentNodes(legacyNodes, canonical, score, legacyPage, faqs),
+    datePublished,
+    dateModified,
+    nodes: contentNodes(legacyNodes, canonical, score, legacyPage, faqs, dateModified),
   });
   const script = `${JSON_LD_MARKER}\n<script type="application/ld+json">${serializeJsonLd(graph)}</script>`;
   const withoutLegacy = html.replace(JSON_LD_SCRIPT, '');

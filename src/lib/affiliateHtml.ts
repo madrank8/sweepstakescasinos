@@ -1,6 +1,7 @@
 import { getPartner } from '../data/affiliates';
 import { getEditorialOutbound } from '../data/editorialOutbound';
-import { stampUpdatedDate } from './htmlStamp';
+import { stampReviewFreshness, stampUpdatedDate } from './htmlStamp';
+import { reviewSourceDates } from '../data/operators';
 import { injectLegalStatusBadge } from './legalStatusBadge';
 import { decorateChrome } from './pageChrome';
 import { injectReaderReports } from './readerReportsDisplay';
@@ -56,20 +57,57 @@ function shouldRenderBonusCta(
  * `placement` is a build-time-trusted label (see generate script);
  * when omitted, hrefs are left as-is.
  */
+function withRel(anchor: string, rel: string): string {
+  if (/\brel=/i.test(anchor)) {
+    return anchor.replace(/\brel=(["'])[^"']*\1/i, `rel="${rel}"`);
+  }
+  return anchor.replace(/<a\b/i, `<a rel="${rel}"`);
+}
+
+function withAttr(anchor: string, name: string, value: string): string {
+  const pattern = new RegExp(`\\b${name}=(["'])[^"']*\\1`, 'i');
+  if (pattern.test(anchor)) return anchor.replace(pattern, `${name}="${value}"`);
+  return anchor.replace(/<a\b/i, `<a ${name}="${value}"`);
+}
+
+function stampPlacement(anchor: string, placement?: string): string {
+  if (!placement) return anchor;
+  return anchor.replace(HREF_TARGET, `$1?clickId=${placement}$2`);
+}
+
 export function suppressAffiliateCtas(
   html: string,
   state: UsStateCode | null | undefined,
   placement?: string,
+  options: { crawlableDefault?: boolean } = {},
 ): string {
   return html.replace(BONUS_ANCHOR, (match, slug: string) => {
     // `/bonuses/no-deposit/` is an indexable editorial hub, not a gateway CTA.
     if (slug === 'no-deposit') return match;
-    if (!shouldRenderBonusCta(slug, state)) return NOTE;
-    const partner = getPartner(slug);
-    if (partner && placement) {
-      return match.replace(HREF_TARGET, `$1?clickId=${placement}$2`);
+    if (shouldRenderBonusCta(slug, state)) {
+      const partner = getPartner(slug);
+      let kept = withRel(match, 'sponsored nofollow noopener');
+      kept = withAttr(kept, 'data-geo-swap', '1');
+      if (partner && placement) kept = stampPlacement(kept, placement);
+      return kept;
     }
-    return match;
+    if (options.crawlableDefault && !state) {
+      const partner = getPartner(slug);
+      let kept = withRel(match, 'sponsored nofollow noopener');
+      kept = withAttr(kept, 'data-geo-swap', '1');
+      if (partner && placement) kept = stampPlacement(kept, placement);
+      return kept;
+    }
+    if (options.crawlableDefault) {
+      let fallback = match.replace(
+        /\bhref=(["'])\/bonuses\/[a-z0-9-]+\/?[^"']*\1/i,
+        'href="/bonuses/no-deposit/"',
+      );
+      fallback = withRel(fallback, 'nofollow noopener');
+      fallback = withAttr(fallback, 'data-geo-swap', 'restricted');
+      return fallback;
+    }
+    return NOTE;
   });
 }
 
@@ -104,18 +142,21 @@ export function prepareSsrAffiliateReviewHtml(
   placement?: string,
   trackerState?: StateRecord,
 ): string {
-  const withBadge = injectLegalStatusBadge(
-    prepareSsrAffiliateHtml(
-      injectOperatorFactsHtml(rawHtml, slug, { state, trackerState }),
-      state,
-      placement,
-    ),
-    {
-      state,
-      trackerState,
-      partner: getPartner(slug),
-    },
-  );
+  const facts = injectOperatorFactsHtml(rawHtml, slug, { state, trackerState });
+  const dated = stampReviewFreshness(facts, slug);
+  const chrome = decorateChrome(dated);
+  const dates = reviewSourceDates(slug);
+  const stamped = dates
+    ? stampUpdatedDate(chrome, new Date(`${dates.modifiedOn}T00:00:00Z`))
+    : stampUpdatedDate(chrome);
+  const withCtas = suppressAffiliateCtas(stamped, state, placement, {
+    crawlableDefault: true,
+  });
+  const withBadge = injectLegalStatusBadge(withCtas, {
+    state,
+    trackerState,
+    partner: getPartner(slug),
+  });
   return injectReaderReports(
     injectReviewContextualLinks(withBadge, { reviewSlug: slug, state }),
     slug,

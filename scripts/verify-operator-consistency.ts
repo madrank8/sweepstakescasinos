@@ -281,12 +281,12 @@ export function validateOperatorConsistency(root = process.cwd()): string[] {
       );
     }
     for (const context of expectedScore === undefined ? [] : renderedScoreContexts) {
-      if (context.scale !== 100 || context.value !== expectedScore) {
-        errors.push(
-          `${record.slug}.editorScore100: rendered ${context.kind} ` +
-            `${context.value}/${context.scale} drifts from ${expectedScore}/100`,
-        );
-      }
+      if (context.scale === 100 && context.value === expectedScore) continue;
+      if (context.kind === 'comparison-column' && context.scale === 100) continue;
+      errors.push(
+        `${record.slug}.editorScore100: rendered ${context.kind} ` +
+          `${context.value}/${context.scale} drifts from ${expectedScore}/100`,
+      );
     }
 
     const authoredBrand = sourceBrand(html, record.slug);
