@@ -1,0 +1,32 @@
+{
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [
+      "src/lib/operatorFactsHtml.ts",
+      "Documents/GitHub/sweepstakescasinos/src/lib/operatorFactsHtml.ts",
+      "src/lib/readerReportsDisplay.ts",
+      "Documents/GitHub/sweepstakescasinos/src/lib/readerReportsDisplay.ts"
+    ],
+    "ignoreValues": [
+      {
+        "rule": "side-tab",
+        "value": "*",
+        "files": [
+          "src/lib/operatorFactsHtml.ts"
+        ],
+        "createdAt": "2026-11-05T11:24:33.384Z",
+        "reason": "Pre-existing review fact-summary chrome; user asked to keep current site design"
+      },
+      {
+        "rule": "side-tab",
+        "value": "*",
+        "files": [
+          "Documents/GitHub/sweepstakescasinos/src/lib/operatorFactsHtml.ts",
+          "src/lib/operatorFactsHtml.ts"
+        ],
+        "createdAt": "2026-11-05T11:24:44.909Z",
+        "reason": "Pre-existing review fact-summary chrome; user asked to keep current site design"
+      }
+    ]
+  }
+}
